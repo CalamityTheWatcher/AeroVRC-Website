@@ -152,6 +152,12 @@
     return;
   }
 
+  // Only hit the GitHub API on pages that actually show a version or changelog
+  // (the home page). The welcome splash has neither, so skip the request there.
+  if (!document.querySelector("[data-version]") && !document.querySelector("[data-changelog]")) {
+    return;
+  }
+
   fetch("https://api.github.com/repos/" + REPO + "/releases?per_page=30", {
     headers: { Accept: "application/vnd.github+json" }
   })
