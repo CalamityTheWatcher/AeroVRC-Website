@@ -152,12 +152,24 @@
     return;
   }
 
-  fetch("https://api.github.com/repos/" + REPO + "/releases?per_page=5", {
+  fetch("https://api.github.com/repos/" + REPO + "/releases?per_page=30", {
     headers: { Accept: "application/vnd.github+json" }
   })
     .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
     .then(function (releases) {
       if (!Array.isArray(releases) || releases.length === 0) {
+        setVersion("No releases published yet");
+        renderChangelog([], "empty");
+        return;
+      }
+      // GitHub returns releases ordered by created_at (tag creation), which is
+      // not the same as publish order. Sort by published_at (newest first) so the
+      // most recently published build is always on top, then keep the latest 5.
+      releases = releases
+        .filter(function (rel) { return rel && !rel.draft; })
+        .sort(function (a, b) { return releaseTime(b) - releaseTime(a); })
+        .slice(0, 5);
+      if (releases.length === 0) {
         setVersion("No releases published yet");
         renderChangelog([], "empty");
         return;
@@ -209,6 +221,14 @@
       item.appendChild(top); item.appendChild(body);
       box.appendChild(item);
     });
+  }
+
+  function releaseTime(rel) {
+    // Prefer publish time; fall back to creation time so unpublished/odd
+    // releases still sort deterministically instead of jumping to the top.
+    var iso = rel.published_at || rel.created_at;
+    var t = iso ? new Date(iso).getTime() : NaN;
+    return isNaN(t) ? 0 : t;
   }
 
   function formatDate(iso) {
