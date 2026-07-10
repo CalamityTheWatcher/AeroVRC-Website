@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Features — AeroVRC</title>
+  <meta name="description" content="Everything AeroVRC does for VRChat: crash watchdog, live dashboard, companion-app launcher, statistics, VRCX integration, performance tweaks and more." />
+
+  <meta property="og:title" content="AeroVRC — Features" />
+  <meta property="og:description" content="Crash watchdog, live dashboard, companion-app launcher, VRCX integration and performance tweaks — in one app." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://aerovrc.com/features.html" />
+  <meta property="og:image" content="https://aerovrc.com/img/cs_dashboard.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://aerovrc.com/img/cs_dashboard.png" />
+
+  <link rel="canonical" href="https://aerovrc.com/features.html" />
+  <link rel="icon" href="favicon.ico" />
+  <link rel="stylesheet" href="style.css" />
+
+  <script>window.AEROVRC_REPO = "CalamityTheWatcher/AeroVRC";</script>
+</head>
+<body>
+
+  <canvas id="sparkles" aria-hidden="true"></canvas>
+
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <radialGradient id="orbGlow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#4a9cff" stop-opacity=".55" />
+        <stop offset="70%" stop-color="#4a9cff" stop-opacity="0" />
+      </radialGradient>
+      <radialGradient id="orbBody" cx="37%" cy="33%" r="75%">
+        <stop offset="0%" stop-color="#a8d0ff" />
+        <stop offset="52%" stop-color="#4a9cff" />
+        <stop offset="100%" stop-color="#1c5cc8" />
+      </radialGradient>
+      <symbol id="orb" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="49" fill="url(#orbGlow)" />
+        <circle cx="50" cy="50" r="30" fill="url(#orbBody)" stroke="#82c6ff" stroke-opacity=".65" stroke-width="1.3" />
+        <ellipse cx="41" cy="39" rx="7.5" ry="5" fill="#fff" opacity=".55" />
+        <text x="50" y="51" text-anchor="middle" dominant-baseline="central"
+              font-family="'Segoe UI Semibold','Segoe UI',sans-serif" font-weight="700" font-size="30" fill="#fff">A</text>
+      </symbol>
+    </defs>
+  </svg>
+
+  <!-- ================= NAV ================= -->
+  <header class="nav" id="top">
+    <div class="nav-inner">
+      <a class="brand" href="home.html">
+        <svg class="orb orb-sm"><use href="#orb" /></svg>
+        <span class="brand-name">AeroVRC</span>
+      </a>
+      <button class="nav-toggle" data-nav-toggle aria-label="Toggle menu" aria-expanded="false" aria-controls="navlinks">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="nav-links" id="navlinks">
+        <a href="features.html" aria-current="page">Features</a>
+        <a href="screenshots.html">Screenshots</a>
+        <a href="changelog.html">Changelog</a>
+        <a href="faq.html">FAQ</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+      <a class="btn btn-primary btn-sm nav-cta" href="download.html">Download</a>
+    </div>
+  </header>
+
+  <!-- ================= FEATURES ================= -->
+  <section class="section" id="features">
+    <div class="section-head reveal">
+      <h1>Everything, in one window</h1>
+      <p>No more juggling scripts and background tools. AeroVRC pulls your whole VRChat routine into a single app.</p>
+    </div>
+
+    <div class="grid" data-stagger>
+      <article class="feature">
+        <div class="ficon"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.4-2.9 7.9-7 9-4.1-1.1-7-4.6-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg></div>
+        <h3>Crash watchdog</h3>
+        <p>Monitors VRChat and relaunches it the moment it crashes or closes unexpectedly. One <strong>Panic — Close All</strong> button shuts everything down instantly when you&rsquo;re done.</p>
+      </article>
+
+      <article class="feature">
+        <div class="ficon"><svg viewBox="0 0 24 24"><path d="M3 13h4l2 5 4-12 2 7h6"/></svg></div>
+        <h3>Live dashboard</h3>
+        <p>See your current world and instance, a rolling frame-time graph, and a live <strong>Who&rsquo;s here</strong> roster. Copy the instance link or bookmark the world in one click.</p>
+      </article>
+
+      <article class="feature">
+        <div class="ficon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div>
+        <h3>Companion apps &amp; presets</h3>
+        <p>Add your OSC tools, trackers and utilities by <code>.exe</code> path or Steam App ID with custom icons. Tick <strong>Auto-launch</strong>, or group them into one-click presets.</p>
+      </article>
+
+      <article class="feature">
+        <div class="ficon"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></div>
+        <h3>Statistics</h3>
+        <p>Track session uptime, restart counts and how often the watchdog saved you — with goals and history so you can see your setup getting more stable over time.</p>
+      </article>
+
+      <article class="feature">
+        <div class="ficon"><svg viewBox="0 0 24 24"><path d="M9 15l6-6"/><path d="M10.5 7.5l1-1a4 4 0 015.5 5.5l-1 1"/><path d="M13.5 16.5l-1 1a4 4 0 01-5.5-5.5l1-1"/></svg></div>
+        <h3>VRCX integration</h3>
+        <p>Reads your existing VRCX data <strong>read-only</strong> so your history and friends surface right inside AeroVRC — no duplicate setup, nothing written back.</p>
+      </article>
+
+      <article class="feature">
+        <div class="ficon"><svg viewBox="0 0 24 24"><path d="M13 2L5 13h6l-1 9 8-11h-6l1-9z"/></svg></div>
+        <h3>Performance tweaks</h3>
+        <p>One-click Windows optimizations for VRChat — disable Game DVR, apply compatibility flags and more, with a plain-English explanation of what each one does.</p>
+      </article>
+
+      <article class="feature">
+        <div class="ficon"><svg viewBox="0 0 24 24"><path d="M12 3l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9 6.8 19l1-5.8L3.6 9.1l5.8-.8L12 3z"/></svg></div>
+        <h3>Bookmarks</h3>
+        <p>Star the world you&rsquo;re in from the dashboard, then rejoin it any time. Paste a vrchat.com share link, a <code>vrchat://</code> URL or a raw ID and jump straight in.</p>
+      </article>
+
+      <article class="feature">
+        <div class="ficon"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.8"/><path d="M21 17l-5-5-4 4-2-2-4 4"/></svg></div>
+        <h3>Photos</h3>
+        <p>Browse the VRChat photos you&rsquo;ve taken in a clean built-in gallery, without digging through folders.</p>
+      </article>
+
+      <article class="feature">
+        <div class="ficon"><svg viewBox="0 0 24 24"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/><circle cx="12" cy="12" r="3.2"/></svg></div>
+        <h3>One polished look</h3>
+        <p>A single, hand-styled dark theme across every page — logs, settings and all — that feels like it belongs next to VRChat, not bolted on.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- ================= COMPARE ================= -->
+  <section class="section" id="compare">
+    <div class="section-head reveal">
+      <h2>Why AeroVRC instead of scripts?</h2>
+      <p>You can rig some of this yourself with batch files, Task Scheduler and VRCX. AeroVRC does the lot in one app — no scripting required.</p>
+    </div>
+    <div class="compare reveal">
+      <div class="compare-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Capability</th>
+              <th class="col-manual">Manual setup</th>
+              <th class="col-aero">AeroVRC</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="feat">Relaunch VRChat automatically when it crashes</td>
+              <td class="col-manual"><span class="mark part" role="img" aria-label="Only with custom scripts"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></span></td>
+              <td class="col-aero"><span class="mark yes" role="img" aria-label="Yes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td>
+            </tr>
+            <tr>
+              <td class="feat">Launch all your companion apps in one click</td>
+              <td class="col-manual"><span class="mark no" role="img" aria-label="No"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></span></td>
+              <td class="col-aero"><span class="mark yes" role="img" aria-label="Yes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td>
+            </tr>
+            <tr>
+              <td class="feat">Live world, roster &amp; frame-time dashboard</td>
+              <td class="col-manual"><span class="mark part" role="img" aria-label="Partly, via VRCX"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></span></td>
+              <td class="col-aero"><span class="mark yes" role="img" aria-label="Yes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td>
+            </tr>
+            <tr>
+              <td class="feat">One-click performance tweaks, explained in plain English</td>
+              <td class="col-manual"><span class="mark no" role="img" aria-label="No"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></span></td>
+              <td class="col-aero"><span class="mark yes" role="img" aria-label="Yes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td>
+            </tr>
+            <tr>
+              <td class="feat">Session stats, goals &amp; activity heatmaps</td>
+              <td class="col-manual"><span class="mark part" role="img" aria-label="Partly, via VRCX"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></span></td>
+              <td class="col-aero"><span class="mark yes" role="img" aria-label="Yes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td>
+            </tr>
+            <tr>
+              <td class="feat">Everything in a single window</td>
+              <td class="col-manual"><span class="mark no" role="img" aria-label="No"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></span></td>
+              <td class="col-aero"><span class="mark yes" role="img" aria-label="Yes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td>
+            </tr>
+            <tr>
+              <td class="feat">Setup effort</td>
+              <td class="col-manual">Hours of scripting</td>
+              <td class="col-aero"><strong>Download &amp; run</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <p style="text-align:center;margin-top:2.4rem">
+      <a class="btn btn-primary btn-lg" href="download.html">Get AeroVRC</a>
+      <a class="btn btn-secondary btn-lg" href="screenshots.html">See the screenshots</a>
+    </p>
+  </section>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="foot-brand">
+        <svg class="orb orb-sm"><use href="#orb" /></svg>
+        <span class="brand-name">AeroVRC</span>
+      </div>
+      <p class="foot-note">An independent companion for VRChat · Not affiliated with VRChat Inc.</p>
+      <p class="foot-copy">© <span data-year>2026</span> AeroVRC · <a href="index.html">Welcome</a> · <a href="changelog.html">Changelog</a> · <a href="https://github.com/CalamityTheWatcher/AeroVRC" target="_blank" rel="noopener">GitHub</a></p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

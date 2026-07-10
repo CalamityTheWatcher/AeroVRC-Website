@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Screenshots — AeroVRC</title>
+  <meta name="description" content="Real screens from AeroVRC — the dashboard, apps, presets, statistics, settings and performance tools, in one hand-built dark theme." />
+
+  <meta property="og:title" content="AeroVRC — Screenshots" />
+  <meta property="og:description" content="Real screens from the app — dashboard, apps, presets, statistics, settings and performance." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://aerovrc.com/screenshots.html" />
+  <meta property="og:image" content="https://aerovrc.com/img/cs_dashboard.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://aerovrc.com/img/cs_dashboard.png" />
+
+  <link rel="canonical" href="https://aerovrc.com/screenshots.html" />
+  <link rel="icon" href="favicon.ico" />
+  <link rel="stylesheet" href="style.css" />
+
+  <script>window.AEROVRC_REPO = "CalamityTheWatcher/AeroVRC";</script>
+</head>
+<body>
+
+  <canvas id="sparkles" aria-hidden="true"></canvas>
+
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <radialGradient id="orbGlow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#4a9cff" stop-opacity=".55" />
+        <stop offset="70%" stop-color="#4a9cff" stop-opacity="0" />
+      </radialGradient>
+      <radialGradient id="orbBody" cx="37%" cy="33%" r="75%">
+        <stop offset="0%" stop-color="#a8d0ff" />
+        <stop offset="52%" stop-color="#4a9cff" />
+        <stop offset="100%" stop-color="#1c5cc8" />
+      </radialGradient>
+      <symbol id="orb" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="49" fill="url(#orbGlow)" />
+        <circle cx="50" cy="50" r="30" fill="url(#orbBody)" stroke="#82c6ff" stroke-opacity=".65" stroke-width="1.3" />
+        <ellipse cx="41" cy="39" rx="7.5" ry="5" fill="#fff" opacity=".55" />
+        <text x="50" y="51" text-anchor="middle" dominant-baseline="central"
+              font-family="'Segoe UI Semibold','Segoe UI',sans-serif" font-weight="700" font-size="30" fill="#fff">A</text>
+      </symbol>
+    </defs>
+  </svg>
+
+  <!-- ================= NAV ================= -->
+  <header class="nav" id="top">
+    <div class="nav-inner">
+      <a class="brand" href="home.html">
+        <svg class="orb orb-sm"><use href="#orb" /></svg>
+        <span class="brand-name">AeroVRC</span>
+      </a>
+      <button class="nav-toggle" data-nav-toggle aria-label="Toggle menu" aria-expanded="false" aria-controls="navlinks">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="nav-links" id="navlinks">
+        <a href="features.html">Features</a>
+        <a href="screenshots.html" aria-current="page">Screenshots</a>
+        <a href="changelog.html">Changelog</a>
+        <a href="faq.html">FAQ</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+      <a class="btn btn-primary btn-sm nav-cta" href="download.html">Download</a>
+    </div>
+  </header>
+
+  <!-- ================= SCREENSHOTS ================= -->
+  <section class="section" id="screens">
+    <div class="section-head reveal">
+      <h1>Take a look</h1>
+      <p>Real screens from the app — one hand-built dark theme across every page, tuned to sit right next to VRChat.</p>
+    </div>
+
+    <div class="tabs reveal" data-tabs>
+      <div class="tab-btns" role="tablist" aria-label="AeroVRC screens">
+        <button class="tab-btn is-active" id="tabbtn-dashboard" role="tab" aria-selected="true" aria-controls="tab-dashboard" data-tab-btn data-tab="dashboard">Dashboard</button>
+        <button class="tab-btn" id="tabbtn-apps" role="tab" aria-selected="false" tabindex="-1" aria-controls="tab-apps" data-tab-btn data-tab="apps">Apps</button>
+        <button class="tab-btn" id="tabbtn-presets" role="tab" aria-selected="false" tabindex="-1" aria-controls="tab-presets" data-tab-btn data-tab="presets">Presets</button>
+        <button class="tab-btn" id="tabbtn-stats" role="tab" aria-selected="false" tabindex="-1" aria-controls="tab-stats" data-tab-btn data-tab="stats">Statistics</button>
+        <button class="tab-btn" id="tabbtn-settings" role="tab" aria-selected="false" tabindex="-1" aria-controls="tab-settings" data-tab-btn data-tab="settings">Settings</button>
+        <button class="tab-btn" id="tabbtn-perf" role="tab" aria-selected="false" tabindex="-1" aria-controls="tab-perf" data-tab-btn data-tab="perf">Performance</button>
+      </div>
+      <div class="tab-panels">
+        <div class="tab-panel is-active" id="tab-dashboard" role="tabpanel" aria-labelledby="tabbtn-dashboard" data-tab-panel="dashboard">
+          <figure class="shot-frame">
+            <img src="img/cs_dashboard_full.png" width="1120" height="1460" loading="lazy" decoding="async"
+                 alt="The full AeroVRC dashboard: session and performance stat cards with sparklines, a real frame-time graph with 60 and 90 FPS reference lines, system info, and the who's-here roster." />
+          </figure>
+          <p class="tab-cap"><strong>The dashboard.</strong> Current world and instance, live session stats, a rolling frame-time graph, hardware readouts and a live who&rsquo;s-here roster — one screen, always up to date.</p>
+        </div>
+        <div class="tab-panel" id="tab-apps" role="tabpanel" aria-labelledby="tabbtn-apps" data-tab-panel="apps">
+          <figure class="shot-frame">
+            <img src="img/cs_apps.png" width="1120" height="680" loading="lazy" decoding="async"
+                 alt="The Apps page listing companion apps — SlimeVR (auto-launch on) and Virtual Desktop — each with Launch, Auto-launch, Edit and Remove controls." />
+          </figure>
+          <p class="tab-cap"><strong>Apps.</strong> Add your OSC tools, trackers and utilities by <code>.exe</code> path or Steam App ID, then let AeroVRC open them the moment monitoring starts.</p>
+        </div>
+        <div class="tab-panel" id="tab-presets" role="tabpanel" aria-labelledby="tabbtn-presets" data-tab-panel="presets">
+          <figure class="shot-frame">
+            <img src="img/cs_presets.png" width="1120" height="680" loading="lazy" decoding="async"
+                 alt="The Presets page showing a 'Full Body VR' preset with Auto-launch enabled and Launch, Edit and Delete controls." />
+          </figure>
+          <p class="tab-cap"><strong>Presets.</strong> Group your apps into one-click sets — tick Auto-launch to open a whole preset the moment monitoring begins.</p>
+        </div>
+        <div class="tab-panel" id="tab-stats" role="tabpanel" aria-labelledby="tabbtn-stats" data-tab-panel="stats">
+          <figure class="shot-frame">
+            <img src="img/cs_statistics.png" width="1120" height="680" loading="lazy" decoding="async"
+                 alt="The Statistics page with a 7-day playtime bar chart, a 17-week activity heatmap, and cards for total playtime, longest session, sessions recorded and restarts." />
+          </figure>
+          <p class="tab-cap"><strong>Statistics.</strong> Playtime charts, an activity heatmap, session lengths and restart counts — with daily and weekly goals, so you can watch the watchdog earn its keep.</p>
+        </div>
+        <div class="tab-panel" id="tab-settings" role="tabpanel" aria-labelledby="tabbtn-settings" data-tab-panel="settings">
+          <figure class="shot-frame">
+            <img src="img/cs_settings.png" width="1120" height="680" loading="lazy" decoding="async"
+                 alt="The Settings page on the Alerts tab, with tabs for Appearance, Automation, Bedtime/Sleep, Hardware Monitoring, Integrations, Performance, Player Watchlist, Scheduled Launch, World Block List and Worlds." />
+          </figure>
+          <p class="tab-cap"><strong>Settings.</strong> Deep, friendly controls — crash and break alerts, automation, hardware monitoring, integrations, bedtime/sleep, watchlists and more.</p>
+        </div>
+        <div class="tab-panel" id="tab-perf" role="tabpanel" aria-labelledby="tabbtn-perf" data-tab-panel="perf">
+          <figure class="shot-frame">
+            <img src="img/cs_settings_perf.png" width="1120" height="680" loading="lazy" decoding="async"
+                 alt="The Settings Performance tab showing Performance Mode (apps to close on toggle) and VRChat Cache controls for max size, expiry and cache folder." />
+          </figure>
+          <p class="tab-cap"><strong>Performance.</strong> One toggle frees up resources for VRChat by closing the apps you list — then reopens them afterwards — plus VRChat cache management.</p>
+        </div>
+      </div>
+    </div>
+
+    <p style="text-align:center;margin-top:2.6rem">
+      <a class="btn btn-primary btn-lg" href="download.html">Download AeroVRC</a>
+    </p>
+  </section>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="foot-brand">
+        <svg class="orb orb-sm"><use href="#orb" /></svg>
+        <span class="brand-name">AeroVRC</span>
+      </div>
+      <p class="foot-note">An independent companion for VRChat · Not affiliated with VRChat Inc.</p>
+      <p class="foot-copy">© <span data-year>2026</span> AeroVRC · <a href="index.html">Welcome</a> · <a href="changelog.html">Changelog</a> · <a href="https://github.com/CalamityTheWatcher/AeroVRC" target="_blank" rel="noopener">GitHub</a></p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
