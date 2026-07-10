@@ -197,10 +197,10 @@
   // MAINTENANCE MODE: point any download button at the maintenance notice and block
   // the click so the tool can't be fetched. (Restore the original one-liner to re-enable.)
   document.querySelectorAll("[data-download]").forEach(function (a) {
-    a.setAttribute("href", "maintenance.html");
+    a.setAttribute("href", "/");
     a.removeAttribute("download");
     a.removeAttribute("target");
-    a.addEventListener("click", function (e) { e.preventDefault(); window.location.replace("maintenance.html"); });
+    a.addEventListener("click", function (e) { e.preventDefault(); window.location.replace("/"); });
   });
 
   function setVersion(text) {
