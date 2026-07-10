@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <title>AeroVRC — Down for maintenance</title>
+  <meta name="description" content="AeroVRC is temporarily down for maintenance. Please check back soon." />
+  <link rel="icon" href="favicon.ico" />
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Splash-only layout: full-height centred notice over the shared backdrop -->
+  <style>
+    .welcome{
+      min-height:100vh;min-height:100svh;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      text-align:center;padding:2.5rem 1.25rem;
+    }
+    .welcome-inner{max-width:660px;display:flex;flex-direction:column;align-items:center}
+    .welcome-orb{position:relative;display:flex;align-items:center;justify-content:center;margin-bottom:1.7rem}
+    .welcome-orb .orb{width:112px;height:112px}
+    .welcome-orb .orb-halo{left:50%;top:50%;margin:-130px 0 0 -130px}
+    .welcome h1{font-size:clamp(2rem,5.6vw,3.4rem);font-weight:700;letter-spacing:-.5px;margin-top:.3rem}
+    .welcome .lead{margin:1.15rem auto 1.9rem}
+    .maint-contact{margin:.2rem auto 0;font-size:1.02rem;color:var(--muted)}
+    .email-copy{font:inherit;color:var(--accent-hi);font-weight:600;background:none;border:0;padding:0;cursor:pointer;word-break:break-all;transition:color .15s ease}
+    .email-copy:hover{text-decoration:underline}
+    .email-copy.copied{color:#ffcf4a;text-decoration:none}
+    .welcome-foot{color:var(--muted);font-size:.85rem;margin-top:2.6rem}
+    /* Maintenance status: yellow dot (fill + pulse ring + glow), not the default green */
+    .pill-dot{background:#ffcf4a;--success:#ffcf4a;animation-name:pulseDotYellow}
+    @keyframes pulseDotYellow{
+      0%,100%{box-shadow:0 0 0 0 rgba(255,207,74,.55),0 0 10px #ffcf4a}
+      55%{box-shadow:0 0 0 6px rgba(255,207,74,0),0 0 10px #ffcf4a}
+    }
+    @media (max-width:560px){ .welcome-orb .orb{width:92px;height:92px} }
+  </style>
+</head>
+<body>
+
+  <!-- ===== animated sparkle backdrop (the app's signature look) ===== -->
+  <canvas id="sparkles" aria-hidden="true"></canvas>
+
+  <!-- ===== reusable orb "A" logo (matches the app's drawn nav logo) ===== -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <radialGradient id="orbGlow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#4a9cff" stop-opacity=".55" />
+        <stop offset="70%" stop-color="#4a9cff" stop-opacity="0" />
+      </radialGradient>
+      <radialGradient id="orbBody" cx="37%" cy="33%" r="75%">
+        <stop offset="0%" stop-color="#a8d0ff" />
+        <stop offset="52%" stop-color="#4a9cff" />
+        <stop offset="100%" stop-color="#1c5cc8" />
+      </radialGradient>
+      <symbol id="orb" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="49" fill="url(#orbGlow)" />
+        <circle cx="50" cy="50" r="30" fill="url(#orbBody)" stroke="#82c6ff" stroke-opacity=".65" stroke-width="1.3" />
+        <ellipse cx="41" cy="39" rx="7.5" ry="5" fill="#fff" opacity=".55" />
+        <text x="50" y="51" text-anchor="middle" dominant-baseline="central"
+              font-family="'Segoe UI Semibold','Segoe UI',sans-serif" font-weight="700" font-size="30" fill="#fff">A</text>
+      </symbol>
+    </defs>
+  </svg>
+
+  <!-- ================= MAINTENANCE NOTICE ================= -->
+  <main class="welcome">
+    <div class="welcome-inner" data-stagger>
+      <div class="welcome-orb">
+        <div class="orb-halo" aria-hidden="true"></div>
+        <svg class="orb"><use href="#orb" /></svg>
+      </div>
+      <span class="pill"><span class="pill-dot"></span> Status · Maintenance</span>
+      <h1>AeroVRC is currently down for <span class="grad">maintenance</span></h1>
+      <p class="lead">
+        We&rsquo;re making some improvements behind the scenes. The site and downloads are
+        temporarily unavailable &mdash; please check back soon.
+      </p>
+      <p class="maint-contact">
+        Have any questions, or need to reach out?<br />
+        Contact me below:<br />
+        Email: <button type="button" class="email-copy" data-copy="ajordan120906@gmail.com" title="Click to copy">ajordan120906@gmail.com</button><br />
+        Discord: <button type="button" class="email-copy" data-copy="calamity2706" title="Click to copy">calamity2706</button>
+      </p>
+      <p class="welcome-foot">Thanks for your patience. &mdash; AeroVRC</p>
+    </div>
+  </main>
+
+  <script src="app.js"></script>
+  <script>
+    // Contact chips: copy their value to the clipboard on click (no links).
+    (function () {
+      document.querySelectorAll(".email-copy").forEach(function (btn) {
+        var label = btn.textContent;
+        function flash() {
+          btn.textContent = "Copied to clipboard!";
+          btn.classList.add("copied");
+          setTimeout(function () { btn.textContent = label; btn.classList.remove("copied"); }, 1600);
+        }
+        function legacyCopy(text) {
+          try {
+            var t = document.createElement("textarea");
+            t.value = text; t.style.position = "fixed"; t.style.opacity = "0";
+            document.body.appendChild(t); t.focus(); t.select();
+            document.execCommand("copy"); document.body.removeChild(t); flash();
+          } catch (e) {}
+        }
+        btn.addEventListener("click", function () {
+          var text = btn.getAttribute("data-copy");
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(flash, function () { legacyCopy(text); });
+          } else { legacyCopy(text); }
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
