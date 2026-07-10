@@ -2,117 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <!-- ===== MAINTENANCE MODE: site locked. Delete this block (and restore app.js) to bring the site back. ===== -->
-  <script>location.replace("maintenance.html");</script>
-  <noscript><meta http-equiv="refresh" content="0; url=maintenance.html" /></noscript>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Welcome to AeroVRC — The all-in-one companion for VRChat</title>
-  <meta name="description" content="AeroVRC keeps VRChat running, launches your companion apps, and gives you a live dashboard, VRCX integration, and one-click performance tweaks — free for Windows." />
-
-  <meta property="og:title" content="AeroVRC — The all-in-one companion for VRChat" />
-  <meta property="og:description" content="Crash watchdog, live dashboard, companion-app launcher, VRCX integration and performance tweaks. Free for Windows 10 & 11." />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://aerovrc.com/" />
-  <meta property="og:image" content="https://aerovrc.com/img/cs_dashboard.png" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:image" content="https://aerovrc.com/img/cs_dashboard.png" />
-
-  <link rel="canonical" href="https://aerovrc.com/" />
-  <link rel="icon" href="favicon.ico" />
-  <link rel="stylesheet" href="style.css" />
-
-  <!-- =====================================================================
-       CONFIG  —  set your GitHub repo here as  "username/repo"
-       The download button reads its latest-release URL from this one line.
-       ===================================================================== -->
-  <script>window.AEROVRC_REPO = "CalamityTheWatcher/AeroVRC";</script>
-
-  <!-- Splash-only layout: full-height centred welcome over the shared backdrop -->
-  <style>
-    .welcome{
-      min-height:100vh;min-height:100svh;
-      display:flex;flex-direction:column;align-items:center;justify-content:center;
-      text-align:center;padding:2.5rem 1.25rem;
-    }
-    .welcome-inner{max-width:760px;display:flex;flex-direction:column;align-items:center}
-    .welcome-orb{position:relative;display:flex;align-items:center;justify-content:center;
-      margin-bottom:1.7rem}
-    .welcome-orb .orb{width:118px;height:118px}
-    /* centre the shared breathing halo behind the orb (260×260) */
-    .welcome-orb .orb-halo{left:50%;top:50%;margin:-130px 0 0 -130px}
-    .welcome h1{font-size:clamp(2.4rem,6vw,4rem);font-weight:700;letter-spacing:-.5px;margin-top:.3rem}
-    .welcome .lead{margin:1.2rem auto 2.1rem}
-    .welcome .hero-cta{margin-bottom:.4rem}
-    .welcome-foot{color:var(--muted);font-size:.85rem;margin-top:2.6rem}
-    .welcome-foot a{color:var(--accent-hi)}
-    .welcome-foot a:hover{text-decoration:underline}
-    @media (max-width:560px){ .welcome-orb .orb{width:96px;height:96px} }
-  </style>
+  <meta name="robots" content="noindex" />
+  <title>AeroVRC — Down for maintenance</title>
+  <link rel="canonical" href="https://aerovrc.com/maintenance.html" />
+  <!-- Welcome splash removed while the site is under maintenance: send the root
+       straight to the maintenance notice. (Original welcome is in git history.) -->
+  <script>location.replace("maintenance.html");</script>
+  <meta http-equiv="refresh" content="0; url=maintenance.html" />
 </head>
-<body>
-
-  <!-- ===== animated sparkle backdrop (the app's signature look) ===== -->
-  <canvas id="sparkles" aria-hidden="true"></canvas>
-
-  <!-- ===== reusable orb "A" logo (matches the app's drawn nav logo) ===== -->
-  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-    <defs>
-      <radialGradient id="orbGlow" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stop-color="#4a9cff" stop-opacity=".55" />
-        <stop offset="70%" stop-color="#4a9cff" stop-opacity="0" />
-      </radialGradient>
-      <radialGradient id="orbBody" cx="37%" cy="33%" r="75%">
-        <stop offset="0%" stop-color="#a8d0ff" />
-        <stop offset="52%" stop-color="#4a9cff" />
-        <stop offset="100%" stop-color="#1c5cc8" />
-      </radialGradient>
-      <symbol id="orb" viewBox="0 0 100 100">
-        <circle cx="50" cy="50" r="49" fill="url(#orbGlow)" />
-        <circle cx="50" cy="50" r="30" fill="url(#orbBody)" stroke="#82c6ff" stroke-opacity=".65" stroke-width="1.3" />
-        <ellipse cx="41" cy="39" rx="7.5" ry="5" fill="#fff" opacity=".55" />
-        <text x="50" y="51" text-anchor="middle" dominant-baseline="central"
-              font-family="'Segoe UI Semibold','Segoe UI',sans-serif" font-weight="700" font-size="30" fill="#fff">A</text>
-      </symbol>
-    </defs>
-  </svg>
-
-  <!-- ================= WELCOME ================= -->
-  <main class="welcome">
-    <div class="welcome-inner" data-stagger>
-      <a class="whatsnew" data-latest href="changelog.html">
-        <span class="spark" aria-hidden="true"></span>
-        What&rsquo;s new in <span data-latest-tag>the latest release</span>
-        <span class="whatsnew-arrow" aria-hidden="true">→</span>
-      </a>
-      <div class="welcome-orb">
-        <div class="orb-halo" aria-hidden="true"></div>
-        <svg class="orb"><use href="#orb" /></svg>
-      </div>
-      <span class="pill"><span class="pill-dot"></span> Free · Windows 10 &amp; 11 · Portable</span>
-      <h1>Welcome to <span class="grad">AeroVRC</span></h1>
-      <p class="lead">
-        Your VRChat sessions, looked after. AeroVRC keeps the game running, launches your
-        companion apps, and shows you a live dashboard of your world, your frame times, and
-        who&rsquo;s in the instance — all in one clean, free app.
-      </p>
-      <div class="hero-cta">
-        <a class="btn btn-primary btn-lg" href="home.html">
-          Enter the site
-          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M13.3 5.3a1 1 0 0 1 1.4 0l6 6a1 1 0 0 1 0 1.4l-6 6a1 1 0 0 1-1.4-1.4l4.29-4.3H4a1 1 0 1 1 0-2h13.59l-4.3-4.3a1 1 0 0 1 0-1.4Z"/></svg>
-        </a>
-        <a class="btn btn-secondary btn-lg" data-download href="download.html">
-          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 3a1 1 0 0 1 1 1v9.6l3.3-3.3a1 1 0 0 1 1.4 1.4l-5 5a1 1 0 0 1-1.4 0l-5-5a1 1 0 0 1 1.4-1.4l3.3 3.3V4a1 1 0 0 1 1-1Zm-7 15a1 1 0 0 1 1 1v1h12v-1a1 1 0 1 1 2 0v2a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-2a1 1 0 0 1 1-1Z"/></svg>
-          Download for Windows
-        </a>
-      </div>
-      <p class="welcome-foot">
-        Portable <code>.exe</code> — no installer, no admin required to run.
-        <br />
-        Prefer to browse first? <a href="home.html">Explore features, screenshots &amp; updates →</a>
-      </p>
-    </div>
-  </main>
-
-  <script src="app.js"></script>
-</body>
+<body></body>
 </html>
