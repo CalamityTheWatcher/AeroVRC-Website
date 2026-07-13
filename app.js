@@ -185,15 +185,22 @@
   var REPO = (window.AEROVRC_REPO || "").trim();
   var configured = REPO && REPO.indexOf("YOUR_GITHUB_USERNAME") === -1;
   var ASSET = "AeroVRC.exe";
-  var downloadURL = configured ? "https://github.com/" + REPO + "/releases/latest/download/" + ASSET : null;
+  // MAINTENANCE MODE: never compute the real release URL — downloads are disabled.
+  // To restore: put back  var downloadURL = configured ? "https://github.com/" + REPO + "/releases/latest/download/" + ASSET : null;
+  var downloadURL = null;
   var releasesPage = configured ? "https://github.com/" + REPO + "/releases" : null;
 
   document.querySelectorAll("[data-year]").forEach(function (el) {
     el.textContent = new Date().getFullYear();
   });
 
+  // MAINTENANCE MODE: point any download button at the maintenance notice and block
+  // the click so the tool can't be fetched. (Restore the original one-liner to re-enable.)
   document.querySelectorAll("[data-download]").forEach(function (a) {
-    a.setAttribute("href", downloadURL || "#download");
+    a.setAttribute("href", "/");
+    a.removeAttribute("download");
+    a.removeAttribute("target");
+    a.addEventListener("click", function (e) { e.preventDefault(); window.location.replace("/"); });
   });
 
   function setVersion(text) {
