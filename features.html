@@ -2,9 +2,6 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <!-- ===== MAINTENANCE MODE: site locked. Delete this block (and restore app.js) to bring the site back. ===== -->
-  <script>location.replace("/");</script>
-  <noscript><meta http-equiv="refresh" content="0; url=/" /></noscript>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Features — AeroVRC</title>
   <meta name="description" content="Everything AeroVRC does for VRChat: crash watchdog, live dashboard, companion-app launcher, statistics, VRCX integration, performance tweaks and more." />
@@ -22,6 +19,28 @@
   <link rel="stylesheet" href="style.css" />
 
   <script>window.AEROVRC_REPO = "CalamityTheWatcher/AeroVRC";</script>
+
+  <style>
+    /* See it in action — crossfading screenshot showcase */
+    .showcase{max-width:1000px;margin:0 auto;}
+    .showcase-frame{position:relative;aspect-ratio:1120/680;border-radius:16px;overflow:hidden;border:1px solid rgba(130,180,255,.18);box-shadow:0 24px 60px rgba(0,0,0,.45);background:#0c0e1e;}
+    .showcase-frame .shot{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top center;opacity:0;transition:opacity .8s ease;}
+    .showcase-frame .shot.active{opacity:1;}
+    .showcase-cap{text-align:center;color:var(--muted);margin:1rem auto 0;min-height:1.4em;max-width:62ch;}
+    .showcase-dots{display:flex;gap:.5rem;justify-content:center;margin-top:.9rem;}
+    .showcase-dots button{width:9px;height:9px;border-radius:50%;border:0;padding:0;cursor:pointer;background:rgba(130,180,255,.28);transition:background .2s,transform .2s;}
+    .showcase-dots button.on{background:#4a9cff;transform:scale(1.25);}
+    /* Feature deep-dives */
+    .deepdive{max-width:1000px;margin:0 auto;display:flex;flex-direction:column;gap:2.6rem;}
+    .dd-row{display:grid;grid-template-columns:1.05fr 1fr;gap:2rem;align-items:center;}
+    .dd-media{border-radius:14px;overflow:hidden;border:1px solid rgba(130,180,255,.16);box-shadow:0 16px 40px rgba(0,0,0,.4);}
+    .dd-media img{display:block;width:100%;height:auto;}
+    .dd-body h3{font-size:1.35rem;margin:.2rem 0 .6rem;display:flex;align-items:center;gap:.6rem;}
+    .dd-body p{color:var(--muted);margin:.5rem 0;}
+    .dd-tag{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;font-weight:700;color:#82c6ff;background:rgba(74,156,255,.14);border-radius:5px;padding:2px 8px;}
+    @media (min-width:761px){ .dd-row.flip .dd-media{order:2;} }
+    @media (max-width:760px){ .dd-row{grid-template-columns:1fr;} }
+  </style>
 </head>
 <body>
 
@@ -61,6 +80,7 @@
       <nav class="nav-links" id="navlinks">
         <a href="features.html" aria-current="page">Features</a>
         <a href="screenshots.html">Screenshots</a>
+        <a href="quickstart.html">Quick Start</a>
         <a href="changelog.html">Changelog</a>
         <a href="faq.html">FAQ</a>
         <a href="contact.html">Contact</a>
@@ -130,6 +150,77 @@
         <h3>One polished look</h3>
         <p>A single, hand-styled dark theme across every page — logs, settings and all — that feels like it belongs next to VRChat, not bolted on.</p>
       </article>
+    </div>
+  </section>
+
+  <!-- ================= SEE IT IN ACTION ================= -->
+  <section class="section" id="in-action">
+    <div class="section-head reveal">
+      <h2>See it in action</h2>
+      <p>A rolling look at the app while it&rsquo;s running — dashboard, performance tools, stats and more.</p>
+    </div>
+    <div class="showcase reveal">
+      <div class="showcase-frame" data-showcase>
+        <!-- Swap any <img> below for a <video> or animated .gif once you have a recording. -->
+        <img class="shot active" src="img/cs_dashboard.png" width="1120" height="680" alt="AeroVRC dashboard while monitoring a live VRChat session." data-cap="Live dashboard — world, roster, frame-times and session stats update as you play." />
+        <img class="shot" src="img/cs_settings_perf.png" width="1120" height="680" loading="lazy" alt="AeroVRC performance settings." data-cap="Performance tweaks — each Windows optimization explained in plain English before you apply it." />
+        <img class="shot" src="img/cs_statistics.png" width="1120" height="680" loading="lazy" alt="AeroVRC statistics page." data-cap="Statistics — playtime, streaks, activity heatmaps and how often the watchdog saved you." />
+        <img class="shot" src="img/cs_cache.png" width="1120" height="680" loading="lazy" alt="AeroVRC cache tab." data-cap="Cache — clear content &amp; texture cache on a timer, with a live countdown." />
+        <img class="shot" src="img/cs_apps.png" width="1120" height="680" loading="lazy" alt="AeroVRC apps page." data-cap="Companion apps &amp; presets — auto-launch your whole rig alongside VRChat." />
+      </div>
+      <p class="showcase-cap" data-showcase-cap>Live dashboard — world, roster, frame-times and session stats update as you play.</p>
+      <div class="showcase-dots" data-showcase-dots></div>
+    </div>
+  </section>
+
+  <!-- ================= DEEP DIVE ================= -->
+  <section class="section" id="deep-dive">
+    <div class="section-head reveal">
+      <h2>A closer look</h2>
+      <p>The pieces people rely on most, in a bit more detail.</p>
+    </div>
+    <div class="deepdive">
+      <div class="dd-row reveal">
+        <div class="dd-media"><img src="img/cs_dashboard.png" width="1120" height="680" loading="lazy" alt="AeroVRC dashboard while monitoring VRChat." /></div>
+        <div class="dd-body">
+          <h3>Crash watchdog</h3>
+          <p>AeroVRC keeps an eye on VRChat and brings it straight back when it crashes, freezes or closes
+          unexpectedly — with freeze detection, crash-loop protection so it never loops forever, and an optional
+          <strong>rejoin-on-restart</strong> that drops you back into the instance you were in.</p>
+          <p>Done for the night? One <strong>Panic — Close All</strong> button shuts VRChat and your companion apps
+          down instantly.</p>
+        </div>
+      </div>
+      <div class="dd-row flip reveal">
+        <div class="dd-media"><img src="img/cs_settings_perf.png" width="1120" height="680" loading="lazy" alt="AeroVRC performance settings page." /></div>
+        <div class="dd-body">
+          <h3>Performance &amp; game tweaks</h3>
+          <p><strong>Performance Mode</strong> frees up resources by closing the background apps you list while you
+          play, then reopens them afterwards. Per-world profiles let heavy club and event worlds get their own
+          settings automatically.</p>
+          <p>One-click Windows optimizations — disabling Game DVR, compatibility flags and more — are each explained
+          in plain English before you apply them, and they&rsquo;re all standard, reversible options.</p>
+        </div>
+      </div>
+      <div class="dd-row reveal">
+        <div class="dd-media"><img src="img/cs_vrcx.png" width="1120" height="680" loading="lazy" alt="AeroVRC VRCX integration page." /></div>
+        <div class="dd-body">
+          <h3>VRCX integration</h3>
+          <p>Already use VRCX? AeroVRC reads its database <strong>read-only</strong> so your friends, the people
+          you&rsquo;ve met and the worlds you&rsquo;ve visited show up right inside the app — no duplicate setup, and
+          nothing is ever written back to VRCX.</p>
+        </div>
+      </div>
+      <div class="dd-row flip reveal">
+        <div class="dd-media"><img src="img/cs_cache.png" width="1120" height="680" loading="lazy" alt="AeroVRC cache tab with a clear timer." /></div>
+        <div class="dd-body">
+          <h3>Cache control <span class="dd-tag">New</span></h3>
+          <p>Clear VRChat&rsquo;s content and texture cache on your own schedule — pick an interval in hours or days
+          and watch the live countdown to the next clear. A heads-up appears ten minutes before it runs.</p>
+          <p>When a clear is due while you&rsquo;re in-game, AeroVRC restarts VRChat and rejoins your current instance
+          automatically, so a fresh cache never costs you your spot.</p>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -203,10 +294,44 @@
         <span class="brand-name">AeroVRC</span>
       </div>
       <p class="foot-note">An independent companion for VRChat · Not affiliated with VRChat Inc.</p>
-      <p class="foot-copy">© <span data-year>2026</span> AeroVRC · <a href="index.html">Welcome</a> · <a href="changelog.html">Changelog</a> · <a href="https://github.com/CalamityTheWatcher/AeroVRC" target="_blank" rel="noopener">GitHub</a></p>
+      <p class="foot-copy">© <span data-year>2026</span> AeroVRC · <a href="index.html">Welcome</a> · <a href="quickstart.html">Quick Start</a> · <a href="privacy.html">Privacy</a> · <a href="changelog.html">Changelog</a> · <a href="https://github.com/CalamityTheWatcher/AeroVRC" target="_blank" rel="noopener">GitHub</a></p>
     </div>
   </footer>
 
   <script src="app.js"></script>
+  <script>
+    // "See it in action" — crossfade through the screenshots (pauses on hover; respects reduced-motion).
+    (function () {
+      var box = document.querySelector('[data-showcase]');
+      if (!box) return;
+      var shots = Array.prototype.slice.call(box.querySelectorAll('.shot'));
+      var cap = document.querySelector('[data-showcase-cap]');
+      var dotsWrap = document.querySelector('[data-showcase-dots]');
+      if (shots.length < 2) return;
+      var i = 0, timer = null;
+      var dots = shots.map(function (s, n) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.setAttribute('aria-label', 'Show screenshot ' + (n + 1));
+        b.addEventListener('click', function () { show(n); restart(); });
+        dotsWrap.appendChild(b);
+        return b;
+      });
+      function show(n) {
+        shots[i].classList.remove('active'); dots[i].classList.remove('on');
+        i = (n + shots.length) % shots.length;
+        shots[i].classList.add('active'); dots[i].classList.add('on');
+        if (cap) cap.textContent = shots[i].getAttribute('data-cap') || '';
+      }
+      function restart() { if (timer) clearInterval(timer); timer = setInterval(function () { show(i + 1); }, 3800); }
+      show(0);
+      var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (!reduce) {
+        restart();
+        box.addEventListener('mouseenter', function () { if (timer) clearInterval(timer); });
+        box.addEventListener('mouseleave', restart);
+      }
+    })();
+  </script>
 </body>
 </html>
