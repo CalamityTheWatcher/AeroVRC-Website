@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
+  <!-- ===== MAINTENANCE MODE: site locked. Delete this block (and restore app.js) to bring the site back. ===== -->
+  <script>location.replace("/");</script>
+  <noscript><meta http-equiv="refresh" content="0; url=/" /></noscript>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>FAQ — AeroVRC</title>
   <meta name="description" content="Common questions about AeroVRC — is it safe, does it cost anything, why Windows warns about it, and how it works with VRChat and VRCX." />
@@ -58,7 +61,6 @@
       <nav class="nav-links" id="navlinks">
         <a href="features.html">Features</a>
         <a href="screenshots.html">Screenshots</a>
-        <a href="quickstart.html">Quick Start</a>
         <a href="changelog.html">Changelog</a>
         <a href="faq.html" aria-current="page">FAQ</a>
         <a href="contact.html">Contact</a>
@@ -80,15 +82,6 @@
         normally, watches whether the process is running, and reads VRChat&rsquo;s own local log files to
         show your current world and who&rsquo;s in the instance — the same public information the game already
         writes to disk. Your VRCX data is read <strong>read-only</strong>.</p>
-      </details>
-      <details>
-        <summary>Will this get me banned by EAC / VRChat?</summary>
-        <p>No. AeroVRC runs entirely <em>outside</em> the game — it doesn&rsquo;t inject, hook, read game memory or
-        automate anything in VRChat. It only launches VRChat, watches whether the process is running, reads the
-        public log files, and manages your own companion apps and Windows settings. In fact VRChat&rsquo;s anti-cheat
-        (EasyAntiCheat) actively blocks outside programs from touching the game&rsquo;s process — so strictly that
-        AeroVRC can&rsquo;t even change VRChat&rsquo;s CPU priority while EAC is running. Nothing it does is the kind of
-        thing anti-cheat bans for.</p>
       </details>
       <details>
         <summary>Does it cost anything?</summary>
@@ -116,17 +109,6 @@
         <p>No. AeroVRC is an independent, unofficial companion tool. VRChat is a trademark of VRChat Inc.,
         and AeroVRC is not endorsed by or associated with them.</p>
       </details>
-      <details>
-        <summary>How do I get started?</summary>
-        <p>Download the portable <code>.exe</code>, run it, and click <strong>Start Monitoring</strong>. The full
-        two-minute walkthrough — including adding your companion apps — is on the
-        <a href="quickstart.html">Quick Start</a> page.</p>
-      </details>
-      <details>
-        <summary>What data does AeroVRC collect?</summary>
-        <p>None that leaves your PC. There&rsquo;s no account, no telemetry and no tracking — everything is read
-        locally and read-only. The full breakdown is on the <a href="privacy.html">privacy page</a>.</p>
-      </details>
     </div>
   </section>
 
@@ -138,7 +120,7 @@
         <span class="brand-name">AeroVRC</span>
       </div>
       <p class="foot-note">An independent companion for VRChat · Not affiliated with VRChat Inc.</p>
-      <p class="foot-copy">© <span data-year>2026</span> AeroVRC · <a href="index.html">Welcome</a> · <a href="quickstart.html">Quick Start</a> · <a href="privacy.html">Privacy</a> · <a href="changelog.html">Changelog</a> · <a href="https://github.com/CalamityTheWatcher/AeroVRC" target="_blank" rel="noopener">GitHub</a></p>
+      <p class="foot-copy">© <span data-year>2026</span> AeroVRC · <a href="index.html">Welcome</a> · <a href="changelog.html">Changelog</a> · <a href="https://github.com/CalamityTheWatcher/AeroVRC" target="_blank" rel="noopener">GitHub</a></p>
     </div>
   </footer>
 

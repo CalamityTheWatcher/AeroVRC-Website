@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
+  <!-- ===== MAINTENANCE MODE: site locked. Delete this block (and restore app.js) to bring the site back. ===== -->
+  <script>location.replace("/");</script>
+  <noscript><meta http-equiv="refresh" content="0; url=/" /></noscript>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Download — AeroVRC</title>
   <meta name="description" content="Download AeroVRC free for Windows 10 & 11. Portable single .exe — no installer, no admin required. See system requirements and how updates work." />
@@ -19,17 +22,6 @@
   <link rel="stylesheet" href="style.css" />
 
   <script>window.AEROVRC_REPO = "CalamityTheWatcher/AeroVRC";</script>
-
-  <style>
-    .safety{margin-top:1.6rem;text-align:left;}
-    .safety h4{margin:0 0 .5rem;}
-    .safety p{margin:.5rem 0;color:var(--muted);}
-    .safety ul{margin:.4rem 0 0;padding-left:1.2rem;color:var(--muted);}
-    .safety li{margin:.4rem 0;}
-    .safety a{color:var(--accent-hi);}
-    .safety a:hover{text-decoration:underline;}
-    .cmd{display:inline-block;font-family:Consolas,monospace;font-size:.86em;background:rgba(255,255,255,.06);border:1px solid rgba(130,180,255,.18);border-radius:6px;padding:2px 7px;}
-  </style>
 </head>
 <body>
 
@@ -69,7 +61,6 @@
       <nav class="nav-links" id="navlinks">
         <a href="features.html">Features</a>
         <a href="screenshots.html">Screenshots</a>
-        <a href="quickstart.html">Quick Start</a>
         <a href="changelog.html">Changelog</a>
         <a href="faq.html">FAQ</a>
         <a href="contact.html">Contact</a>
@@ -96,24 +87,10 @@
         <span class="dot" data-downloads-wrap hidden>·</span>
         <span data-downloads-wrap hidden><span class="dl-downloads" data-downloads>0</span> downloads</span>
       </div>
-      <div class="safety" id="safety">
-        <h4>Is it safe?</h4>
-        <p>Short answer: yes. AeroVRC doesn&rsquo;t modify VRChat, inject code, or automate the game — it watches
-        the process and reads VRChat&rsquo;s own local logs. It&rsquo;s not a mod or a cheat. See the
-        <a href="privacy.html">privacy page</a> for exactly what it reads and sends.</p>
-        <p><strong>Why Windows warns you:</strong> the app isn&rsquo;t code-signed (certificates are costly for a
-        free tool), so SmartScreen shows a generic &ldquo;unrecognized app&rdquo; prompt the first time. Click
-        <em>More info → Run anyway</em>.</p>
-        <p><strong>Where it comes from:</strong> every build is published as a
-        <a href="https://github.com/CalamityTheWatcher/AeroVRC/releases" target="_blank" rel="noopener">GitHub Release</a>,
-        and the button above always points at the official latest-release file.</p>
-        <p><strong>Want to be extra sure?</strong> Check it yourself before running:</p>
-        <ul>
-          <li>Scan it with <a href="https://www.virustotal.com/gui/home/upload" target="_blank" rel="noopener">VirusTotal</a> — a free multi-engine check.</li>
-          <li>Verify the file hash in PowerShell with <code class="cmd">Get-FileHash .\AeroVRC.exe -Algorithm SHA256</code> and compare it to the SHA-256 shown for the asset on the GitHub release.</li>
-        </ul>
-        <!-- Tip: attach a checksums.txt (SHA-256) to each GitHub release so visitors can verify against a published hash. -->
-      </div>
+      <p class="dl-note">
+        Windows SmartScreen may warn about an unrecognized app the first time — that&rsquo;s normal for
+        indie tools that aren&rsquo;t code-signed. Click <em>More info → Run anyway</em>.
+      </p>
       <div class="sysreq">
         <h4>System requirements</h4>
         <dl>
@@ -142,7 +119,7 @@
         <span class="brand-name">AeroVRC</span>
       </div>
       <p class="foot-note">An independent companion for VRChat · Not affiliated with VRChat Inc.</p>
-      <p class="foot-copy">© <span data-year>2026</span> AeroVRC · <a href="index.html">Welcome</a> · <a href="quickstart.html">Quick Start</a> · <a href="privacy.html">Privacy</a> · <a href="changelog.html">Changelog</a> · <a href="https://github.com/CalamityTheWatcher/AeroVRC" target="_blank" rel="noopener">GitHub</a></p>
+      <p class="foot-copy">© <span data-year>2026</span> AeroVRC · <a href="index.html">Welcome</a> · <a href="changelog.html">Changelog</a> · <a href="https://github.com/CalamityTheWatcher/AeroVRC" target="_blank" rel="noopener">GitHub</a></p>
     </div>
   </footer>
 
