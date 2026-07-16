@@ -8,41 +8,279 @@
   <meta name="description" content="AeroVRC is temporarily down for maintenance. Please check back soon." />
   <link rel="canonical" href="https://aerovrc.com/" />
   <link rel="icon" href="favicon.ico" />
-  <link rel="stylesheet" href="style.css" />
 
-  <!-- Splash-only layout: full-height centred notice over the shared backdrop -->
   <style>
-    .welcome{
+    /* ============================================================
+       AeroVRC · Maintenance splash — fully self-contained.
+       ============================================================ */
+    :root{
+      --bg-deep:#040816;
+      --bg-mid:#0a1230;
+      --accent:#4a9cff;
+      --accent-hi:#82c6ff;
+      --cyan:#00f0ff;
+      --blurple:#5865F2;
+      --blurple-hi:#7983f5;
+      --amber:#ffcf4a;
+      --muted:#93a4c7;
+      --text:#eaf2ff;
+      --glass:rgba(10,18,44,.55);
+      --glass-border:rgba(130,198,255,.14);
+    }
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      font-family:"Segoe UI",system-ui,-apple-system,sans-serif;
+      color:var(--text);
+      background:var(--bg-deep);
+      overflow-x:hidden;
+      -webkit-font-smoothing:antialiased;
+    }
+
+    /* ============ parallax background layers ============ */
+    .bg-stage{position:fixed;inset:0;overflow:hidden;z-index:0}
+    .bg-layer{
+      position:absolute;inset:-6%;   /* oversize so parallax never shows edges */
+      will-change:transform;
+      pointer-events:none;
+    }
+    /* layer 1 — deep midnight wash + nebula glows */
+    .bg-nebula{
+      background:
+        radial-gradient(1100px 700px at 18% 12%, rgba(74,156,255,.16), transparent 60%),
+        radial-gradient(900px 640px at 84% 78%, rgba(0,240,255,.08), transparent 60%),
+        radial-gradient(760px 560px at 70% 8%,  rgba(88,101,242,.12), transparent 62%),
+        linear-gradient(180deg, var(--bg-mid) 0%, var(--bg-deep) 68%);
+    }
+    /* layer 2 — faint perspective grid, very low key */
+    .bg-grid{
+      background-image:
+        linear-gradient(rgba(130,198,255,.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(130,198,255,.05) 1px, transparent 1px);
+      background-size:64px 64px;
+      -webkit-mask-image:radial-gradient(70% 70% at 50% 45%, #000 0%, transparent 100%);
+              mask-image:radial-gradient(70% 70% at 50% 45%, #000 0%, transparent 100%);
+    }
+    /* layer 3 — drifting aurora blob */
+    .bg-aurora{
+      background:radial-gradient(560px 420px at 50% 55%, rgba(74,156,255,.10), transparent 70%);
+      animation:auroraDrift 22s ease-in-out infinite alternate;
+    }
+    @keyframes auroraDrift{
+      from{transform:translate3d(-3%, -2%, 0) scale(1)}
+      to  {transform:translate3d( 3%,  3%, 0) scale(1.12)}
+    }
+
+    /* particle canvas sits above the layers, below the UI */
+    #particles{position:fixed;inset:0;z-index:1;pointer-events:none}
+
+    /* ============ page scaffold ============ */
+    .stage{
+      position:relative;z-index:2;
       min-height:100vh;min-height:100svh;
-      display:flex;flex-direction:column;align-items:center;justify-content:center;
-      text-align:center;padding:2.5rem 1.25rem;
+      display:flex;align-items:center;justify-content:center;
+      padding:clamp(1.25rem,4vw,3rem);
     }
-    .welcome-inner{max-width:660px;display:flex;flex-direction:column;align-items:center}
-    .welcome-orb{position:relative;display:flex;align-items:center;justify-content:center;margin-bottom:1.7rem}
-    .welcome-orb .orb{width:112px;height:112px}
-    .welcome-orb .orb-halo{left:50%;top:50%;margin:-130px 0 0 -130px}
-    .welcome h1{font-size:clamp(2rem,5.6vw,3.4rem);font-weight:700;letter-spacing:-.5px;margin-top:.3rem}
-    .welcome .lead{margin:1.15rem auto 1.9rem}
-    .maint-contact{margin:.2rem auto 0;font-size:1.02rem;color:var(--muted)}
-    .email-copy{font:inherit;color:var(--accent-hi);font-weight:600;background:none;border:0;padding:0;cursor:pointer;word-break:break-all;transition:color .15s ease}
-    .email-copy:hover{text-decoration:underline}
-    .email-copy.copied{color:#ffcf4a;text-decoration:none}
-    .welcome-foot{color:var(--muted);font-size:.85rem;margin-top:2.6rem}
-    /* Maintenance status: yellow dot (fill + pulse ring + glow), not the default green */
-    .pill-dot{background:#ffcf4a;--success:#ffcf4a;animation-name:pulseDotYellow}
-    @keyframes pulseDotYellow{
-      0%,100%{box-shadow:0 0 0 0 rgba(255,207,74,.55),0 0 10px #ffcf4a}
-      55%{box-shadow:0 0 0 6px rgba(255,207,74,0),0 0 10px #ffcf4a}
+
+    /* ============ frosted glass card ============ */
+    .glass{
+      width:min(860px,100%);
+      text-align:center;
+      padding:clamp(2rem,5vw,3.75rem) clamp(1.25rem,5vw,3.5rem);
+      border-radius:28px;
+      background:var(--glass);
+      border:1px solid var(--glass-border);
+      backdrop-filter:blur(18px) saturate(140%);
+      -webkit-backdrop-filter:blur(18px) saturate(140%);
+      box-shadow:
+        0 40px 90px rgba(0,0,0,.55),
+        inset 0 1px 0 rgba(130,198,255,.10);
+      animation:cardIn .9s cubic-bezier(.2,.8,.2,1) both;
     }
-    @media (max-width:560px){ .welcome-orb .orb{width:92px;height:92px} }
+    @keyframes cardIn{
+      from{opacity:0;transform:translateY(26px) scale(.97)}
+      to  {opacity:1;transform:none}
+    }
+
+    /* ============ status pill ============ */
+    .pill{
+      display:inline-flex;align-items:center;gap:.55rem;
+      font-size:.85rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+      color:var(--accent-hi);
+      padding:.5rem 1.05rem;border-radius:999px;
+      background:rgba(74,156,255,.08);
+      border:1px solid rgba(130,198,255,.22);
+      box-shadow:0 0 24px rgba(74,156,255,.10) inset;
+    }
+    .pill-dot{
+      width:9px;height:9px;border-radius:50%;
+      background:var(--amber);
+      box-shadow:0 0 10px var(--amber);
+      animation:pulseDot 1.8s ease-out infinite;
+    }
+    @keyframes pulseDot{
+      0%,100%{box-shadow:0 0 0 0 rgba(255,207,74,.55), 0 0 10px var(--amber)}
+      55%    {box-shadow:0 0 0 7px rgba(255,207,74,0), 0 0 10px var(--amber)}
+    }
+
+    /* ============ 3D centerpiece placeholder ============
+       Drop your Spline / WebGL embed inside #hero3d — e.g.
+       <iframe src="https://my.spline.design/YOUR-SCENE/" ...></iframe>
+       Then delete the temporary .orb-temp contents.            */
+    #hero3d{
+      width:min(340px,70vw);
+      aspect-ratio:1/1;
+      margin:1.9rem auto 1.2rem;
+      display:flex;align-items:center;justify-content:center;
+      animation:heroFloat 6s ease-in-out infinite;
+    }
+    #hero3d iframe{width:100%;height:100%;border:0;border-radius:20px}
+    @keyframes heroFloat{
+      0%,100%{transform:translateY(0)}
+      50%    {transform:translateY(-14px)}
+    }
+    /* temporary stand-in: the AeroVRC orb + halo */
+    .orb-temp{position:relative;display:flex;align-items:center;justify-content:center}
+    .orb-temp svg{width:150px;height:150px;filter:drop-shadow(0 0 34px rgba(74,156,255,.45))}
+    .orb-halo{
+      position:absolute;width:250px;height:250px;border-radius:50%;
+      border:1px solid rgba(130,198,255,.18);
+      animation:haloSpin 14s linear infinite;
+    }
+    .orb-halo::before{
+      content:"";position:absolute;top:-4px;left:50%;
+      width:7px;height:7px;border-radius:50%;
+      background:var(--cyan);box-shadow:0 0 12px var(--cyan);
+    }
+    @keyframes haloSpin{to{transform:rotate(360deg)}}
+
+    /* ============ glitch headline ============ */
+    h1{
+      font-size:clamp(2.1rem,6vw,4rem);
+      font-weight:800;letter-spacing:-.02em;line-height:1.12;
+      margin:0 auto .3rem;max-width:16ch;
+    }
+    .glitch{position:relative;display:inline-block}
+    .glitch::before,.glitch::after{
+      content:attr(data-text);
+      position:absolute;inset:0;
+      opacity:0;pointer-events:none;
+    }
+    .glitch.glitching::before{
+      opacity:.8;color:var(--cyan);
+      animation:glitchShift .32s steps(2,end) infinite;
+      clip-path:polygon(0 12%,100% 12%,100% 38%,0 38%);
+    }
+    .glitch.glitching::after{
+      opacity:.8;color:#ff3b6b;
+      animation:glitchShift .28s steps(2,end) infinite reverse;
+      clip-path:polygon(0 58%,100% 58%,100% 86%,0 86%);
+    }
+    @keyframes glitchShift{
+      0%  {transform:translate(-3px,-2px)}
+      25% {transform:translate( 3px, 1px)}
+      50% {transform:translate(-2px, 2px)}
+      75% {transform:translate( 2px,-1px)}
+      100%{transform:translate(-3px, 1px)}
+    }
+    /* the neon word */
+    .neon{
+      color:var(--cyan);
+      text-shadow:
+        0 0 8px rgba(0,240,255,.85),
+        0 0 26px rgba(0,240,255,.55),
+        0 0 60px rgba(0,240,255,.30);
+    }
+
+    .lead{
+      margin:1.2rem auto 0;max-width:52ch;
+      font-size:clamp(1rem,2.2vw,1.18rem);line-height:1.65;color:var(--muted);
+    }
+
+    /* ============ buttons ============ */
+    .actions{
+      display:flex;flex-wrap:wrap;gap:.9rem;justify-content:center;
+      margin:2.1rem auto 0;
+    }
+    .btn{
+      display:inline-flex;align-items:center;gap:.6rem;
+      font:inherit;font-size:1.02rem;font-weight:600;
+      padding:.95rem 1.7rem;border-radius:14px;
+      text-decoration:none;cursor:pointer;
+      transition:transform .18s ease, box-shadow .18s ease, background .18s ease, border-color .18s ease;
+    }
+    .btn svg{width:20px;height:20px;flex:none}
+    .btn-discord{
+      color:#fff;background:var(--blurple);
+      border:1px solid rgba(255,255,255,.14);
+      box-shadow:0 10px 34px rgba(88,101,242,.40);
+    }
+    .btn-discord:hover{
+      background:var(--blurple-hi);
+      transform:translateY(-2px);
+      box-shadow:0 16px 44px rgba(88,101,242,.55);
+    }
+    .btn-ghost{
+      color:var(--accent-hi);background:rgba(74,156,255,.07);
+      border:1px solid rgba(130,198,255,.25);
+    }
+    .btn-ghost:hover{
+      background:rgba(74,156,255,.14);border-color:rgba(130,198,255,.45);
+      transform:translateY(-2px);
+      box-shadow:0 12px 34px rgba(74,156,255,.22);
+    }
+    .btn:active{transform:translateY(0) scale(.98)}
+
+    /* ============ Discord widget slot ============
+       Paste your live server widget inside #discord-widget — e.g.
+       <iframe src="https://discord.com/widget?id=YOUR_SERVER_ID&theme=dark"
+               allowtransparency="true"
+               sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"></iframe>
+       The placeholder text disappears automatically once an iframe exists. */
+    #discord-widget{
+      margin:1.9rem auto 0;
+      width:min(420px,100%);
+      min-height:120px;
+      border-radius:18px;
+      border:1px dashed rgba(130,198,255,.25);
+      background:rgba(6,12,32,.45);
+      display:flex;align-items:center;justify-content:center;
+      overflow:hidden;
+    }
+    #discord-widget iframe{width:100%;height:340px;border:0}
+    #discord-widget:has(iframe){border-style:solid;min-height:0}
+    #discord-widget:has(iframe) .widget-hint{display:none}
+    .widget-hint{font-size:.85rem;color:var(--muted);padding:1rem;letter-spacing:.02em}
+
+    .foot{margin-top:2.4rem;font-size:.85rem;color:var(--muted)}
+
+    @media (max-width:560px){
+      .glass{border-radius:20px}
+      #hero3d{width:min(240px,70vw)}
+      .orb-temp svg{width:110px;height:110px}
+      .orb-halo{width:185px;height:185px}
+      .actions{flex-direction:column;align-items:stretch}
+      .btn{justify-content:center}
+    }
+
+    @media (prefers-reduced-motion:reduce){
+      *,*::before,*::after{animation:none !important;transition:none !important}
+    }
   </style>
 </head>
 <body>
 
-  <!-- ===== animated sparkle backdrop (the app's signature look) ===== -->
-  <canvas id="sparkles" aria-hidden="true"></canvas>
+  <!-- ===== parallax background layers (JS shifts these on mouse move) ===== -->
+  <div class="bg-stage" aria-hidden="true">
+    <div class="bg-layer bg-nebula" data-depth="0.012"></div>
+    <div class="bg-layer bg-grid"   data-depth="0.028"></div>
+    <div class="bg-layer bg-aurora" data-depth="0.05"></div>
+  </div>
 
-  <!-- ===== reusable orb "A" logo (matches the app's drawn nav logo) ===== -->
+  <!-- ===== particle canvas: data streams + embers drifting upward ===== -->
+  <canvas id="particles" aria-hidden="true"></canvas>
+
+  <!-- ===== reusable orb "A" logo (AeroVRC brand mark) ===== -->
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
     <defs>
       <radialGradient id="orbGlow" cx="50%" cy="50%" r="50%">
@@ -65,54 +303,158 @@
   </svg>
 
   <!-- ================= MAINTENANCE NOTICE ================= -->
-  <main class="welcome">
-    <div class="welcome-inner" data-stagger>
-      <div class="welcome-orb">
-        <div class="orb-halo" aria-hidden="true"></div>
-        <svg class="orb"><use href="#orb" /></svg>
-      </div>
+  <main class="stage">
+    <section class="glass">
+
       <span class="pill"><span class="pill-dot"></span> Status · Maintenance</span>
-      <h1>AeroVRC is currently down for <span class="grad">maintenance</span></h1>
+
+      <!-- 3D centerpiece slot — swap the .orb-temp contents for your Spline/WebGL embed -->
+      <div id="hero3d">
+        <div class="orb-temp">
+          <div class="orb-halo"></div>
+          <svg class="orb" width="150" height="150"><use href="#orb" /></svg>
+        </div>
+      </div>
+
+      <h1>
+        <span class="glitch" data-text="AeroVRC is currently down for">AeroVRC is currently down for</span>
+        <span class="glitch neon" data-text="maintenance">maintenance</span>
+      </h1>
+
       <p class="lead">
         We&rsquo;re making some improvements behind the scenes. The site and downloads are
         temporarily unavailable &mdash; please check back soon.
       </p>
-      <p class="maint-contact">
-        Have any questions, or need to reach out?<br />
-        Contact me below:<br />
-        Email: <button type="button" class="email-copy" data-copy="ajordan120906@gmail.com" title="Click to copy">ajordan120906@gmail.com</button><br />
-        Discord: <button type="button" class="email-copy" data-copy="calamity2706" title="Click to copy">calamity2706</button>
-      </p>
-      <p class="welcome-foot">Thanks for your patience. &mdash; AeroVRC</p>
-    </div>
+
+      <div class="actions">
+        <!-- TODO: replace # with your Discord invite link, e.g. https://discord.gg/XXXXXXX -->
+        <a class="btn btn-discord" href="#" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.32 4.37a19.8 19.8 0 0 0-4.89-1.52.07.07 0 0 0-.08.04c-.21.38-.44.87-.6 1.25a18.3 18.3 0 0 0-5.5 0 12.6 12.6 0 0 0-.61-1.25.08.08 0 0 0-.08-.04 19.7 19.7 0 0 0-4.88 1.52.07.07 0 0 0-.04.03C.53 9.05-.32 13.58.1 18.06a.08.08 0 0 0 .03.05 19.9 19.9 0 0 0 6 3.03.08.08 0 0 0 .08-.03c.46-.63.87-1.3 1.22-2a.08.08 0 0 0-.04-.11 13 13 0 0 1-1.87-.9.08.08 0 0 1 0-.12c.12-.1.25-.2.37-.29a.07.07 0 0 1 .08-.01c3.93 1.8 8.18 1.8 12.06 0a.07.07 0 0 1 .08 0c.12.1.24.2.37.3a.08.08 0 0 1 0 .12 12.3 12.3 0 0 1-1.87.9.08.08 0 0 0-.05.1c.36.7.78 1.37 1.23 2a.08.08 0 0 0 .08.03 19.8 19.8 0 0 0 6.02-3.03.08.08 0 0 0 .03-.05c.5-5.18-.84-9.68-3.55-13.66a.06.06 0 0 0-.03-.03zM8.02 15.33c-1.18 0-2.16-1.08-2.16-2.42 0-1.33.96-2.42 2.16-2.42 1.21 0 2.18 1.1 2.16 2.42 0 1.34-.96 2.42-2.16 2.42zm7.97 0c-1.18 0-2.15-1.08-2.15-2.42 0-1.33.95-2.42 2.15-2.42 1.22 0 2.18 1.1 2.16 2.42 0 1.34-.94 2.42-2.16 2.42z"/></svg>
+          Join the Discord
+        </a>
+        <a class="btn btn-ghost" href="mailto:ajordan120906@gmail.com">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3.5 7 8.5 6 8.5-6"/></svg>
+          Email Support
+        </a>
+      </div>
+
+      <!-- Live Discord server widget slot — paste the widget iframe in here -->
+      <div id="discord-widget">
+        <span class="widget-hint">Discord server widget coming soon</span>
+      </div>
+
+      <p class="foot">Thanks for your patience. &mdash; AeroVRC</p>
+    </section>
   </main>
 
-  <script src="app.js"></script>
   <script>
-    // Contact chips: copy their value to the clipboard on click (no links).
     (function () {
-      document.querySelectorAll(".email-copy").forEach(function (btn) {
-        var label = btn.textContent;
-        function flash() {
-          btn.textContent = "Copied to clipboard!";
-          btn.classList.add("copied");
-          setTimeout(function () { btn.textContent = label; btn.classList.remove("copied"); }, 1600);
+      "use strict";
+      var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      /* ================= mouse-tracking parallax ================= */
+      var layers = document.querySelectorAll(".bg-layer");
+      if (!reduceMotion && layers.length) {
+        var tx = 0, ty = 0, cx = 0, cy = 0, raf = null;
+
+        window.addEventListener("pointermove", function (e) {
+          tx = e.clientX - window.innerWidth / 2;
+          ty = e.clientY - window.innerHeight / 2;
+          if (!raf) raf = requestAnimationFrame(tick);
+        }, { passive: true });
+
+        function tick() {
+          // ease toward the target so movement feels weighty, not twitchy
+          cx += (tx - cx) * 0.06;
+          cy += (ty - cy) * 0.06;
+          layers.forEach(function (l) {
+            var d = parseFloat(l.dataset.depth) || 0.02;
+            l.style.transform = "translate3d(" + (-cx * d) + "px," + (-cy * d) + "px,0)";
+          });
+          if (Math.abs(tx - cx) > 0.2 || Math.abs(ty - cy) > 0.2) {
+            raf = requestAnimationFrame(tick);
+          } else { raf = null; }
         }
-        function legacyCopy(text) {
-          try {
-            var t = document.createElement("textarea");
-            t.value = text; t.style.position = "fixed"; t.style.opacity = "0";
-            document.body.appendChild(t); t.focus(); t.select();
-            document.execCommand("copy"); document.body.removeChild(t); flash();
-          } catch (e) {}
+      }
+
+      /* ================= particles: embers + data streams ================= */
+      var canvas = document.getElementById("particles");
+      var ctx = canvas.getContext("2d");
+      var parts = [], W = 0, H = 0;
+
+      function resize() {
+        var dpr = Math.min(window.devicePixelRatio || 1, 2);
+        W = canvas.width  = Math.floor(innerWidth  * dpr);
+        H = canvas.height = Math.floor(innerHeight * dpr);
+        canvas.style.width = innerWidth + "px";
+        canvas.style.height = innerHeight + "px";
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+      resize();
+      window.addEventListener("resize", resize, { passive: true });
+
+      function spawn(randomY) {
+        var stream = Math.random() < 0.3;           // 30% vertical "data stream" streaks
+        return {
+          x: Math.random() * innerWidth,
+          y: randomY ? Math.random() * innerHeight : innerHeight + 12,
+          vy: stream ? 0.9 + Math.random() * 1.4 : 0.25 + Math.random() * 0.55,
+          drift: (Math.random() - 0.5) * 0.25,      // gentle sideways sway
+          r: stream ? 0 : 0.8 + Math.random() * 1.7,
+          len: stream ? 26 + Math.random() * 44 : 0,
+          a: 0.15 + Math.random() * 0.5,
+          hue: Math.random() < 0.6 ? "74,156,255" : "0,240,255",
+          stream: stream
+        };
+      }
+
+      var COUNT = Math.min(90, Math.floor(innerWidth / 14));
+      for (var i = 0; i < COUNT; i++) parts.push(spawn(true));
+
+      function frame() {
+        ctx.clearRect(0, 0, innerWidth, innerHeight);
+        for (var i = 0; i < parts.length; i++) {
+          var p = parts[i];
+          p.y -= p.vy;
+          p.x += p.drift;
+          if (p.y < -60 || p.x < -20 || p.x > innerWidth + 20) parts[i] = p = spawn(false);
+
+          if (p.stream) {
+            var g = ctx.createLinearGradient(p.x, p.y, p.x, p.y + p.len);
+            g.addColorStop(0, "rgba(" + p.hue + "," + p.a + ")");
+            g.addColorStop(1, "rgba(" + p.hue + ",0)");
+            ctx.strokeStyle = g;
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(p.x, p.y + p.len);
+            ctx.stroke();
+          } else {
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fillStyle = "rgba(" + p.hue + "," + p.a + ")";
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = "rgba(" + p.hue + ",.8)";
+            ctx.fill();
+            ctx.shadowBlur = 0;
+          }
         }
-        btn.addEventListener("click", function () {
-          var text = btn.getAttribute("data-copy");
-          if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(text).then(flash, function () { legacyCopy(text); });
-          } else { legacyCopy(text); }
-        });
-      });
+        requestAnimationFrame(frame);
+      }
+      if (!reduceMotion) requestAnimationFrame(frame);
+
+      /* ================= random glitch bursts on the headline ================= */
+      if (!reduceMotion) {
+        var glitches = document.querySelectorAll(".glitch");
+        (function burst() {
+          setTimeout(function () {
+            var el = glitches[Math.floor(Math.random() * glitches.length)];
+            el.classList.add("glitching");
+            setTimeout(function () { el.classList.remove("glitching"); }, 220 + Math.random() * 360);
+            burst();
+          }, 2200 + Math.random() * 4200);
+        })();
+      }
     })();
   </script>
 </body>
