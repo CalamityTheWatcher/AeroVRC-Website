@@ -2,9 +2,6 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <!-- ===== MAINTENANCE MODE: site locked. Delete this block (and restore app.js) to bring the site back. ===== -->
-  <script>location.replace("/");</script>
-  <noscript><meta http-equiv="refresh" content="0; url=/" /></noscript>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>AeroVRC — The all-in-one companion for VRChat</title>
   <meta name="description" content="AeroVRC keeps VRChat running, launches your companion apps, and gives you a live dashboard, VRCX integration, and one-click performance tweaks — free for Windows." />
@@ -54,7 +51,11 @@
   <header class="nav" id="top">
     <div class="nav-inner">
       <a class="brand" href="home.html">
-        <svg class="orb orb-sm"><use href="#orb" /></svg>
+        <span class="orb-orbit">
+          <svg class="orb orb-sm"><use href="#orb" /></svg>
+          <span class="orbit" aria-hidden="true"><i></i></span>
+          <span class="orbit o2" aria-hidden="true"><i></i></span>
+        </span>
         <span class="brand-name">AeroVRC</span>
       </a>
       <button class="nav-toggle" data-nav-toggle aria-label="Toggle menu" aria-expanded="false" aria-controls="navlinks">
@@ -63,6 +64,7 @@
       <nav class="nav-links" id="navlinks">
         <a href="features.html">Features</a>
         <a href="screenshots.html">Screenshots</a>
+        <a href="quickstart.html">Quick Start</a>
         <a href="changelog.html">Changelog</a>
         <a href="faq.html">FAQ</a>
         <a href="contact.html">Contact</a>
@@ -73,13 +75,23 @@
 
   <!-- ================= HERO ================= -->
   <section class="hero">
+    <!-- aurora ribbon drifting behind the headline -->
+    <div class="aurora" aria-hidden="true"></div>
+    <!-- procedural wireframe headset (Quest 3 silhouette) — drawn in JS, reacts to mouse + scroll -->
+    <canvas id="headset" class="hero-headset" aria-hidden="true"></canvas>
+    <!-- retro wireframe floor at the hero's horizon -->
+    <div class="grid-floor" aria-hidden="true"></div>
     <div class="hero-inner" data-stagger>
+      <a class="whatsnew" data-latest href="changelog.html">
+        <span class="spark" aria-hidden="true"></span>
+        What&rsquo;s new in <span data-latest-tag>the latest release</span>
+        <span class="whatsnew-arrow" aria-hidden="true">→</span>
+      </a>
       <span class="pill"><span class="pill-dot"></span> Free · Windows 10 &amp; 11 · Portable</span>
       <h1>The all-in-one companion<br />for <span class="grad">VRChat</span></h1>
       <p class="lead">
-        AeroVRC watches VRChat and brings it back when it crashes, launches your companion
-        apps automatically, and gives you a live dashboard of your world, your frame times,
-        and who&rsquo;s in the instance — all in one clean app.
+        AeroVRC <span class="tw" data-typewords="watches VRChat and revives it the moment it crashes|launches your companion apps automatically|auto-rejoins the world you were just in|keeps an eye on your whole session">watches VRChat and revives it the moment it crashes</span><span class="tw-caret" aria-hidden="true"></span> — plus a live dashboard of your world, your frame
+        times, and who&rsquo;s in the instance, all in one clean app.
       </p>
       <div class="hero-cta">
         <a class="btn btn-primary btn-lg" href="download.html">
@@ -100,20 +112,104 @@
     <!-- A single picture of the app — the live dashboard -->
     <div class="hero-shot reveal" style="--rd:340ms">
       <div class="orb-halo hero-glow" aria-hidden="true"></div>
-      <figure class="device">
+      <div class="orb-halo hero-glow2" aria-hidden="true"></div>
+      <!-- faint receding panes stacked behind the real window -->
+      <div class="stack-pane p2" aria-hidden="true"></div>
+      <div class="stack-pane p1" aria-hidden="true"></div>
+      <figure class="device" data-tilt>
         <img src="img/cs_dashboard.png" width="1120" height="680" loading="eager" decoding="async"
              alt="The AeroVRC dashboard while monitoring a live VRChat session — current world (The Great Pug, Friends+, 14 players), plus session stat cards for uptime, players, restarts and played-today." />
+        <!-- boot-up reveal: border trace + scanline, then the UI wipes in -->
+        <svg class="boot-trace" aria-hidden="true"><rect x="1" y="1" width="99%" height="99%" rx="13" pathLength="1" /></svg>
+        <span class="boot-scan" aria-hidden="true"></span>
+        <!-- ghost cursor that wanders the screenshot and clicks things -->
+        <span class="ghost-cursor" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M5 3l14 9-6 1-3 6z" fill="#fff" stroke="#1c2246" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        </span>
+        <span class="ghost-ripple gr1" aria-hidden="true"></span>
+        <span class="ghost-ripple gr2" aria-hidden="true"></span>
+        <span class="tilt-glare" aria-hidden="true"></span>
       </figure>
+      <!-- tiny live session card — real ticking numbers, pure HTML -->
+      <aside class="mini-dash" aria-hidden="true">
+        <div class="md-top"><span class="md-dot"></span> Monitoring — VRChat up</div>
+        <div class="md-world">The Great Pug</div>
+        <div class="md-sub">Instance #42 · Friends+</div>
+        <div class="md-row">
+          <div class="md-cell"><span class="md-label">Uptime</span><span class="md-val" data-md-uptime>2h 47m 13s</span></div>
+          <div class="md-cell"><span class="md-label">In instance</span><span class="md-val" data-md-players>14</span></div>
+        </div>
+      </aside>
     </div>
   </section>
 
+  <!-- ================= WATCHDOG STORY (slider + rescue timeline) ================= -->
+  <section class="section story" id="watchdog">
+    <div class="section-head tight reveal">
+      <span class="kicker">Crash watchdog</span>
+      <h2>From crash to back-in-world</h2>
+    </div>
+    <div class="ba reveal">
+      <figure class="ba-frame" data-ba style="--pos:38%">
+        <img class="ba-under" src="img/cs_dashboard.png" width="1120" height="680" loading="lazy" decoding="async" alt="" />
+        <!-- the "crash" dressing, clipped to the left of the handle: red wash +
+             a real Windows "not responding" dialog with a frozen ghost trail -->
+        <div class="ba-crash" aria-hidden="true">
+          <span class="ba-word ba-word-l">VRChat<br />crashed</span>
+          <img class="ba-dialog-img" src="img/Crash.png" width="775" height="419" loading="lazy" decoding="async" alt="" />
+        </div>
+        <img class="ba-over" src="img/Revive.png" width="942" height="525" loading="lazy" decoding="async"
+             alt="VRChat rejoining the world automatically after AeroVRC relaunched it." />
+        <div class="ba-reveal" aria-hidden="true">
+          <span class="ba-word ba-word-r">AeroVRC<br />brought it back</span>
+        </div>
+        <span class="ba-handle" aria-hidden="true">
+          <span class="ba-knob"><svg viewBox="0 0 24 24"><path d="M8 8l-4 4 4 4"/><path d="M16 8l4 4-4 4"/></svg></span>
+        </span>
+        <input type="range" min="0" max="100" value="38" step="0.5" aria-label="Compare crashed VRChat with the restored session" data-ba-range />
+      </figure>
+    </div>
+    <div class="rescue reveal">
+      <ol class="rescue-line">
+        <li class="r-bad"><span class="r-dot"></span><strong>VRChat crashes</strong><em>frozen mid-world</em></li>
+        <li><span class="r-dot"></span><strong>Watchdog detects it</strong><em>&lt; 1 second</em></li>
+        <li><span class="r-dot"></span><strong>Relaunches the game</strong><em>automatically</em></li>
+        <li class="r-good"><span class="r-dot"></span><strong>Auto-rejoins your world</strong><em>right where you were</em></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ================= LIVE NUMBERS (from the GitHub releases API) ================= -->
+  <section class="statband-wrap" data-statband>
+    <div class="statband" data-stagger>
+      <div class="stat">
+        <span class="stat-num"><span data-stat-downloads data-countup>0</span></span>
+        <span class="stat-label">Total downloads</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num"><span data-stat-releases data-countup>0</span></span>
+        <span class="stat-label">Releases shipped</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num" data-stat-version>&mdash;</span>
+        <span class="stat-label">Latest version</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="beam" aria-hidden="true"></div>
+
   <!-- ================= EXPLORE (hub links) ================= -->
   <section class="section" id="explore">
-    <div class="section-head reveal">
+    <div class="section-head tight reveal">
       <h2>Explore AeroVRC</h2>
-      <p>Everything has its own page — dive into whichever part you like.</p>
     </div>
     <div class="explore" data-stagger>
+      <a class="explore-card" href="quickstart.html">
+        <div class="ficon"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></div>
+        <h3>Quick Start <span class="arrow" aria-hidden="true">→</span></h3>
+        <p>New here? Download, run and start monitoring in about two minutes.</p>
+      </a>
       <a class="explore-card" href="features.html">
         <div class="ficon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div>
         <h3>Features <span class="arrow" aria-hidden="true">→</span></h3>
@@ -151,11 +247,20 @@
   <footer class="footer">
     <div class="footer-inner">
       <div class="foot-brand">
-        <svg class="orb orb-sm"><use href="#orb" /></svg>
+        <span class="orb-orbit">
+          <svg class="orb orb-sm"><use href="#orb" /></svg>
+          <span class="orbit" aria-hidden="true"><i></i></span>
+          <span class="orbit o2" aria-hidden="true"><i></i></span>
+        </span>
         <span class="brand-name">AeroVRC</span>
       </div>
+      <!-- live count from the public VRChat visits endpoint — stays hidden if it can't load -->
+      <p class="live-badge" data-visits-wrap hidden>
+        <span class="live-dot" aria-hidden="true"></span>
+        <span><strong data-visits>0</strong> players online in VRChat right now</span>
+      </p>
       <p class="foot-note">An independent companion for VRChat · Not affiliated with VRChat Inc.</p>
-      <p class="foot-copy">© <span data-year>2026</span> AeroVRC · <a href="index.html">Welcome</a> · <a href="changelog.html">Changelog</a> · <a href="https://github.com/CalamityTheWatcher/AeroVRC" target="_blank" rel="noopener">GitHub</a></p>
+      <p class="foot-copy">© <span data-year>2026</span> AeroVRC · <a href="index.html">Welcome</a> · <a href="quickstart.html">Quick Start</a> · <a href="privacy.html">Privacy</a> · <a href="changelog.html">Changelog</a> · <a href="https://github.com/CalamityTheWatcher/AeroVRC" target="_blank" rel="noopener">GitHub</a></p>
     </div>
   </footer>
 
