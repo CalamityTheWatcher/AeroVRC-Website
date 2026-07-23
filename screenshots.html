@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
+  <!-- ===== MAINTENANCE MODE: site locked. Delete this block (and restore app.js) to bring the site back. ===== -->
+  <script>location.replace("/");</script>
+  <noscript><meta http-equiv="refresh" content="0; url=/" /></noscript>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Screenshots — AeroVRC</title>
   <meta name="description" content="Real screens from AeroVRC — the dashboard, apps, presets, statistics, settings and performance tools, in one hand-built dark theme." />
@@ -58,7 +61,6 @@
       <nav class="nav-links" id="navlinks">
         <a href="features.html">Features</a>
         <a href="screenshots.html" aria-current="page">Screenshots</a>
-        <a href="quickstart.html">Quick Start</a>
         <a href="changelog.html">Changelog</a>
         <a href="faq.html">FAQ</a>
         <a href="contact.html">Contact</a>
@@ -77,8 +79,6 @@
     <div class="tabs reveal" data-tabs>
       <div class="tab-btns" role="tablist" aria-label="AeroVRC screens">
         <button class="tab-btn is-active" id="tabbtn-dashboard" role="tab" aria-selected="true" aria-controls="tab-dashboard" data-tab-btn data-tab="dashboard">Dashboard</button>
-        <button class="tab-btn" id="tabbtn-players" role="tab" aria-selected="false" tabindex="-1" aria-controls="tab-players" data-tab-btn data-tab="players">Players</button>
-        <button class="tab-btn" id="tabbtn-hardware" role="tab" aria-selected="false" tabindex="-1" aria-controls="tab-hardware" data-tab-btn data-tab="hardware">Hardware</button>
         <button class="tab-btn" id="tabbtn-apps" role="tab" aria-selected="false" tabindex="-1" aria-controls="tab-apps" data-tab-btn data-tab="apps">Apps</button>
         <button class="tab-btn" id="tabbtn-presets" role="tab" aria-selected="false" tabindex="-1" aria-controls="tab-presets" data-tab-btn data-tab="presets">Presets</button>
         <button class="tab-btn" id="tabbtn-stats" role="tab" aria-selected="false" tabindex="-1" aria-controls="tab-stats" data-tab-btn data-tab="stats">Statistics</button>
@@ -88,24 +88,10 @@
       <div class="tab-panels">
         <div class="tab-panel is-active" id="tab-dashboard" role="tabpanel" aria-labelledby="tabbtn-dashboard" data-tab-panel="dashboard">
           <figure class="shot-frame">
-            <img src="img/cs_dashboard_full.png" width="1120" height="832" loading="lazy" decoding="async"
-                 alt="The AeroVRC dashboard: monitoring status and quick toggles, the current world card (The Great Pug), a telemetry grid with uptime, in-world time, players nearby and a played-today goal ring, plus hardware and tracking status cells." />
+            <img src="img/cs_dashboard_full.png" width="1120" height="1460" loading="lazy" decoding="async"
+                 alt="The full AeroVRC dashboard: session and performance stat cards with sparklines, a real frame-time graph with 60 and 90 FPS reference lines, system info, and the who's-here roster." />
           </figure>
-          <p class="tab-cap"><strong>The dashboard.</strong> Monitoring status, your current world, and the live telemetry grid — uptime, in-world time, players nearby, the played-today goal ring — with hardware &amp; tracking status underneath, always up to date.</p>
-        </div>
-        <div class="tab-panel" id="tab-players" role="tabpanel" aria-labelledby="tabbtn-players" data-tab-panel="players">
-          <figure class="shot-frame">
-            <img src="img/cs_players.png" width="1120" height="680" loading="lazy" decoding="async"
-                 alt="The Players page: a live who's-here roster with join times, watchlist stars and per-player notes, plus Export roster and Look up player actions." />
-          </figure>
-          <p class="tab-cap"><strong>Players.</strong> A live who&rsquo;s-here roster with join times, watchlist stars and per-player notes — export the roster or look anyone up.</p>
-        </div>
-        <div class="tab-panel" id="tab-hardware" role="tabpanel" aria-labelledby="tabbtn-hardware" data-tab-panel="hardware">
-          <figure class="shot-frame">
-            <img src="img/cs_hardware.png" width="1120" height="680" loading="lazy" decoding="async"
-                 alt="The Hardware page: live sensor gauges for GPU load, VRAM and temperatures, big frame-rate, ping, CPU and disk readouts, and rolling 10-minute graphs for frame rate, ping, memory and CPU." />
-          </figure>
-          <p class="tab-cap"><strong>Hardware.</strong> Live sensors while VRChat runs — GPU, VRAM, temps, frame rate, ping and memory, each with a rolling 10-minute graph.</p>
+          <p class="tab-cap"><strong>The dashboard.</strong> Current world and instance, live session stats, a rolling frame-time graph, hardware readouts and a live who&rsquo;s-here roster — one screen, always up to date.</p>
         </div>
         <div class="tab-panel" id="tab-apps" role="tabpanel" aria-labelledby="tabbtn-apps" data-tab-panel="apps">
           <figure class="shot-frame">
@@ -158,7 +144,7 @@
         <span class="brand-name">AeroVRC</span>
       </div>
       <p class="foot-note">An independent companion for VRChat · Not affiliated with VRChat Inc.</p>
-      <p class="foot-copy">© <span data-year>2026</span> AeroVRC · <a href="index.html">Welcome</a> · <a href="quickstart.html">Quick Start</a> · <a href="privacy.html">Privacy</a> · <a href="changelog.html">Changelog</a> · <a href="https://github.com/CalamityTheWatcher/AeroVRC" target="_blank" rel="noopener">GitHub</a></p>
+      <p class="foot-copy">© <span data-year>2026</span> AeroVRC · <a href="index.html">Welcome</a> · <a href="changelog.html">Changelog</a> · <a href="https://github.com/CalamityTheWatcher/AeroVRC" target="_blank" rel="noopener">GitHub</a></p>
     </div>
   </footer>
 

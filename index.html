@@ -3,55 +3,337 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Welcome to AeroVRC — The all-in-one companion for VRChat</title>
-  <meta name="description" content="AeroVRC keeps VRChat running, launches your companion apps, and gives you a live dashboard, VRCX integration, and one-click performance tweaks — free for Windows." />
-
-  <meta property="og:title" content="AeroVRC — The all-in-one companion for VRChat" />
-  <meta property="og:description" content="Crash watchdog, live dashboard, companion-app launcher, VRCX integration and performance tweaks. Free for Windows 10 & 11." />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://aerovrc.com/" />
-  <meta property="og:image" content="https://aerovrc.com/img/cs_dashboard.png" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:image" content="https://aerovrc.com/img/cs_dashboard.png" />
-
+  <meta name="robots" content="noindex" />
+  <title>AeroVRC — Down for maintenance</title>
+  <meta name="description" content="AeroVRC is temporarily down for maintenance. Please check back soon." />
   <link rel="canonical" href="https://aerovrc.com/" />
   <link rel="icon" href="favicon.ico" />
-  <link rel="stylesheet" href="style.css" />
 
-  <!-- =====================================================================
-       CONFIG  —  set your GitHub repo here as  "username/repo"
-       The download button reads its latest-release URL from this one line.
-       ===================================================================== -->
-  <script>window.AEROVRC_REPO = "CalamityTheWatcher/AeroVRC";</script>
+  <!-- Display face only — body stays on Segoe UI to match the app and the
+       rest of the site. Chakra Petch's squared terminals give the headline
+       its aerospace-cockpit personality. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&display=swap" rel="stylesheet" />
 
-  <!-- Splash-only layout: full-height centred welcome over the shared backdrop -->
-  <style>
-    .welcome{
-      min-height:100vh;min-height:100svh;
-      display:flex;flex-direction:column;align-items:center;justify-content:center;
-      text-align:center;padding:2.5rem 1.25rem;
+  <!-- three.js + addons via import map — pinned versions, no build step. -->
+  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.module.js" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.166.1/examples/jsm/"
+      }
     }
-    .welcome-inner{max-width:760px;display:flex;flex-direction:column;align-items:center}
-    .welcome-orb{position:relative;display:flex;align-items:center;justify-content:center;
-      margin-bottom:1.7rem}
-    .welcome-orb .orb{width:118px;height:118px}
-    /* centre the shared breathing halo behind the orb (260×260) */
-    .welcome-orb .orb-halo{left:50%;top:50%;margin:-130px 0 0 -130px}
-    .welcome h1{font-size:clamp(2.4rem,6vw,4rem);font-weight:700;letter-spacing:-.5px;margin-top:.3rem}
-    .welcome .lead{margin:1.2rem auto 2.1rem}
-    .welcome .hero-cta{margin-bottom:.4rem}
-    .welcome-foot{color:var(--muted);font-size:.85rem;margin-top:2.6rem}
-    .welcome-foot a{color:var(--accent-hi)}
-    .welcome-foot a:hover{text-decoration:underline}
-    @media (max-width:560px){ .welcome-orb .orb{width:96px;height:96px} }
+  </script>
+
+  <style>
+    /* ============================================================
+       AeroVRC · Maintenance splash v2.1 — "the Aero Core".
+       Fully self-contained. Staged here in Maintenance\ — promote
+       to index.html when taking the site down (keep the noindex).
+       ============================================================ */
+    :root{
+      --bg-deep:#040816;
+      --bg-mid:#0a1230;
+      --accent:#4a9cff;
+      --accent-hi:#82c6ff;
+      --cyan:#00f0ff;
+      --blurple:#5865F2;
+      --blurple-hi:#7983f5;
+      --amber:#ffcf4a;
+      --green:#3ddc97;
+      --muted:#93a4c7;
+      --text:#eaf2ff;
+      --hairline:rgba(130,198,255,.14);
+      --font-display:"Chakra Petch","Segoe UI",system-ui,sans-serif;
+      --font-ui:"Segoe UI",system-ui,-apple-system,sans-serif;
+    }
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      font-family:var(--font-ui);
+      color:var(--text);
+      /* CSS nebula = no-WebGL fallback; the live scene renders its own. */
+      background:
+        radial-gradient(1100px 700px at 18% 12%, rgba(74,156,255,.14), transparent 60%),
+        radial-gradient(900px 640px at 84% 78%, rgba(0,240,255,.07), transparent 60%),
+        radial-gradient(760px 560px at 70% 8%,  rgba(88,101,242,.10), transparent 62%),
+        linear-gradient(180deg, var(--bg-mid) 0%, var(--bg-deep) 68%);
+      background-attachment:fixed;
+      overflow-x:hidden;
+      -webkit-font-smoothing:antialiased;
+      user-select:none;-webkit-user-select:none;   /* immersive splash — no text highlighting */
+    }
+    ::selection{background:rgba(74,156,255,.35)}
+    a:focus-visible,button:focus-visible{outline:2px solid var(--accent-hi);outline-offset:3px;border-radius:6px}
+
+    /* ============ layers (back → front) ============ */
+    #scene{position:fixed;inset:0;z-index:0;display:block}
+    .no-webgl #scene{display:none}
+    /* dev-only ?perf HUD + ablation helpers */
+    #perf-hud{
+      position:fixed;left:.75rem;bottom:.75rem;z-index:70;pointer-events:none;
+      font:600 11px/1.4 Consolas,monospace;color:#9fdcff;
+      background:rgba(4,8,22,.8);border:1px solid rgba(130,198,255,.25);
+      padding:.45rem .6rem;border-radius:8px;white-space:pre;
+    }
+    .no-fx .aurora,.no-fx .grain{display:none}
+
+    /* aurora ribbons — huge blurred colour fields framing the corners.
+       filter+screen give the soft premium glow; they cost the compositor
+       while the page animates, but the blur/hidden freeze zeroes that out
+       the moment the tab loses focus, so full richness is back on. */
+    .aurora{position:fixed;z-index:1;pointer-events:none;filter:blur(72px);mix-blend-mode:screen;will-change:transform}
+    .aurora-a{
+      top:-22vh;left:-18vw;width:58vw;height:52vh;opacity:.24;
+      background:radial-gradient(closest-side, rgba(74,156,255,.55), rgba(88,101,242,.25) 55%, transparent 75%);
+      animation:auroraA 44s ease-in-out infinite alternate;
+    }
+    .aurora-b{
+      bottom:-26vh;right:-16vw;width:52vw;height:56vh;opacity:.18;
+      background:radial-gradient(closest-side, rgba(0,240,255,.42), rgba(74,156,255,.2) 55%, transparent 75%);
+      animation:auroraB 56s ease-in-out infinite alternate;
+    }
+    @keyframes auroraA{from{transform:translate3d(0,0,0) rotate(0deg) scale(1)}to{transform:translate3d(9vw,7vh,0) rotate(18deg) scale(1.25)}}
+    @keyframes auroraB{from{transform:translate3d(0,0,0) rotate(0deg) scale(1.15)}to{transform:translate3d(-8vw,-6vh,0) rotate(-14deg) scale(1)}}
+    /* quality tiers scale the aurora's compositor cost (JS sets body.aq-*) */
+    body.aq-soft .aurora{filter:blur(44px)}                                  /* balanced */
+    body.aq-flat .aurora{filter:none;mix-blend-mode:normal;opacity:.14}      /* lite: cheapest */
+    body.aq-flat .grain{display:none}                                        /* lite: drop the overlay-blend repaint */
+
+    body::after{ /* vignette — deepens the edges for spatial contrast */
+      content:"";position:fixed;inset:0;z-index:1;pointer-events:none;
+      background:radial-gradient(120% 100% at 50% 45%, transparent 55%, rgba(2,5,14,.55) 100%);
+    }
+    /* cursor-following glow (desktop pointer only; positioned by GSAP) */
+    #cursor-glow{
+      position:fixed;top:0;left:0;z-index:1;width:480px;height:480px;
+      margin:-240px 0 0 -240px;pointer-events:none;mix-blend-mode:screen;opacity:0;
+      background:radial-gradient(closest-side, rgba(74,156,255,.16), transparent 70%);
+    }
+    /* custom cursor: fast dot + lagging ring (desktop pointers only) */
+    #cursor-dot,#cursor-ring{position:fixed;top:0;left:0;z-index:60;pointer-events:none;border-radius:50%;opacity:0}
+    #cursor-dot{width:6px;height:6px;margin:-3px 0 0 -3px;background:var(--accent-hi);box-shadow:0 0 8px var(--accent)}
+    /* ring visual lives on ::after and grows via transform (no layout work);
+       the wrapper only carries GSAP's x/y so the two never fight */
+    #cursor-ring{width:30px;height:30px;margin:-15px 0 0 -15px}
+    #cursor-ring::after{
+      content:"";position:absolute;inset:0;border-radius:50%;
+      border:1px solid rgba(130,198,255,.5);
+      transition:transform .25s ease,border-color .25s ease;
+    }
+    #cursor-ring.is-hover::after{transform:scale(1.53);border-color:var(--cyan)}
+    .cursor-trail-dot{
+      position:fixed;top:0;left:0;z-index:59;pointer-events:none;border-radius:50%;
+      background:var(--cyan);box-shadow:0 0 6px rgba(0,240,255,.8);opacity:0;
+    }
+    body.custom-cursor, body.custom-cursor a, body.custom-cursor button{cursor:none}
+    .grain{ /* living film grain so the gradients never band (overlay blend restored — freeze zeroes its cost when unfocused) */
+      position:fixed;inset:-8%;z-index:3;pointer-events:none;opacity:.035;mix-blend-mode:overlay;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      animation:grainShift .9s steps(8) infinite;
+    }
+    @keyframes grainShift{
+      0%{transform:translate(0,0)}12.5%{transform:translate(-2%,1%)}25%{transform:translate(1%,-2%)}
+      37.5%{transform:translate(-1%,2%)}50%{transform:translate(2%,1%)}62.5%{transform:translate(-2%,-1%)}
+      75%{transform:translate(1%,2%)}87.5%{transform:translate(2%,-2%)}100%{transform:translate(0,0)}
+    }
+
+    /* ============ boot sequence overlay ============ */
+    #boot{
+      position:fixed;inset:0;z-index:50;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.1rem;
+      background:radial-gradient(700px 500px at 50% 45%, rgba(74,156,255,.08), transparent 65%), var(--bg-deep);
+      clip-path:circle(120% at 50% 50%);
+    }
+    #boot svg{width:74px;height:74px;filter:drop-shadow(0 0 22px rgba(74,156,255,.55));animation:bootPulse 1.4s ease-in-out infinite}
+    @keyframes bootPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+    .boot-word{font-family:var(--font-display);font-weight:600;font-size:.8rem;letter-spacing:.55em;text-indent:.55em;color:var(--muted)}
+    .boot-bar{width:180px;height:2px;border-radius:2px;background:rgba(130,198,255,.15);overflow:hidden}
+    .boot-bar-fill{width:100%;height:100%;transform:scaleX(0);transform-origin:left;
+      background:linear-gradient(90deg,var(--accent),var(--cyan))}
+
+    /* ============ brand anchor ============ */
+    .brand{
+      position:fixed;top:0;left:0;z-index:2;
+      display:flex;align-items:center;gap:.6rem;
+      padding:clamp(1.1rem,3vw,1.8rem) clamp(1.25rem,4vw,2.4rem);
+      font-family:var(--font-display);font-weight:700;font-size:1.05rem;letter-spacing:.01em;
+    }
+    .brand svg{width:30px;height:30px;filter:drop-shadow(0 0 10px rgba(74,156,255,.5))}
+
+    /* ============ page scaffold ============ */
+    .stage{
+      position:relative;z-index:2;
+      min-height:100vh;min-height:100svh;
+      display:flex;align-items:center;
+      /* top padding clears the fixed brand header */
+      padding:clamp(4.25rem,9vh,5.5rem) clamp(1.5rem,5vw,5.5rem) clamp(1.25rem,4vh,2.5rem);
+    }
+    .content{max-width:46rem}   /* wide enough for the nowrap headline at full size */
+
+    /* ============ status pill ============ */
+    .pill{
+      display:inline-flex;align-items:center;gap:.55rem;
+      font-size:.8rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+      color:var(--accent-hi);
+      padding:.5rem 1.05rem;border-radius:999px;
+      background:rgba(6,12,32,.6);
+      backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+      border:1px solid rgba(130,198,255,.22);
+      box-shadow:0 0 24px rgba(74,156,255,.10) inset;
+    }
+    .pill-dot{
+      width:8px;height:8px;border-radius:50%;flex:none;
+      background:var(--amber);box-shadow:0 0 10px var(--amber);
+      animation:pulseDot 1.8s ease-out infinite;
+    }
+    @keyframes pulseDot{
+      0%,100%{box-shadow:0 0 0 0 rgba(255,207,74,.55), 0 0 10px var(--amber)}
+      55%    {box-shadow:0 0 0 7px rgba(255,207,74,0), 0 0 10px var(--amber)}
+    }
+
+    /* ============ headline ============ */
+    h1{
+      font-family:var(--font-display);
+      font-size:clamp(1.9rem,2.9vw,2.5rem);
+      font-weight:700;letter-spacing:-.01em;line-height:1.12;
+      margin:1.2rem 0 0;
+    }
+    /* each line is a mask for its own reveal; padding keeps descenders unclipped */
+    h1 .line{display:block;overflow:hidden;padding-bottom:.09em;margin-bottom:-.09em}
+    h1 .line-inner{display:block;will-change:transform;white-space:nowrap}
+    h1 .ch{display:inline-block;will-change:transform}
+    .grad{
+      background:linear-gradient(100deg,#82c6ff 0%,#eaf2ff 22%,#00f0ff 46%,#4a9cff 74%,#82c6ff 100%);
+      background-size:240% 100%;
+      -webkit-background-clip:text;background-clip:text;color:transparent;
+      animation:sweep 6s ease-in-out infinite alternate;
+    }
+    @keyframes sweep{from{background-position:0% 0}to{background-position:100% 0}}
+
+    .lead{
+      margin:1.1rem 0 0;max-width:46ch;
+      font-size:clamp(1rem,2vw,1.12rem);line-height:1.7;color:var(--muted);
+    }
+    .lead p+p{margin-top:.8rem}
+
+    /* ============ actions ============ */
+    .actions{display:flex;flex-wrap:wrap;gap:.9rem;margin:1.9rem 0 0}
+    .btn{
+      position:relative;overflow:hidden;
+      display:inline-flex;align-items:center;gap:.6rem;
+      font:inherit;font-size:1rem;font-weight:600;
+      padding:.95rem 1.6rem;border-radius:14px;
+      text-decoration:none;cursor:pointer;
+      /* transforms belong to GSAP (magnetic hover) — CSS only paints */
+      transition:box-shadow .25s ease, background .25s ease, border-color .25s ease;
+    }
+    .btn svg{width:20px;height:20px;flex:none}
+    /* sheen sweep on hover */
+    .btn::after{
+      content:"";position:absolute;inset:0;pointer-events:none;
+      background:linear-gradient(105deg, transparent 40%, rgba(255,255,255,.25) 50%, transparent 60%);
+      transform:translateX(-130%);transition:transform .6s ease;
+    }
+    .btn:hover::after{transform:translateX(130%)}
+    .btn-discord{
+      color:#fff;background:var(--blurple);
+      border:1px solid rgba(255,255,255,.14);
+      box-shadow:0 10px 34px rgba(88,101,242,.40);
+    }
+    .btn-discord:hover{background:var(--blurple-hi);box-shadow:0 16px 44px rgba(88,101,242,.55)}
+    .btn-ghost{
+      color:var(--accent-hi);background:rgba(74,156,255,.07);
+      border:1px solid rgba(130,198,255,.25);
+    }
+    .btn-ghost:hover{
+      background:rgba(74,156,255,.14);border-color:rgba(130,198,255,.45);
+      box-shadow:0 12px 34px rgba(74,156,255,.22);
+    }
+    /* rotating conic highlight tracing the Discord button's border */
+    @property --spin-a{syntax:"<angle>";inherits:false;initial-value:0deg}
+    .btn-discord::before{
+      content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1px;pointer-events:none;
+      background:conic-gradient(from var(--spin-a), transparent 0 72%, rgba(255,255,255,.85) 86%, transparent 100%);
+      -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite:xor;mask-composite:exclude;
+      animation:borderSpin 3.5s linear infinite;
+    }
+    @keyframes borderSpin{to{--spin-a:360deg}}
+
+
+    /* ============ responsive: orb rises above the copy ============ */
+    @media (max-width:899px){
+      .stage{
+        align-items:flex-end;justify-content:center;padding-bottom:9vh;text-align:left;
+        /* legibility scrim — the bloomed orb sits behind the top half */
+        background:linear-gradient(180deg, transparent 14%, rgba(4,8,22,.5) 40%, rgba(4,8,22,.85) 100%);
+      }
+      .content{max-width:34rem}
+      .aurora{filter:blur(50px)}
+      h1 .line-inner{white-space:normal}   /* narrow screens: let the headline wrap */
+    }
+
+    @media (prefers-reduced-motion:reduce){
+      *,*::before,*::after{animation:none !important;transition:none !important}
+      #boot{display:none}
+    }
+
+    /* JS adds .frozen when the tab loses focus / is hidden — halt every CSS
+       animation so an unwatched page costs the compositor ~0 GPU */
+    body.frozen *, body.frozen *::before, body.frozen *::after{
+      animation-play-state:paused !important;
+    }
+
+    /* supernova flash (easter egg) */
+    #nova-flash{
+      position:fixed;inset:0;z-index:55;pointer-events:none;opacity:0;
+      background:radial-gradient(60% 60% at 62% 45%, rgba(234,242,255,.95), rgba(0,240,255,.5) 45%, rgba(74,156,255,.15) 75%, transparent 100%);
+    }
+
+    /* ambient sound toggle */
+    #sound-toggle{
+      position:fixed;right:clamp(1rem,3vw,1.8rem);bottom:clamp(1rem,3vw,1.8rem);z-index:4;
+      width:46px;height:46px;border-radius:50%;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;
+      color:var(--muted);background:rgba(74,156,255,.07);
+      border:1px solid rgba(130,198,255,.25);
+      transition:color .25s ease,border-color .25s ease,background .25s ease,box-shadow .25s ease;
+    }
+    #sound-toggle:hover{color:var(--accent-hi);border-color:rgba(130,198,255,.45);background:rgba(74,156,255,.14)}
+    #sound-toggle.on{color:var(--cyan);border-color:rgba(0,240,255,.5);box-shadow:0 0 18px rgba(0,240,255,.25)}
+    #sound-toggle svg{width:22px;height:22px}
+    #sound-toggle .snd-waves{opacity:0;transition:opacity .2s ease}
+    #sound-toggle.on .snd-waves{opacity:1}
+    #sound-toggle .snd-slash{transition:opacity .2s ease}
+    #sound-toggle.on .snd-slash{opacity:0}
+    @media (prefers-reduced-motion:reduce){ #sound-toggle{display:none} }
   </style>
 </head>
 <body>
 
-  <!-- ===== animated sparkle backdrop (the app's signature look) ===== -->
-  <canvas id="sparkles" aria-hidden="true"></canvas>
+  <!-- ===== 3D stage (the whole backdrop is the scene) ===== -->
+  <canvas id="scene" aria-hidden="true"></canvas>
+  <div class="aurora aurora-a" aria-hidden="true"></div>
+  <div class="aurora aurora-b" aria-hidden="true"></div>
+  <div id="cursor-glow" aria-hidden="true"></div>
+  <div id="cursor-dot" aria-hidden="true"></div>
+  <div id="cursor-ring" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
+  <div id="nova-flash" aria-hidden="true"></div>
 
-  <!-- ===== reusable orb "A" logo (matches the app's drawn nav logo) ===== -->
+  <!-- ambient sound toggle — OFF by default, synthesized in WebAudio (no files) -->
+  <button id="sound-toggle" type="button" aria-pressed="false" aria-label="Toggle ambient sound">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M4 9.5v5h3.5L12 18V6L7.5 9.5H4z" fill="currentColor" stroke="none"/>
+      <path class="snd-waves" d="M15.5 9.2a4 4 0 0 1 0 5.6M18 7a7.5 7.5 0 0 1 0 10"/>
+      <line class="snd-slash" x1="16" y1="9" x2="20.5" y2="15"/>
+    </svg>
+  </button>
+
+  <!-- ===== reusable orb "A" logo (AeroVRC brand mark) ===== -->
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
     <defs>
       <radialGradient id="orbGlow" cx="50%" cy="50%" r="50%">
@@ -73,43 +355,1319 @@
     </defs>
   </svg>
 
-  <!-- ================= WELCOME ================= -->
-  <main class="welcome">
-    <div class="welcome-inner" data-stagger>
-      <a class="whatsnew" data-latest href="changelog.html">
-        <span class="spark" aria-hidden="true"></span>
-        What&rsquo;s new in <span data-latest-tag>the latest release</span>
-        <span class="whatsnew-arrow" aria-hidden="true">→</span>
-      </a>
-      <div class="welcome-orb">
-        <div class="orb-halo" aria-hidden="true"></div>
-        <svg class="orb"><use href="#orb" /></svg>
+  <!-- ===== boot sequence (JS removes; hidden for no-JS / reduced motion) ===== -->
+  <div id="boot" aria-hidden="true">
+    <svg><use href="#orb" /></svg>
+    <div class="boot-word">AEROVRC</div>
+    <div class="boot-bar"><div class="boot-bar-fill"></div></div>
+  </div>
+  <noscript><style>#boot{display:none}</style></noscript>
+
+  <header class="brand">
+    <svg><use href="#orb" /></svg>
+    <span>AeroVRC</span>
+  </header>
+
+  <!-- ================= MAINTENANCE NOTICE ================= -->
+  <main class="stage">
+    <section class="content">
+
+      <span class="pill"><span class="pill-dot"></span> <span class="pill-text">Status · Scheduled maintenance</span></span>
+
+      <h1>
+        <span class="line"><span class="line-inner">AeroVRC is Down for <span class="grad">Maintenance</span></span></span>
+        <span class="line"><span class="line-inner">See you <span class="grad">Soon</span></span></span>
+      </h1>
+
+      <div class="lead">
+        <p>The website and its downloads have been temporarily taken down.</p>
+        <p>We are working behind the scenes to bring you something <span class="grad">better</span>.</p>
+        <p>We aren&rsquo;t going anywhere.</p>
+        <p>Looking for live updates, or have a question? Feel free to join our Discord or send me a message!</p>
       </div>
-      <span class="pill"><span class="pill-dot"></span> Free · Windows 10 &amp; 11 · Portable</span>
-      <h1>Welcome to <span class="grad">AeroVRC</span></h1>
-      <p class="lead">
-        Your VRChat sessions, looked after. AeroVRC keeps the game running, launches your
-        companion apps, and shows you a live dashboard of your world, your frame times, and
-        who&rsquo;s in the instance — all in one clean, free app.
-      </p>
-      <div class="hero-cta">
-        <a class="btn btn-primary btn-lg" href="home.html">
-          Enter the site
-          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M13.3 5.3a1 1 0 0 1 1.4 0l6 6a1 1 0 0 1 0 1.4l-6 6a1 1 0 0 1-1.4-1.4l4.29-4.3H4a1 1 0 1 1 0-2h13.59l-4.3-4.3a1 1 0 0 1 0-1.4Z"/></svg>
+
+      <div class="actions">
+        <!-- TODO: replace # with your Discord invite link, e.g. https://discord.gg/XXXXXXX -->
+        <a class="btn btn-discord" href="#" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.32 4.37a19.8 19.8 0 0 0-4.89-1.52.07.07 0 0 0-.08.04c-.21.38-.44.87-.6 1.25a18.3 18.3 0 0 0-5.5 0 12.6 12.6 0 0 0-.61-1.25.08.08 0 0 0-.08-.04 19.7 19.7 0 0 0-4.88 1.52.07.07 0 0 0-.04.03C.53 9.05-.32 13.58.1 18.06a.08.08 0 0 0 .03.05 19.9 19.9 0 0 0 6 3.03.08.08 0 0 0 .08-.03c.46-.63.87-1.3 1.22-2a.08.08 0 0 0-.04-.11 13 13 0 0 1-1.87-.9.08.08 0 0 1 0-.12c.12-.1.25-.2.37-.29a.07.07 0 0 1 .08-.01c3.93 1.8 8.18 1.8 12.06 0a.07.07 0 0 1 .08 0c.12.1.24.2.37.3a.08.08 0 0 1 0 .12 12.3 12.3 0 0 1-1.87.9.08.08 0 0 0-.05.1c.36.7.78 1.37 1.23 2a.08.08 0 0 0 .08.03 19.8 19.8 0 0 0 6.02-3.03.08.08 0 0 0 .03-.05c.5-5.18-.84-9.68-3.55-13.66a.06.06 0 0 0-.03-.03zM8.02 15.33c-1.18 0-2.16-1.08-2.16-2.42 0-1.33.96-2.42 2.16-2.42 1.21 0 2.18 1.1 2.16 2.42 0 1.34-.96 2.42-2.16 2.42zm7.97 0c-1.18 0-2.15-1.08-2.15-2.42 0-1.33.95-2.42 2.15-2.42 1.22 0 2.18 1.1 2.16 2.42 0 1.34-.94 2.42-2.16 2.42z"/></svg>
+          Join the Discord
         </a>
-        <a class="btn btn-secondary btn-lg" data-download href="download.html">
-          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 3a1 1 0 0 1 1 1v9.6l3.3-3.3a1 1 0 0 1 1.4 1.4l-5 5a1 1 0 0 1-1.4 0l-5-5a1 1 0 0 1 1.4-1.4l3.3 3.3V4a1 1 0 0 1 1-1Zm-7 15a1 1 0 0 1 1 1v1h12v-1a1 1 0 1 1 2 0v2a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-2a1 1 0 0 1 1-1Z"/></svg>
-          Download for Windows
+        <a class="btn btn-ghost" href="mailto:ajordan120906@gmail.com">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3.5 7 8.5 6 8.5-6"/></svg>
+          Email Support
         </a>
       </div>
-      <p class="welcome-foot">
-        Portable <code>.exe</code> — no installer, no admin required to run.
-        <br />
-        Prefer to browse first? <a href="home.html">Explore features, screenshots &amp; updates →</a>
-      </p>
-    </div>
+
+    </section>
   </main>
 
-  <script src="app.js"></script>
+  <!-- GSAP first (classic script), then the module — guaranteed order. -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <!-- safety: if the module below fails to run (very old browser), never leave the boot curtain up -->
+  <script>
+    setTimeout(function () {
+      var b = document.getElementById("boot");
+      if (b && !b.dataset.managed) b.style.display = "none";
+    }, 2500);
+  </script>
+
+  <script type="module">
+    import * as THREE from "three";
+    import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+    import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+    import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+    import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
+
+    const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const finePointer = matchMedia("(hover: hover) and (pointer: fine)").matches;
+    const isDesktop = () => matchMedia("(min-width: 900px)").matches;
+
+    /* ?perf debug mode — dev-only frame HUD + ablation flags for profiling,
+       e.g. maintenance.html?perf&nobloom&noring — harmless in production
+       (no flag, no change). &noevents freezes flare/comet timers so
+       measurements don't spike mid-sample. */
+    const qs = new URLSearchParams(location.search);
+    const PERF = {
+      hud:    qs.has("perf"),
+      bloom:  !qs.has("nobloom"),
+      stars:  !qs.has("nostars"),
+      nebula: !qs.has("nonebula"),
+      ring:   !qs.has("noring"),
+      debris: !qs.has("nodebris"),
+      fx:     !qs.has("nofx"),
+      events: !qs.has("noevents")
+    };
+    if (!PERF.fx) document.body.classList.add("no-fx");
+    let hudEl = null, hudAcc = 0, hudFrames = 0;
+    if (PERF.hud) {
+      hudEl = document.createElement("div");
+      hudEl.id = "perf-hud";
+      hudEl.textContent = "perf…";
+      document.body.appendChild(hudEl);
+    }
+
+    /* ================= renderer (with graceful fallback) ================= */
+    let renderer = null;
+    try {
+      renderer = new THREE.WebGLRenderer({
+        canvas: document.getElementById("scene"),
+        antialias: true,
+        powerPreference: "high-performance"
+      });
+      renderer.setClearColor(0x040816, 1);   // scene owns the background now (bloom-friendly)
+    } catch (err) {
+      document.body.classList.add("no-webgl"); // CSS backdrop carries the page
+    }
+
+    /* ================= adaptive quality tiers =================
+       The scene is fill-rate bound, so it must scale to the visitor's GPU.
+       A tier sets both BAKED settings (particle counts, nebula octaves, aurora
+       treatment — fixed at load) and RUNTIME settings (DPR, bloom — which the
+       fps watchdog can lower live). Start tier = GPU-name guess; the watchdog
+       then steps DOWN if frames sag, so a mis-guess self-corrects.            */
+    const TIER_ORDER = ["ultra", "high", "balanced", "lite"];
+    const TIERS = {
+      ultra:    { dpr: 1.75, bloom: true,  bloomStr: 0.58, bloomHalf: false, aurora: "blur", parts: 1.0,  neb: 4 },
+      high:     { dpr: 1.5,  bloom: true,  bloomStr: 0.5,  bloomHalf: false, aurora: "blur", parts: 0.85, neb: 4 },
+      balanced: { dpr: 1.25, bloom: true,  bloomStr: 0.45, bloomHalf: true,  aurora: "soft", parts: 0.6,  neb: 3 },
+      lite:     { dpr: 1.0,  bloom: false, bloomStr: 0,    bloomHalf: true,  aurora: "flat", parts: 0.4,  neb: 3 }
+    };
+    function guessTierFromGPU() {
+      let s = "";
+      try {
+        const gl = renderer.getContext();
+        const dbg = gl.getExtension("WEBGL_debug_renderer_info");
+        s = (dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : "").toLowerCase();
+      } catch (e) {}
+      if (/swiftshader|llvmpipe|software|mali|adreno|powervr|apple gpu/.test(s)) return "lite";
+      if (/rtx\s*(40|50)\d\d|rtx\s*30(80|90)|rx\s*(69|78|79)\d\d/.test(s)) return "ultra";
+      if (/rtx\s*(20|30)\d\d|gtx\s*16\d\d|rx\s*(58|59|66|67|68)\d\d|apple\s*m[1-9]/.test(s)) return "high";
+      if (/gtx\s*(10|9)\d\d|rx\s*(4|5[0-6])\d\d|iris|radeon|geforce/.test(s)) return "balanced";
+      if (/intel|uhd|hd graphics/.test(s)) return "lite";
+      return "high";   // unknown but WebGL-capable desktop → sensible middle
+    }
+    // ?tier=ultra|high|balanced|lite forces a tier (testing); else auto.
+    const forcedTier = qs.get("tier");
+    let tierIdx = TIER_ORDER.indexOf(
+      TIER_ORDER.includes(forcedTier) ? forcedTier
+      : !isDesktop() ? "balanced"                    // phones start no higher than balanced
+      : renderer ? guessTierFromGPU() : "lite"
+    );
+    if (tierIdx < 0) tierIdx = 1;
+    const Q = { ...TIERS[TIER_ORDER[tierIdx]] };     // live copy the watchdog mutates
+    let bloomOn = Q.bloom;                            // runtime flag (declared here; used widely below)
+    document.body.classList.add("aq-" + Q.aurora);   // CSS picks aurora richness
+    document.documentElement.dataset.tier = TIER_ORDER[tierIdx];
+    const pScale = (n) => Math.max(24, Math.round(n * Q.parts));   // particle-count scaler (floor so nothing vanishes)
+
+    /* ================= scene graph ================= */
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x040816, 0.03);
+
+    const camera = new THREE.PerspectiveCamera(42, innerWidth / innerHeight, 0.1, 120);
+    camera.position.set(0, 0, 7.2);
+    const rig = new THREE.Group();      // camera rig — pointer parallax rotates this
+    rig.add(camera);
+    scene.add(rig);
+
+    const world = new THREE.Group();    // everything visible — offset per breakpoint
+    scene.add(world);
+
+    /* ---- deep-space nebula: fbm noise plane far behind everything ---- */
+    const nebulaMat = new THREE.ShaderMaterial({
+      uniforms: { uTime: { value: 0 } },
+      depthWrite: false,
+      vertexShader: /* glsl */`
+        varying vec2 vUv;
+        void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+      fragmentShader: /* glsl */`
+        uniform float uTime; varying vec2 vUv;
+        float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+        float noise(vec2 p){
+          vec2 i = floor(p), f = fract(p);
+          vec2 u = f * f * (3.0 - 2.0 * f);
+          return mix(mix(hash(i), hash(i + vec2(1,0)), u.x),
+                     mix(hash(i + vec2(0,1)), hash(i + vec2(1,1)), u.x), u.y);
+        }
+        float fbm(vec2 p){
+          float v = 0.0, a = 0.5;
+          for (int i = 0; i < ${Q.neb}; i++){ v += a * noise(p); p *= 2.03; a *= 0.5; }
+          return v;
+        }
+        void main(){
+          vec2 uv = vUv * vec2(2.2, 1.4);
+          float n1 = fbm(uv * 2.0 + vec2(uTime * 0.016, -uTime * 0.011));
+          float n2 = fbm(uv * 3.4 - vec2(uTime * 0.009,  uTime * 0.013) + 7.3);
+          vec3 col = vec3(0.016, 0.031, 0.086);                       // bg-deep
+          col += vec3(0.29, 0.61, 1.00) * smoothstep(0.52, 0.95, n1) * 0.16;  // aero wisps
+          col += vec3(0.35, 0.40, 0.95) * smoothstep(0.58, 0.98, n2) * 0.12;  // blurple wisps
+          col += vec3(0.00, 0.94, 1.00) * smoothstep(0.72, 1.00, n1 * n2 * 1.6) * 0.08; // cyan sparks
+          float falloff = 1.0 - smoothstep(0.25, 0.75, distance(vUv, vec2(0.5, 0.52)));
+          col = mix(vec3(0.016, 0.031, 0.086), col, falloff);
+          gl_FragColor = vec4(col, 1.0);
+        }`
+    });
+    const nebula = new THREE.Mesh(new THREE.PlaneGeometry(120, 70), nebulaMat);
+    nebula.position.z = -42;
+    nebula.visible = PERF.nebula;
+    scene.add(nebula);                  // in scene, not world — it shouldn't shift with layout
+
+    /* ---- core: the orb, molten (sum-of-sines displacement + fresnel) ---- */
+    const coreMat = new THREE.ShaderMaterial({
+      uniforms: {
+        uTime: { value: 0 },
+        uBoost: { value: 1 },   // flare swell (GSAP-driven)
+        uDeep: { value: new THREE.Color("#1c5cc8") },
+        uCore: { value: new THREE.Color("#4a9cff") },
+        uCyan: { value: new THREE.Color("#00f0ff") },
+        uRim:  { value: new THREE.Color("#a8d0ff") }
+      },
+      vertexShader: /* glsl */`
+        uniform float uTime;
+        varying vec3 vN; varying vec3 vV; varying float vDisp; varying vec3 vP;
+        void main(){
+          float t = uTime * 0.6;
+          float d = sin(position.x * 4.0 + t) * sin(position.y * 5.0 + t * 1.3) * sin(position.z * 6.0 - t * 0.7);
+          vDisp = d;
+          vP = position;
+          vec3 p = position + normal * d * 0.035;
+          vec4 mv = modelViewMatrix * vec4(p, 1.0);
+          vN = normalize(normalMatrix * normal);
+          vV = normalize(-mv.xyz);
+          gl_Position = projectionMatrix * mv;
+        }`,
+      fragmentShader: /* glsl */`
+        uniform float uTime; uniform float uBoost;
+        uniform vec3 uDeep; uniform vec3 uCore; uniform vec3 uCyan; uniform vec3 uRim;
+        varying vec3 vN; varying vec3 vV; varying float vDisp; varying vec3 vP;
+        float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+        float noise(vec2 p){
+          vec2 i = floor(p), f = fract(p);
+          vec2 u = f * f * (3.0 - 2.0 * f);
+          return mix(mix(hash(i), hash(i + vec2(1,0)), u.x),
+                     mix(hash(i + vec2(0,1)), hash(i + vec2(1,1)), u.x), u.y);
+        }
+        float fbm(vec2 p){
+          float v = 0.0, a = 0.5;
+          for (int i = 0; i < 4; i++){ v += a * noise(p); p *= 2.03; a *= 0.5; }
+          return v;
+        }
+        void main(){
+          float t = uTime;
+          // position-based sampling (two projections, averaged) — no UV seam
+          vec3 p = normalize(vP);
+          float sw = t * 0.02;                       // slow extra swirl on top of the mesh spin
+          vec2 q = mat2(cos(sw), -sin(sw), sin(sw), cos(sw)) * p.xz;
+          vec2 d1 = vec2(q.x, p.y * 1.4);
+          vec2 d2 = vec2(q.y, p.y * 1.4);
+          float n1 = 0.5 * (fbm(d1 * 2.4 + t * 0.015) + fbm(d2 * 2.4 - t * 0.011 + 7.0)); // broad cells
+          float n2 = 0.5 * (fbm(d1 * 6.0 - t * 0.020) + fbm(d2 * 6.0 + t * 0.017 + 3.0)); // filaments
+          // solid marbled body — deep navy seas, aero cloud cells, icy highlights
+          vec3 col = mix(uDeep * 0.85, uCore, smoothstep(0.22, 0.66, n1));
+          col = mix(col, uRim, smoothstep(0.55, 0.90, n1 * n2 * 2.2) * 0.55);
+          col += uCyan * smoothstep(0.66, 0.95, n2) * 0.24;   // glowing filaments
+          col += col * vDisp * 0.4;                           // relief from the vertex ripple
+          // key light from the upper-left (same corner as the 2D orb mark's highlight)
+          col *= 0.62 + 0.55 * max(dot(vN, normalize(vec3(-0.45, 0.55, 0.72))), 0.0);
+          col *= 0.94 + 0.06 * sin(t * 0.9);                  // gentle breathing
+          // thin icy limb — solid planet, not hollow glass
+          float fres = pow(1.0 - max(dot(vN, vV), 0.0), 3.0);
+          col = mix(col, uRim, fres * 0.35);
+          col *= uBoost;                                      // flare swell
+          gl_FragColor = vec4(col, 1.0);
+        }`
+    });
+    const core = new THREE.Mesh(new THREE.SphereGeometry(1, 96, 96), coreMat);
+    world.add(core);
+
+    /* ---- atmosphere: additive back-face glow around the core ---- */
+    const atmoMat = new THREE.ShaderMaterial({
+      uniforms: { uGlow: { value: new THREE.Color("#4a9cff") }, uBoost: { value: 1 } },
+      side: THREE.BackSide,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      vertexShader: /* glsl */`
+        varying vec3 vN; varying vec3 vV;
+        void main(){
+          vec4 mv = modelViewMatrix * vec4(position, 1.0);
+          vN = normalize(normalMatrix * normal);
+          vV = normalize(-mv.xyz);
+          gl_Position = projectionMatrix * mv;
+        }`,
+      fragmentShader: /* glsl */`
+        uniform vec3 uGlow; uniform float uBoost;
+        varying vec3 vN; varying vec3 vV;
+        void main(){
+          float i = pow(clamp(0.6 - dot(vN, vV), 0.0, 1.6), 2.0);
+          gl_FragColor = vec4(uGlow, 1.0) * (i * 0.78 * uBoost);
+        }`
+    });
+    const atmo = new THREE.Mesh(new THREE.SphereGeometry(1, 64, 64), atmoMat);
+    atmo.scale.setScalar(1.35);
+    atmo.renderOrder = 1;              // always under the ring/stream layers
+    world.add(atmo);
+
+    /* ---- shell: slow wireframe icosahedron (the "engineering" layer) ---- */
+    const shell = new THREE.Mesh(
+      new THREE.IcosahedronGeometry(1.5, 1),
+      new THREE.MeshBasicMaterial({ color: 0x82c6ff, wireframe: true, transparent: true, opacity: 0.16 })
+    );
+    world.add(shell);
+
+    /* ---- shared twinkle shader for all point systems ---- */
+    function makeTwinkleMaterial(basePx) {
+      return new THREE.ShaderMaterial({
+        uniforms: { uTime: { value: 0 }, uPx: { value: basePx }, uFade: { value: 1 } },
+        transparent: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        vertexShader: /* glsl */`
+          uniform float uTime; uniform float uPx;
+          attribute float aSize; attribute float aPhase; attribute float aSpeed;
+          attribute vec3 aColor;
+          varying vec3 vColor; varying float vTw;
+          void main(){
+            vTw = 0.55 + 0.45 * sin(uTime * aSpeed + aPhase);
+            vColor = aColor;
+            vec4 mv = modelViewMatrix * vec4(position, 1.0);
+            gl_PointSize = clamp(aSize * vTw * (uPx / -mv.z), 1.0, 34.0);
+            gl_Position = projectionMatrix * mv;
+          }`,
+        fragmentShader: /* glsl */`
+          uniform float uFade;                      // global fade (1 = full; the supernova drives ring/orbit to 0)
+          varying vec3 vColor; varying float vTw;
+          void main(){
+            float d = length(gl_PointCoord - 0.5);
+            float a = smoothstep(0.5, 0.06, d);
+            gl_FragColor = vec4(vColor, a * vTw * uFade);
+          }`
+      });
+    }
+    const AERO = [0.29, 0.61, 1.0], CYAN = [0.0, 0.94, 1.0], ICE = [0.66, 0.82, 1.0];
+
+    function buildPoints(count, material, place, colorPick, sizeMin, sizeMax) {
+      const pos = new Float32Array(count * 3);
+      const col = new Float32Array(count * 3);
+      const size = new Float32Array(count);
+      const phase = new Float32Array(count);
+      const speed = new Float32Array(count);
+      for (let i = 0; i < count; i++) {
+        place(i, pos);
+        const c = colorPick();
+        const b = 0.4 + Math.random() * 0.6;
+        col[i*3] = c[0]*b; col[i*3+1] = c[1]*b; col[i*3+2] = c[2]*b;
+        size[i]  = sizeMin + Math.random() * (sizeMax - sizeMin);
+        phase[i] = Math.random() * Math.PI * 2;
+        speed[i] = 0.4 + Math.random() * 1.6;
+      }
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+      geo.setAttribute("aColor",   new THREE.BufferAttribute(col, 3));
+      geo.setAttribute("aSize",    new THREE.BufferAttribute(size, 1));
+      geo.setAttribute("aPhase",   new THREE.BufferAttribute(phase, 1));
+      geo.setAttribute("aSpeed",   new THREE.BufferAttribute(speed, 1));
+      return new THREE.Points(geo, material);
+    }
+
+    /* ---- starfield: twinkling data-motes with real depth ---- */
+    const starCount = pScale(Math.min(2600, (innerWidth * innerHeight) / 820));
+    const starMat = makeTwinkleMaterial(240);
+    const stars = buildPoints(starCount, starMat,
+      (i, pos) => {
+        const r = 9 + Math.pow(Math.random(), 0.7) * 22;      // depth spread, never in your face
+        const th = Math.random() * Math.PI * 2;
+        const ph = Math.acos(2 * Math.random() - 1);
+        pos[i*3]     = r * Math.sin(ph) * Math.cos(th);
+        pos[i*3 + 1] = r * Math.sin(ph) * Math.sin(th) * 0.6; // flatten vertically
+        pos[i*3 + 2] = r * Math.cos(ph);
+      },
+      () => Math.random() < 0.65 ? AERO : (Math.random() < 0.7 ? CYAN : ICE),
+      0.4, 1.2);
+    stars.visible = PERF.stars;
+    world.add(stars);
+
+    /* ---- halo group: ring + tracer + orbiting particle stream ---- */
+    const halo = new THREE.Group();
+    halo.rotation.set(THREE.MathUtils.degToRad(74), 0, THREE.MathUtils.degToRad(-18));
+    world.add(halo);
+
+    /* the orbit line itself is a dense band of fine dust (user request: no
+       solid/gradient line). ~2400 tiny motes in a tight gaussian-ish band —
+       reads as a packed dust ring, with the sparkle stream layered on top. */
+    const ringDustMat = makeTwinkleMaterial(150);
+    const ringDust = buildPoints(pScale(3400), ringDustMat,
+      (i, pos) => {
+        const a = Math.random() * Math.PI * 2;
+        // sum of two randoms ≈ gaussian: tight band with soft edges
+        const g = (Math.random() + Math.random() - 1);
+        pos[i*3]     = Math.cos(a) * (2.1 + g * 0.05);
+        pos[i*3 + 1] = Math.sin(a) * (2.1 + g * 0.05);
+        pos[i*3 + 2] = (Math.random() + Math.random() - 1) * 0.035;
+      },
+      () => Math.random() < 0.6 ? ICE : (Math.random() < 0.75 ? AERO : CYAN),
+      0.12, 0.38);
+    ringDust.renderOrder = 2;
+    halo.add(ringDust);
+
+    /* coarse grains of the SAME ring: identical gaussian band profile as the
+       fine dust (just a whisker wider), shared color ramp, overlapping sizes —
+       so big and small read as one ring with a grain-size continuum. */
+    const streamMat = makeTwinkleMaterial(170);
+    const stream = buildPoints(pScale(900), streamMat,
+      (i, pos) => {
+        const a = Math.random() * Math.PI * 2;
+        const g = (Math.random() + Math.random() - 1);
+        pos[i*3]     = Math.cos(a) * (2.1 + g * 0.06);
+        pos[i*3 + 1] = Math.sin(a) * (2.1 + g * 0.06);
+        pos[i*3 + 2] = (Math.random() + Math.random() - 1) * 0.045;
+      },
+      () => Math.random() < 0.45 ? ICE : (Math.random() < 0.64 ? AERO : CYAN),
+      0.3, 0.75);
+    stream.renderOrder = 3;
+    ringDust.visible = stream.visible = PERF.ring;
+    halo.add(stream);
+
+    const dotTex = (() => {  // soft round sprite for the tracer glow
+      const c = document.createElement("canvas"); c.width = c.height = 64;
+      const g = c.getContext("2d");
+      const grad = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+      grad.addColorStop(0, "rgba(255,255,255,1)");
+      grad.addColorStop(0.4, "rgba(255,255,255,.6)");
+      grad.addColorStop(1, "rgba(255,255,255,0)");
+      g.fillStyle = grad; g.fillRect(0, 0, 64, 64);
+      return new THREE.CanvasTexture(c);
+    })();
+
+    const tracer = new THREE.Mesh(
+      new THREE.SphereGeometry(0.045, 16, 16),
+      new THREE.MeshBasicMaterial({ color: 0x00f0ff, transparent: true })   // transparent so the supernova can fade it
+    );
+    const tracerGlow = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: dotTex, color: 0x00f0ff, transparent: true, opacity: 0.9,
+      blending: THREE.AdditiveBlending, depthWrite: false
+    }));
+    tracerGlow.scale.setScalar(0.5);
+    tracer.add(tracerGlow);
+    halo.add(tracer);
+
+    /* orbit trail — a plume of dense dust chasing the tracer. Each mote stores
+       how far behind the head it rides (aBehind); the shader rebuilds the whole
+       plume from uHead every frame, so the dust follows with zero CPU cost.
+       Tight and bright at the head, spreading wide and dim down-tail. */
+    const DUST_N = pScale(620);
+    const dustBehind = new Float32Array(DUST_N);
+    const dustRad    = new Float32Array(DUST_N);
+    const dustZ      = new Float32Array(DUST_N);
+    const dustSize   = new Float32Array(DUST_N);
+    const dustPhase  = new Float32Array(DUST_N);
+    const dustSpeed  = new Float32Array(DUST_N);
+    const dustPos    = new Float32Array(DUST_N * 3); // dummy — real position built in-shader
+    for (let i = 0; i < DUST_N; i++) {
+      dustBehind[i] = 0.02 + Math.pow(Math.random(), 1.5) * 1.6;  // denser near the head
+      dustRad[i]    = (Math.random() - 0.5) * 2;
+      dustZ[i]      = (Math.random() - 0.5) * 2;
+      dustSize[i]   = 0.3 + Math.random() * 0.7;
+      dustPhase[i]  = Math.random() * Math.PI * 2;
+      dustSpeed[i]  = 1.0 + Math.random() * 3.0;
+    }
+    const dustGeo = new THREE.BufferGeometry();
+    dustGeo.setAttribute("position", new THREE.BufferAttribute(dustPos, 3));
+    dustGeo.setAttribute("aBehind",  new THREE.BufferAttribute(dustBehind, 1));
+    dustGeo.setAttribute("aRad",     new THREE.BufferAttribute(dustRad, 1));
+    dustGeo.setAttribute("aZ",       new THREE.BufferAttribute(dustZ, 1));
+    dustGeo.setAttribute("aSize",    new THREE.BufferAttribute(dustSize, 1));
+    dustGeo.setAttribute("aPhase",   new THREE.BufferAttribute(dustPhase, 1));
+    dustGeo.setAttribute("aSpeed",   new THREE.BufferAttribute(dustSpeed, 1));
+    const dustMat = new THREE.ShaderMaterial({
+      uniforms: { uTime: { value: 0 }, uHead: { value: 0 }, uPx: { value: 200 }, uFade: { value: 1 } },
+      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+      vertexShader: /* glsl */`
+        uniform float uTime; uniform float uHead; uniform float uPx;
+        attribute float aBehind; attribute float aRad; attribute float aZ;
+        attribute float aSize; attribute float aPhase; attribute float aSpeed;
+        varying float vFade; varying float vTw; varying float vBehind;
+        void main(){
+          float ang = uHead - aBehind;
+          float spread = 0.035 + aBehind * 0.16;              // plume widens down-tail
+          float r = 2.1 + aRad * spread;
+          vec3 p = vec3(cos(ang) * r, sin(ang) * r, aZ * spread);
+          vTw = 0.55 + 0.45 * sin(uTime * aSpeed + aPhase);
+          vFade = pow(max(1.0 - aBehind / 1.62, 0.0), 1.4);   // max() guards NaN → bloom black boxes
+          vBehind = aBehind;
+          vec4 mv = modelViewMatrix * vec4(p, 1.0);
+          gl_PointSize = clamp(aSize * (0.7 + 0.6 * vFade) * vTw * (uPx / -mv.z), 1.0, 20.0);
+          gl_Position = projectionMatrix * mv;
+        }`,
+      fragmentShader: /* glsl */`
+        uniform float uFade;                         // global fade for the supernova
+        varying float vFade; varying float vTw; varying float vBehind;
+        void main(){
+          float d = length(gl_PointCoord - 0.5);
+          float a = smoothstep(0.5, 0.08, d);
+          vec3 col = mix(vec3(0.0, 0.94, 1.0), vec3(0.29, 0.61, 1.0), min(vBehind / 1.2, 1.0)); // cyan head → aero tail
+          gl_FragColor = vec4(col, a * vFade * vTw * 0.85 * uFade);
+        }`
+    });
+    const trail = new THREE.Points(dustGeo, dustMat);
+    trail.frustumCulled = false;   // geometry positions are shader-built; don't cull on the dummy buffer
+    trail.renderOrder = 3;
+    trail.visible = PERF.ring;
+    halo.add(trail);
+
+    /* ---- click pings: pooled expanding light rings. Each click grabs its
+       own ring, so rapid clicks STACK instead of resetting one another.
+       Soft canvas-gradient ring reads far nicer than the old hard torus. ---- */
+    const pingTex = (() => {
+      const c = document.createElement("canvas"); c.width = c.height = 256;
+      const g = c.getContext("2d");
+      const grad = g.createRadialGradient(128, 128, 0, 128, 128, 128);
+      grad.addColorStop(0.0,  "rgba(255,255,255,0)");
+      grad.addColorStop(0.70, "rgba(255,255,255,0)");
+      grad.addColorStop(0.84, "rgba(190,240,255,0.9)");    // bright icy leading edge
+      grad.addColorStop(0.93, "rgba(0,240,255,0.5)");      // cyan bloom skirt
+      grad.addColorStop(1.0,  "rgba(74,156,255,0)");
+      g.fillStyle = grad; g.fillRect(0, 0, 256, 256);
+      return new THREE.CanvasTexture(c);
+    })();
+    const pingPool = [];
+    for (let i = 0; i < 6; i++) {
+      const m = new THREE.Mesh(
+        new THREE.PlaneGeometry(1, 1),
+        new THREE.MeshBasicMaterial({ map: pingTex, transparent: true, opacity: 0,
+          blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide })
+      );
+      m.visible = false;
+      m.renderOrder = 4;
+      halo.add(m);                       // rides the ring plane
+      pingPool.push(m);
+    }
+    function firePing(maxScale = 3.8, dur = 1.15) {
+      if (!window.gsap || reduceMotion) return;
+      const m = pingPool.find(p => !p.userData.busy) || pingPool[0];
+      if (m.userData.tl) m.userData.tl.kill();
+      m.userData.busy = true;
+      m.visible = true;
+      m.userData.tl = gsap.timeline({ onComplete() { m.visible = false; m.userData.busy = false; } })
+        .fromTo(m.scale,    { x: 0.7, y: 0.7, z: 0.7 }, { x: maxScale, y: maxScale, z: maxScale, duration: dur, ease: "expo.out" }, 0)
+        .fromTo(m.material, { opacity: 0.85 }, { opacity: 0, duration: dur, ease: "power2.out" }, 0);
+    }
+
+    /* ---- solar flares: dense particle plumes erupting off the limb.
+       Each flare is a pooled Points cloud — every mote rides a bezier arc
+       (uA→uC→uB) at its own fraction of the drawn arc, scattering wider as
+       the plume travels. Parented to the core so eruptions ride its spin. ---- */
+    const FLARE_N = pScale(520);
+    const flarePool = [];
+    for (let i = 0; i < 3; i++) {
+      const fOff  = new Float32Array(FLARE_N);
+      const fScat = new Float32Array(FLARE_N * 3);
+      const fSize = new Float32Array(FLARE_N);
+      const fPh   = new Float32Array(FLARE_N);
+      for (let j = 0; j < FLARE_N; j++) {
+        fOff[j] = Math.pow(Math.random(), 0.8);
+        fScat[j*3]   = (Math.random() + Math.random() - 1);
+        fScat[j*3+1] = (Math.random() + Math.random() - 1);
+        fScat[j*3+2] = (Math.random() + Math.random() - 1);
+        fSize[j] = 0.5 + Math.random() * 1.1;
+        fPh[j] = Math.random() * Math.PI * 2;
+      }
+      const g = new THREE.BufferGeometry();
+      g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(FLARE_N * 3), 3)); // dummy — built in-shader
+      g.setAttribute("aOff",   new THREE.BufferAttribute(fOff, 1));
+      g.setAttribute("aScat",  new THREE.BufferAttribute(fScat, 3));
+      g.setAttribute("aSize",  new THREE.BufferAttribute(fSize, 1));
+      g.setAttribute("aPhase", new THREE.BufferAttribute(fPh, 1));
+      const mat = new THREE.ShaderMaterial({
+        uniforms: {
+          uTime: { value: 0 }, uProg: { value: 0 }, uFade: { value: 0 }, uPx: { value: 190 },
+          uA: { value: new THREE.Vector3() }, uB: { value: new THREE.Vector3() }, uC: { value: new THREE.Vector3() }
+        },
+        transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+        vertexShader: /* glsl */`
+          uniform float uTime; uniform float uProg; uniform float uPx;
+          uniform vec3 uA; uniform vec3 uB; uniform vec3 uC;
+          attribute float aOff; attribute vec3 aScat; attribute float aSize; attribute float aPhase;
+          varying float vA;
+          void main(){
+            float s = aOff * min(uProg, 1.0);                  // fraction along the drawn arc
+            float u = 1.0 - s;
+            vec3 p = u*u*uA + 2.0*u*s*uC + s*s*uB;             // quadratic bezier
+            p += aScat * (0.02 + s * 0.14);                    // plume widens as it travels
+            float tw = 0.6 + 0.4 * sin(uTime * 7.0 + aPhase);
+            vA = (1.0 - s * 0.6) * tw;
+            vec4 mv = modelViewMatrix * vec4(p, 1.0);
+            gl_PointSize = clamp(aSize * tw * (uPx / -mv.z), 1.0, 16.0);
+            gl_Position = projectionMatrix * mv;
+          }`,
+        fragmentShader: /* glsl */`
+          uniform float uFade; varying float vA;
+          void main(){
+            float d = length(gl_PointCoord - 0.5);
+            float a = smoothstep(0.5, 0.07, d);
+            vec3 col = mix(vec3(0.0, 0.94, 1.0), vec3(0.62, 0.88, 1.0), vA); // hot ice head, cyan spray
+            gl_FragColor = vec4(col, a * vA * uFade);
+          }`
+      });
+      const pts = new THREE.Points(g, mat);
+      pts.frustumCulled = false;
+      pts.visible = false;
+      core.add(pts);
+      flarePool.push(pts);
+    }
+    const _yAxis = new THREE.Vector3(0, 1, 0);
+    function spawnFlare() {
+      if (!document.hidden) {
+        const m = flarePool.find(f => !f.userData.busy);
+        if (m) {
+          m.userData.busy = true;
+          // eruption footprint: two nearby surface points + an outflung control point
+          const A = new THREE.Vector3((Math.random() - 0.5) * 1.6, (Math.random() - 0.5) * 1.4, 0.6 + Math.random() * 0.8)
+            .normalize().applyAxisAngle(_yAxis, -core.rotation.y);   // undo spin → faces camera
+          const tangent = new THREE.Vector3()
+            .crossVectors(A, new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5))
+            .normalize();
+          const B = A.clone().applyAxisAngle(tangent, 0.55 + Math.random() * 0.5);
+          const C = A.clone().add(B).multiplyScalar(0.5).normalize().multiplyScalar(1.45 + Math.random() * 0.5);
+          m.material.uniforms.uA.value.copy(A);
+          m.material.uniforms.uB.value.copy(B);
+          m.material.uniforms.uC.value.copy(C);
+          m.visible = true;
+          sfx.flare && sfx.flare();
+          gsap.timeline({ onComplete() { m.visible = false; m.userData.busy = false; } })
+            .fromTo(m.material.uniforms.uFade, { value: 0 }, { value: 0.95, duration: 0.3, ease: "power1.out" }, 0)
+            .fromTo(m.material.uniforms.uProg, { value: 0 }, { value: 1, duration: 1.6, ease: "power2.out" }, 0)
+            .to(m.material.uniforms.uFade, { value: 0, duration: 1.2, ease: "power2.in" }, 1.7);
+          gsap.timeline()   // the star swells briefly as it lets go
+            .to(coreMat.uniforms.uBoost, { value: 1.32, duration: 0.5, ease: "power2.out" }, 0)
+            .to(coreMat.uniforms.uBoost, { value: 1.0, duration: 1.5, ease: "power2.inOut" }, 0.5);
+        }
+      }
+      setTimeout(spawnFlare, 12000 + Math.random() * 16000);   // amplified: more frequent eruptions
+    }
+
+    /* ---- supernova burst particles (easter egg; pooled, shader-driven) ---- */
+    const NOVA_N = pScale(900);
+    const novaDir = new Float32Array(NOVA_N * 3);
+    const novaSpd = new Float32Array(NOVA_N);
+    const novaSize = new Float32Array(NOVA_N);
+    for (let i = 0; i < NOVA_N; i++) {
+      const th = Math.random() * Math.PI * 2, ph = Math.acos(2 * Math.random() - 1);
+      novaDir[i*3]   = Math.sin(ph) * Math.cos(th);
+      novaDir[i*3+1] = Math.sin(ph) * Math.sin(th);
+      novaDir[i*3+2] = Math.cos(ph);
+      novaSpd[i]  = 2 + Math.random() * 7;
+      novaSize[i] = 0.4 + Math.random();
+    }
+    const novaGeo = new THREE.BufferGeometry();
+    novaGeo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(NOVA_N * 3), 3)); // shader-built
+    novaGeo.setAttribute("aDir",  new THREE.BufferAttribute(novaDir, 3));
+    novaGeo.setAttribute("aSpd",  new THREE.BufferAttribute(novaSpd, 1));
+    novaGeo.setAttribute("aSize", new THREE.BufferAttribute(novaSize, 1));
+    const novaMat = new THREE.ShaderMaterial({
+      uniforms: { uT: { value: 0 }, uFade: { value: 0 }, uPx: { value: 200 } },
+      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+      vertexShader: /* glsl */`
+        uniform float uT; uniform float uPx;
+        attribute vec3 aDir; attribute float aSpd; attribute float aSize;
+        varying float vHot;
+        void main(){
+          vec3 p = aDir * (0.35 + aSpd * uT * 4.2);
+          vHot = 1.0 - clamp(uT * 1.2, 0.0, 1.0);
+          vec4 mv = modelViewMatrix * vec4(p, 1.0);
+          gl_PointSize = clamp(aSize * (1.4 - uT) * (uPx / -mv.z), 1.0, 26.0);
+          gl_Position = projectionMatrix * mv;
+        }`,
+      fragmentShader: /* glsl */`
+        uniform float uFade; varying float vHot;
+        void main(){
+          float d = length(gl_PointCoord - 0.5);
+          float a = smoothstep(0.5, 0.07, d);
+          vec3 col = mix(vec3(0.29, 0.61, 1.0), vec3(0.85, 0.95, 1.0), vHot); // white-hot → aero
+          gl_FragColor = vec4(col, a * uFade);
+        }`
+    });
+    const nova = new THREE.Points(novaGeo, novaMat);
+    nova.frustumCulled = false;
+    nova.visible = false;
+    world.add(nova);
+    const novaState = { t: 0, fade: 0 };
+
+    /* ---- debris belt: rides HIGH across the scene. Fewer, better rocks —
+       faceted flat-shaded geometry, irregular elongated shapes, and a little
+       per-rock color variance so they don't read as clones. ---- */
+    const beltGroup = new THREE.Group();
+    beltGroup.rotation.set(THREE.MathUtils.degToRad(68), 0, THREE.MathUtils.degToRad(-10));
+    beltGroup.position.y = 2.6;
+    world.add(beltGroup);
+    const DEBRIS_N = pScale(70);
+    const debris = new THREE.InstancedMesh(
+      new THREE.IcosahedronGeometry(1, 1),
+      new THREE.MeshLambertMaterial({ color: 0xffffff, flatShading: true }),
+      DEBRIS_N
+    );
+    debris.frustumCulled = false;   // instance matrices move; skip stale-bounds culling
+    const _dcol = new THREE.Color();
+    const debrisData = [];
+    for (let i = 0; i < DEBRIS_N; i++) {
+      debrisData.push({
+        ang: Math.random() * Math.PI * 2,
+        rad: 8 + Math.random() * 4,
+        z: (Math.random() - 0.5) * 1.0,
+        s: 0.04 + Math.random() * 0.07,
+        sx: 0.7 + Math.random() * 0.7,
+        sy: 0.7 + Math.random() * 0.7,
+        sz: 0.7 + Math.random() * 0.7,
+        ax: new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize(),
+        rs: 0.3 + Math.random() * 1.2,
+        r0: Math.random() * Math.PI * 2
+      });
+      _dcol.setHSL(0.6 + Math.random() * 0.05, 0.25 + Math.random() * 0.2, 0.3 + Math.random() * 0.18);
+      debris.setColorAt(i, _dcol);
+    }
+    debris.visible = PERF.debris;
+    beltGroup.add(debris);
+    const _dm = new THREE.Object3D();
+    // dim lighting rig JUST for the rocks — every other material ignores lights
+    const keyLight = new THREE.DirectionalLight(0x82c6ff, 1.5);
+    keyLight.position.set(-4.5, 5.5, 7.2);
+    scene.add(keyLight);
+    scene.add(new THREE.AmbientLight(0x22335c, 0.9));
+
+    /* ---- comets: occasional glowing streaks across deep space ---- */
+    const cometTex = (() => {
+      const c = document.createElement("canvas"); c.width = 256; c.height = 32;
+      const g = c.getContext("2d");
+      const grad = g.createLinearGradient(0, 0, 256, 0);
+      grad.addColorStop(0, "rgba(255,255,255,0)");
+      grad.addColorStop(0.75, "rgba(255,255,255,.55)");
+      grad.addColorStop(1, "rgba(255,255,255,1)");
+      g.fillStyle = grad; g.fillRect(0, 0, 256, 32);
+      return new THREE.CanvasTexture(c);
+    })();
+    const cometPool = [];
+    for (let i = 0; i < 5; i++) {
+      const m = new THREE.Mesh(
+        new THREE.PlaneGeometry(2.6, 0.05),
+        new THREE.MeshBasicMaterial({ map: cometTex, color: 0x82c6ff, transparent: true, opacity: 0,
+                                      blending: THREE.AdditiveBlending, depthWrite: false })
+      );
+      m.visible = false;
+      scene.add(m);
+      cometPool.push(m);
+    }
+    function spawnComet() {
+      if (!document.hidden) {
+        const m = cometPool.find(c => !c.userData.busy);
+        if (m) {
+          m.userData.busy = true;
+          const z = -12 - Math.random() * 14;
+          const sx = -30 + Math.random() * 26, sy = 5 + Math.random() * 8;
+          const ang = -0.18 - Math.random() * 0.4;
+          const dist = 22 + Math.random() * 16;
+          m.position.set(sx, sy, z);
+          m.rotation.z = ang;
+          m.visible = true;
+          const dur = 1.1 + Math.random() * 0.9;
+          gsap.timeline({ onComplete() { m.visible = false; m.userData.busy = false; } })
+            .to(m.position, { x: sx + Math.cos(ang) * dist, y: sy + Math.sin(ang) * dist, duration: dur, ease: "none" }, 0)
+            .to(m.material, { opacity: 0.85, duration: dur * 0.25, ease: "power1.out" }, 0)
+            .to(m.material, { opacity: 0,   duration: dur * 0.55, ease: "power1.in"  }, dur * 0.45);
+        }
+      }
+      setTimeout(spawnComet, 2400 + Math.random() * 4200);   // amplified: comets more often
+    }
+
+    /* ================= post-processing: bloom (per-tier) ================= */
+    let composer = null, bloomPass = null;
+    // bloomOn declared up top with the tier system; honor ?nobloom too
+    bloomOn = bloomOn && !!renderer && PERF.bloom;
+    if (bloomOn) {
+      composer = new EffectComposer(renderer);
+      composer.addPass(new RenderPass(scene, camera));
+      bloomPass = new UnrealBloomPass(
+        new THREE.Vector2(innerWidth, innerHeight),
+        Q.bloomStr * (isDesktop() ? 1 : 0.75),   // strength from tier (softer on mobile)
+        0.9,                                      // radius
+        0.30                                      // threshold — only the bright stuff glows
+      );
+      if (Q.bloomHalf) {                          // balanced tier: half-res bloom, ~¼ the cost
+        const base = bloomPass.setSize.bind(bloomPass);
+        bloomPass.setSize = (w, h) => base(w / 2, h / 2);
+      }
+      composer.addPass(bloomPass);
+      composer.addPass(new OutputPass());
+    }
+
+    /* ================= layout / resize ================= */
+    function layout() {
+      if (!renderer) return;
+      const dpr = Math.min(devicePixelRatio, Q.dpr);   // DPR cap from the active tier
+      renderer.setPixelRatio(dpr);
+      renderer.setSize(innerWidth, innerHeight);
+      if (composer) { composer.setPixelRatio(dpr); composer.setSize(innerWidth, innerHeight); }
+      camera.aspect = innerWidth / innerHeight;
+      camera.updateProjectionMatrix();
+      if (isDesktop()) {                 // copy left, orb right of centre
+        world.position.set(1.55, -0.05, 0);
+        world.scale.setScalar(1);
+      } else {                           // orb floats above the copy, smaller and farther
+        world.position.set(0, 2.55, -1.5);
+        world.scale.setScalar(0.62);
+      }
+    }
+    layout();
+    window.addEventListener("resize", layout, { passive: true });
+
+    /* ================= interaction state ================= */
+    const state = { spin: 1, pop: 1, camZ: 0, novaScale: 1, orbitFade: 1 };
+    const sfx = {};                 // sound hooks — filled in by the audio module if enabled
+    let audioRef = null, soundOnRef = false;   // hoisted so the freeze handler can reach them
+    const pointer = { x: 0, y: 0, tx: 0, ty: 0 };
+    window.addEventListener("pointermove", (e) => {
+      pointer.tx = (e.clientX / innerWidth) * 2 - 1;
+      pointer.ty = (e.clientY / innerHeight) * 2 - 1;
+    }, { passive: true });
+
+    function pulse() {                   // physics-y kick: stacking ping + elastic pop
+      if (!window.gsap || reduceMotion || !renderer) return;
+      sfx.click && sfx.click();
+      firePing(3.8, 1.15);
+      gsap.fromTo(state, { spin: 6 }, { spin: 1, duration: 1.8, ease: "power3.out", overwrite: "auto" });
+      gsap.fromTo(state, { pop: 1.09 }, { pop: 1, duration: 1.4, ease: "elastic.out(1, 0.45)", overwrite: "auto" });
+    }
+
+    /* ---- input machine ----
+       click on empty space      → shockwave ping (rings stack)
+       5 quick clicks ON the star → supernova easter egg                    */
+    const _novaClicks = [];
+    const _ndcv = new THREE.Vector2();
+    const _clickRay = new THREE.Raycaster();
+    let pressed = false, novaBusy = false;
+    function hitsStar(e) {
+      if (!renderer || e.clientX === undefined) return false;
+      _ndcv.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
+      _clickRay.setFromCamera(_ndcv, camera);
+      return _clickRay.intersectObject(atmo, false).length > 0;   // generous hit area
+    }
+    function registerNovaClick() {
+      if (novaBusy || !window.gsap || reduceMotion || !renderer) return;
+      const now = performance.now();
+      _novaClicks.push(now);
+      while (_novaClicks.length && now - _novaClicks[0] > 3000) _novaClicks.shift();
+      if (_novaClicks.length >= 5) { _novaClicks.length = 0; supernova(); }
+    }
+    function supernova() {
+      novaBusy = true;
+      sfx.nova && sfx.nova();
+      const flash = document.getElementById("nova-flash");
+      const ringScales = [ringDust.scale, stream.scale, trail.scale];   // the dust ring layers
+      const ringFades = [ringDustMat.uniforms.uFade, streamMat.uniforms.uFade, dustMat.uniforms.uFade]; // ring/plume opacity
+      // the orbiting tracer + glow are opacity-driven per-frame in tick, so fade
+      // them through state.orbitFade (a direct material tween would be clobbered)
+      gsap.timeline({ onComplete() { novaBusy = false; } })
+        // ---- implosion (0–0.9): star compresses & brightens, ring drawn inward ----
+        .to(state, { novaScale: 0.02, duration: 0.9, ease: "expo.in" }, 0)
+        .to(coreMat.uniforms.uBoost, { value: 2.6, duration: 0.6, ease: "power2.in" }, 0)
+        .to(state, { spin: 9, duration: 0.9, ease: "power2.in" }, 0)
+        .to(ringScales, { x: 0.8, y: 0.8, z: 0.8, duration: 0.9, ease: "power2.in" }, 0)
+        // ---- detonation (0.9): flash, particle burst, shockwaves, ring blown outward ----
+        .set(nova, { visible: true }, 0.9)
+        .fromTo(novaState, { t: 0 }, { t: 1, duration: 3.0, ease: "power3.out" }, 0.9)
+        .fromTo(novaState, { fade: 1 }, { fade: 0, duration: 1.9, ease: "power2.in" }, 1.8)
+        .fromTo(flash, { opacity: 0 }, { opacity: 0.95, duration: 0.12, ease: "power1.out" }, 0.9)
+        .to(flash, { opacity: 0, duration: 1.0, ease: "power2.out" }, 1.02)
+        .call(() => firePing(8, 2.0), null, 0.95)
+        .call(() => firePing(5.5, 1.7), null, 1.15)
+        .to(atmoMat.uniforms.uBoost, { value: 2.2, duration: 0.3 }, 0.9)
+        .to(ringScales, { x: 2.0, y: 2.0, z: 2.0, duration: 1.4, ease: "expo.out" }, 0.9)
+        // ---- ring + orbit dissolve smoothly to nothing as the blast scatters them ----
+        .to(ringFades, { value: 0, duration: 1.5, ease: "power2.in" }, 1.0)
+        .to(state, { orbitFade: 0, duration: 1.2, ease: "power2.in" }, 1.0)
+        // ---- dispersal → the void: star & glow gone, ring/orbit gone ----
+        .to(coreMat.uniforms.uBoost, { value: 0, duration: 1.4, ease: "power2.inOut" }, 1.3)
+        .to(atmoMat.uniforms.uBoost, { value: 0, duration: 1.6, ease: "power2.inOut" }, 1.4)
+        .set(nova, { visible: false }, 4.2)              // burst particles have faded out
+        .set(ringScales, { x: 1, y: 1, z: 1 }, 4.2)      // reset ring radius while it's invisible (no visible pop)
+        // ---- re-form (~11.2s in, so the star is gone ≈10s) ----
+        .to(state, { novaScale: 1.16, duration: 1.4, ease: "expo.out" }, 11.2)
+        .to(state, { novaScale: 1, duration: 1.1, ease: "elastic.out(1, 0.5)" }, 12.6)
+        .to(coreMat.uniforms.uBoost, { value: 1, duration: 1.9, ease: "power2.inOut" }, 11.2)
+        .to(atmoMat.uniforms.uBoost, { value: 1, duration: 1.9, ease: "power2.inOut" }, 11.2)
+        .to(state, { spin: 1, duration: 2.4, ease: "power2.out" }, 11.2)
+        // ring + orbit fade back in with the re-forming star
+        .to(ringFades, { value: 1, duration: 1.8, ease: "power2.out" }, 11.4)
+        .to(state, { orbitFade: 1, duration: 1.8, ease: "power2.out" }, 11.4);
+    }
+    window.addEventListener("pointerdown", (e) => {
+      if (e.target && e.target.closest && e.target.closest("a, button")) return;   // never eat real clicks
+      pressed = true;
+    });
+    function endPress(e) {
+      if (!pressed) return;
+      pressed = false;
+      if (e.type === "pointerup") {
+        pulse();
+        if (hitsStar(e)) registerNovaClick();
+      }
+    }
+    window.addEventListener("pointerup", endPress);
+    window.addEventListener("pointercancel", endPress);
+    window.addEventListener("blur", endPress);
+    if (PERF.hud) {   // dev-only: lets automated tests reach the interaction state
+      const _sv = new THREE.Vector3();
+      window.__dbg = {
+        isNovaBusy: () => novaBusy,
+        clicks: _novaClicks,
+        starScreen: () => {
+          atmo.getWorldPosition(_sv).project(camera);
+          return { x: (_sv.x * 0.5 + 0.5) * innerWidth, y: (-_sv.y * 0.5 + 0.5) * innerHeight };
+        },
+        orbitState: () => ({
+          tracerOpacity: +tracer.material.opacity.toFixed(3),
+          tracerVisible: tracer.visible,
+          glowOpacity: +tracerGlow.material.opacity.toFixed(3),
+          ringFade: +ringDustMat.uniforms.uFade.value.toFixed(3),
+          streamFade: +streamMat.uniforms.uFade.value.toFixed(3),
+          novaScale: +state.novaScale.toFixed(3),
+          coreBoost: +coreMat.uniforms.uBoost.value.toFixed(3)
+        })
+      };
+    }
+
+    /* ================= render loop (with adaptive quality) ================= */
+    const clock = new THREE.Clock();
+    const _tp = new THREE.Vector3(), _wp = new THREE.Vector3(), _cp = new THREE.Vector3();
+    let slowFrames = 0, simTime = 0, frameAcc = 0;
+    let lastActive = performance.now();
+    window.addEventListener("pointermove", () => { lastActive = performance.now(); }, { passive: true });
+    window.addEventListener("pointerdown", () => { lastActive = performance.now(); }, { passive: true });
+    function loop() {
+      // 60fps render cap (a 144/240Hz monitor would otherwise draw 3–4× more
+      // frames than needed); after 8s without pointer activity the ambient
+      // scene idles at 30fps — imperceptible for slow drift, halves GPU load
+      frameAcc += clock.getDelta();
+      if (pressed || novaBusy) lastActive = performance.now();   // interactions always run at full rate
+      idleMode = performance.now() - lastActive > 8000;
+      if (frameAcc < (idleMode ? 1 / 31 : 1 / 62)) return;
+      tick(Math.min(frameAcc, 0.05));
+      frameAcc = 0;
+    }
+    let idleMode = false;
+    // step the live quality down one notch: DPR toward 0.9, then bloom off
+    function downgradeQuality() {
+      if (Q.dpr > 0.95) Q.dpr = Math.max(0.9, Q.dpr - 0.25);
+      else if (bloomOn) bloomOn = false;
+      else return;
+      if (document.documentElement.dataset.tier) document.documentElement.dataset.tier += "↓";
+      layout();
+    }
+    function tick(dt) {
+      if (renderer.info.autoReset) renderer.info.autoReset = false;
+      renderer.info.reset();      // manual reset → HUD sees ALL passes, not just the last
+      simTime += dt;              // own clock — no teleport after tab switches
+      const t = simTime;
+
+      // runtime fps watchdog: during ACTIVE (non-idle) rendering, if the GPU
+      // can't hold pace for a sustained stretch, step quality DOWN a notch —
+      // DPR first, then bloom. The idle 30fps cadence is intentional, so never
+      // judge slowness there. This is what protects 1080s / laptops.
+      if (!idleMode && (Q.dpr > 0.95 || bloomOn)) {
+        if (dt > 0.028) slowFrames++; else slowFrames = Math.max(0, slowFrames - 1);
+        if (slowFrames > 110) { downgradeQuality(); slowFrames = 0; }
+      }
+
+      // damped pointer parallax + slow idle drift (alive even with no input)
+      const k = 1 - Math.exp(-3 * dt);
+      pointer.x += (pointer.tx - pointer.x) * k;
+      pointer.y += (pointer.ty - pointer.y) * k;
+      rig.rotation.y = pointer.x * 0.10 + Math.sin(t * 0.11) * 0.02;
+      rig.rotation.x = -pointer.y * 0.07 + Math.cos(t * 0.13) * 0.015;
+      rig.position.z = state.camZ + Math.sin(t * 0.07) * 0.15;   // breathing + arrival dolly
+
+      // supernova burst particles follow their GSAP-driven progress
+      if (nova.visible) { novaMat.uniforms.uT.value = novaState.t; novaMat.uniforms.uFade.value = novaState.fade; }
+
+      core.rotation.y = t * 0.12;
+      core.scale.setScalar((1 + Math.sin(t * 0.8) * 0.015) * state.pop * state.novaScale);
+      shell.rotation.y -= dt * 0.16 * state.spin;
+      shell.rotation.x += dt * 0.05 * state.spin;
+      shell.scale.setScalar((1 + Math.sin(t * 0.6) * 0.02) * state.novaScale);   // shell vanishes/reforms with the star
+
+      const a = t * 0.55;                          // tracer orbits the halo
+      tracer.position.set(Math.cos(a) * 2.1, Math.sin(a) * 2.1, 0);
+      dustMat.uniforms.uHead.value = a % 6.2831853;
+      dustMat.uniforms.uTime.value = t;
+      // dim the tracer's glow as it swings behind the orb — otherwise the
+      // depth buffer slices the additive sprite with a hard edge.
+      // state.orbitFade lets the supernova fade the whole orbit to nothing
+      // (this per-frame write would otherwise clobber a material tween).
+      tracer.getWorldPosition(_tp); world.getWorldPosition(_wp); camera.getWorldPosition(_cp);
+      const facing = _tp.sub(_wp).normalize().dot(_cp.sub(_wp).normalize());
+      tracerGlow.material.opacity = THREE.MathUtils.clamp(0.5 + facing * 0.45, 0.06, 0.95) * state.orbitFade;
+      tracer.material.opacity = state.orbitFade;
+      stream.rotation.z = t * 0.085;               // coarse grains, slight shear…
+      ringDust.rotation.z = t * 0.055;             // …over the fine dust — one ring, alive inside
+
+      // keep visible flare plumes twinkling
+      for (const f of flarePool) if (f.visible) f.material.uniforms.uTime.value = t;
+
+      // debris belt: slow shared orbit + individual tumble
+      if (debris.visible) {
+        for (let i = 0; i < DEBRIS_N; i++) {
+          const d = debrisData[i];
+          const ang = d.ang + t * 0.008;
+          _dm.position.set(Math.cos(ang) * d.rad, Math.sin(ang) * d.rad, d.z);
+          _dm.rotation.set(d.r0 + d.ax.x * d.rs * t, d.ax.y * d.rs * t, d.ax.z * d.rs * t);
+          _dm.scale.set(d.s * d.sx, d.s * d.sy, d.s * d.sz);
+          _dm.updateMatrix();
+          debris.setMatrixAt(i, _dm.matrix);
+        }
+        debris.instanceMatrix.needsUpdate = true;
+      }
+
+      stars.rotation.y = t * 0.01;
+      coreMat.uniforms.uTime.value = t;
+      nebulaMat.uniforms.uTime.value = t;
+      starMat.uniforms.uTime.value = t;
+      streamMat.uniforms.uTime.value = t;
+      ringDustMat.uniforms.uTime.value = t;
+
+      if (bloomOn && composer) composer.render();
+      else renderer.render(scene, camera);
+
+      if (hudEl) {
+        window.__frames = (window.__frames || 0) + 1;   // dev-only, ?perf: proves the loop is/ isn't running
+        hudAcc += dt; hudFrames++;
+        if (hudAcc >= 0.5) {
+          const ri = renderer.info.render;
+          hudEl.textContent =
+            "tier " + document.documentElement.dataset.tier + "  ·  " + (hudAcc / hudFrames * 1000).toFixed(1) + " ms/frame\n" +
+            "calls " + ri.calls + " · tris " + Math.round(ri.triangles / 1e3) + "k · pts " + Math.round(ri.points / 1e3) + "k" +
+            "\nbloom " + (bloomOn ? "ON" : "OFF") + " · dpr " + renderer.getPixelRatio().toFixed(2);
+          hudAcc = 0; hudFrames = 0;
+        }
+      }
+    }
+
+    if (renderer) {
+      if (reduceMotion) {
+        tick(1 / 60);                              // one composed frame, no loop
+      } else {
+        // Pause ALL rendering when the tab is hidden OR the window merely
+        // loses focus (user switched apps / to another monitor). The scene
+        // is doing nothing anyone can see — biggest GPU win of all.
+        let running = false;
+        const setRunning = (on) => {
+          if (on === running) return;
+          running = on;
+          renderer.setAnimationLoop(on ? loop : null);
+          // also freeze EVERY CSS animation (grain, aurora, border-spin, sweeps,
+          // dot pulses) — otherwise the compositor keeps burning GPU on an
+          // unwatched page. This is what takes an unfocused tab to ~0.
+          document.body.classList.toggle("frozen", !on);
+          // sound follows the freeze: silent when unwatched, back on focus
+          if (!on && audioRef && audioRef.ctx.state === "running") audioRef.ctx.suspend();
+          if (on && audioRef && soundOnRef) audioRef.ctx.resume();
+          if (on) { clock.getDelta(); frameAcc = 0; lastActive = performance.now(); } // no time jump / fresh idle window
+        };
+        setRunning(true);                          // start (blur/focus fire only on transitions, so a load-while-unfocused still runs)
+        window.addEventListener("blur",  () => setRunning(false));
+        window.addEventListener("focus", () => setRunning(true));
+        document.addEventListener("visibilitychange", () => {
+          setRunning(!document.hidden && document.hasFocus());
+        });
+      }
+    }
+
+    /* ================= boot + entrance + micro-interactions ================= */
+    const boot = document.getElementById("boot");
+    if (window.gsap && !reduceMotion) {
+      boot.dataset.managed = "1";
+
+      // decrypt-style scramble: glyph noise resolves left→right into the real text.
+      // Walks text nodes so nested spans/icons (grad word, button SVGs) survive.
+      // SOFT charset (no block glyphs) for long text so lines don't reflow wildly.
+      const SCRAMBLE = "█▓▒░<>/\\|=+*#10";
+      const SCRAMBLE_SOFT = "<>/\\|=+*#10";
+      function scrambleNode(node, dur, charset) {
+        const finalText = node.nodeValue;
+        if (!finalText || !finalText.trim()) return;
+        const n = finalText.length;
+        const obj = { p: 0 };
+        gsap.to(obj, { p: 1, duration: dur, ease: "power2.out",
+          onUpdate() {
+            let out = "";
+            const solved = Math.floor(obj.p * n);
+            for (let i = 0; i < n; i++) {
+              const ch = finalText[i];
+              out += (i < solved || /\s/.test(ch))
+                ? ch
+                : charset[(Math.random() * charset.length) | 0];
+            }
+            node.nodeValue = out;
+          },
+          onComplete() { node.nodeValue = finalText; } });
+      }
+      function scramble(el, dur = 0.7, charset = SCRAMBLE) {
+        if (!el) return;
+        const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+        let node;
+        while ((node = walker.nextNode())) scrambleNode(node, dur, charset);
+      }
+
+      const master = gsap.timeline();
+      master.call(() => scramble(document.querySelector(".boot-word"), 0.6), null, 0);
+
+      // boot curtain: bar fills, then the scene irises in
+      master.to(".boot-bar-fill", { scaleX: 1, duration: 0.85, ease: "power2.inOut" })
+            .to(boot, { clipPath: "circle(0% at 50% 50%)", duration: 0.8, ease: "expo.inOut" }, "+=0.1")
+            .set(boot, { display: "none" });
+
+      // content entrance — masked line reveals for the headline
+      const reveal = gsap.timeline({ defaults: { ease: "power3.out", duration: 0.9 } });
+      reveal.from(".brand",        { y: -18, autoAlpha: 0 })
+            .call(() => scramble(document.querySelector(".brand span"), 0.5), null, "<0.1")
+            .from(".pill",         { y: 24,  autoAlpha: 0 }, "-=0.6")
+            .call(() => scramble(document.querySelector(".pill-text")), null, "<0.15")
+            .from("h1 .line-inner",{ yPercent: 110, stagger: 0.14, duration: 1.0, ease: "power4.out" }, "-=0.5")
+            .call(() => {
+              document.querySelectorAll("h1 .line-inner").forEach((l, i) => {
+                gsap.delayedCall(i * 0.14, () => scramble(l, 0.9, SCRAMBLE_SOFT));
+              });
+            }, null, "<0.1")
+            .from(".lead",         { y: 26,  autoAlpha: 0 }, "-=0.55")
+            .call(() => scramble(document.querySelector(".lead"), 0.9, SCRAMBLE_SOFT), null, "<0.1")
+            .from(".actions .btn", { y: 22,  autoAlpha: 0, stagger: 0.08 }, "-=0.5")
+            .call(() => {
+              document.querySelectorAll(".actions .btn").forEach((b, i) => {
+                gsap.delayedCall(i * 0.08, () => scramble(b, 0.6, SCRAMBLE_SOFT));
+              });
+            }, null, "<0.1");
+      if (renderer) reveal.from(world.scale, { x: .8, y: .8, z: .8, duration: 1.8, ease: "expo.out" }, 0)
+                          .from(world.rotation, { y: -0.35, duration: 1.8, ease: "expo.out" }, 0)
+                          .from(state, { camZ: 2.6, duration: 2.4, ease: "expo.out" }, 0); // arrival dolly
+      master.add(reveal, "-=0.45");
+
+      // magnetic buttons — pull toward the cursor, spring back on leave
+      document.querySelectorAll(".btn").forEach((btn) => {
+        const xTo = gsap.quickTo(btn, "x", { duration: 0.35, ease: "power3" });
+        const yTo = gsap.quickTo(btn, "y", { duration: 0.35, ease: "power3" });
+        btn.addEventListener("pointermove", (e) => {
+          const r = btn.getBoundingClientRect();
+          xTo((e.clientX - (r.left + r.width / 2)) * 0.22);
+          yTo((e.clientY - (r.top + r.height / 2)) * 0.30);
+        });
+        btn.addEventListener("pointerleave", () => {
+          gsap.to(btn, { x: 0, y: 0, duration: 0.7, ease: "elastic.out(1, 0.4)" });
+        });
+      });
+
+      // letter repel prototype — headline chars shy away from the cursor (≤6px).
+      // The gradient word stays one unit so its gradient doesn't fragment.
+      if (finePointer) {
+        const repelUnits = [];
+        document.querySelectorAll("h1 .line-inner").forEach((line) => {
+          [...line.childNodes].forEach((node) => {
+            if (node.nodeType === 3) {
+              const frag = document.createDocumentFragment();
+              for (const ch of node.textContent) {
+                if (/\s/.test(ch)) { frag.appendChild(document.createTextNode(ch)); }
+                else {
+                  const s = document.createElement("span");
+                  s.className = "ch"; s.textContent = ch;
+                  frag.appendChild(s);
+                }
+              }
+              line.replaceChild(frag, node);
+            } else if (node.classList && node.classList.contains("grad")) {
+              node.classList.add("ch");
+            }
+          });
+        });
+        document.querySelectorAll("h1 .ch").forEach((el) => {
+          repelUnits.push({
+            el, cx: 0, cy: 0,
+            xTo: gsap.quickTo(el, "x", { duration: 0.3, ease: "power2" }),
+            yTo: gsap.quickTo(el, "y", { duration: 0.3, ease: "power2" })
+          });
+        });
+        let repelOn = false;
+        const cacheRects = () => repelUnits.forEach((u) => {
+          const r = u.el.getBoundingClientRect();
+          u.cx = r.left + r.width / 2; u.cy = r.top + r.height / 2;
+        });
+        master.call(() => { cacheRects(); repelOn = true; });   // arm once the entrance settles
+        window.addEventListener("resize", () => { if (repelOn) setTimeout(cacheRects, 300); }, { passive: true });
+        window.addEventListener("pointermove", (e) => {
+          if (!repelOn) return;
+          for (const u of repelUnits) {
+            const dx = u.cx - e.clientX, dy = u.cy - e.clientY;
+            const d2 = dx * dx + dy * dy;
+            if (d2 < 8100) {                          // 90px reach
+              const d = Math.sqrt(d2) || 1;
+              const f = ((90 - d) / 90) * 6;          // ≤6px shift
+              u.xTo((dx / d) * f); u.yTo((dy / d) * f);
+            } else { u.xTo(0); u.yTo(0); }
+          }
+        }, { passive: true });
+      }
+
+      // custom cursor: ambient glow + fast dot + lagging ring (desktop pointers only)
+      if (finePointer) {
+        const glow = document.getElementById("cursor-glow");
+        const dot  = document.getElementById("cursor-dot");
+        const ring = document.getElementById("cursor-ring");
+        document.body.classList.add("custom-cursor");
+        const gx = gsap.quickTo(glow, "x", { duration: 0.6,  ease: "power3" });
+        const gy = gsap.quickTo(glow, "y", { duration: 0.6,  ease: "power3" });
+        const dx = gsap.quickTo(dot,  "x", { duration: 0.12, ease: "power2" });
+        const dy = gsap.quickTo(dot,  "y", { duration: 0.12, ease: "power2" });
+        const rx = gsap.quickTo(ring, "x", { duration: 0.35, ease: "power3" });
+        const ry = gsap.quickTo(ring, "y", { duration: 0.35, ease: "power3" });
+
+        // spark trail — each dot lags a little more than the last (comet tail)
+        const TRAIL_N = 7;
+        const trailEls = [], trailTo = [];
+        for (let i = 0; i < TRAIL_N; i++) {
+          const d = document.createElement("div");
+          d.className = "cursor-trail-dot";
+          const s = (5 * (1 - i / TRAIL_N) + 1.5);
+          d.style.width = d.style.height = s + "px";
+          document.body.appendChild(d);
+          gsap.set(d, { xPercent: -50, yPercent: -50 });
+          trailEls.push(d);
+          trailTo.push({
+            x: gsap.quickTo(d, "x", { duration: 0.16 + i * 0.055, ease: "power2" }),
+            y: gsap.quickTo(d, "y", { duration: 0.16 + i * 0.055, ease: "power2" })
+          });
+        }
+
+        window.addEventListener("pointermove", (e) => {
+          gsap.to([glow, dot, ring], { opacity: 1, duration: 0.4, overwrite: "auto" });
+          gsap.to(trailEls, { opacity: (i) => 0.75 * (1 - i / TRAIL_N), duration: 0.4, overwrite: "auto" });
+          gx(e.clientX); gy(e.clientY);
+          dx(e.clientX); dy(e.clientY);
+          rx(e.clientX); ry(e.clientY);
+          for (const t of trailTo) { t.x(e.clientX); t.y(e.clientY); }
+        }, { passive: true });
+        document.addEventListener("pointerover", (e) => {
+          ring.classList.toggle("is-hover", !!e.target.closest("a, button"));
+        });
+        document.documentElement.addEventListener("mouseleave", () => {
+          gsap.to([glow, dot, ring, ...trailEls], { opacity: 0, duration: 0.3, overwrite: "auto" });
+        });
+      }
+
+      /* ---- ambient sound: fully synthesized (no files, nothing to license).
+         OFF by default; the choice persists. Suspends with the blur freeze. ---- */
+      const soundBtn = document.getElementById("sound-toggle");
+      const soundStored = (() => { try { return localStorage.getItem("aerovrc-maint-sound") === "1"; } catch (e) { return false; } })();
+      function initAudio() {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const master = ctx.createGain(); master.gain.value = 0; master.connect(ctx.destination);
+        // pad: three detuned oscillators through a slowly-breathing lowpass
+        const pad = ctx.createGain(); pad.gain.value = 0.035; pad.connect(master);
+        const lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 240; lp.Q.value = 0.8; lp.connect(pad);
+        [55, 82.5, 110.3].forEach((f, i) => {
+          const o = ctx.createOscillator();
+          o.type = i ? "sine" : "triangle"; o.frequency.value = f; o.detune.value = (i - 1) * 6;
+          o.connect(lp); o.start();
+        });
+        const lfo = ctx.createOscillator(); lfo.frequency.value = 0.06;
+        const lfoAmt = ctx.createGain(); lfoAmt.gain.value = 90;
+        lfo.connect(lfoAmt); lfoAmt.connect(lp.frequency); lfo.start();
+        // airy noise bed
+        const len = ctx.sampleRate * 2, buf = ctx.createBuffer(1, len, ctx.sampleRate);
+        const d0 = buf.getChannelData(0);
+        for (let i = 0; i < len; i++) d0[i] = Math.random() * 2 - 1;
+        const noise = ctx.createBufferSource(); noise.buffer = buf; noise.loop = true;
+        const bp = ctx.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = 420; bp.Q.value = 0.5;
+        const ng = ctx.createGain(); ng.gain.value = 0.010;
+        noise.connect(bp); bp.connect(ng); ng.connect(master); noise.start();
+        return { ctx, master };
+      }
+      function chime(freq, gain = 0.05, dur = 0.7) {
+        if (!audioRef || !soundOnRef) return;
+        const { ctx, master } = audioRef;
+        const o = ctx.createOscillator(); o.type = "sine"; o.frequency.value = freq;
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(gain, ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + dur);
+        o.connect(g); g.connect(master); o.start(); o.stop(ctx.currentTime + dur + 0.05);
+      }
+      sfx.click  = () => chime(620 + Math.random() * 160, 0.045);
+      sfx.flare  = () => chime(392, 0.03, 1.2);
+      sfx.nova   = () => { chime(90, 0.12, 2.2); chime(55, 0.1, 2.8); chime(1244, 0.02, 1.5); };
+      function setSound(on) {
+        soundOnRef = on;
+        try { localStorage.setItem("aerovrc-maint-sound", on ? "1" : "0"); } catch (e) {}
+        soundBtn.classList.toggle("on", on);
+        soundBtn.setAttribute("aria-pressed", String(on));
+        if (on) {
+          if (!audioRef) audioRef = initAudio();
+          audioRef.ctx.resume();
+          audioRef.master.gain.cancelScheduledValues(audioRef.ctx.currentTime);
+          audioRef.master.gain.linearRampToValueAtTime(1, audioRef.ctx.currentTime + 0.8);
+        } else if (audioRef) {
+          audioRef.master.gain.cancelScheduledValues(audioRef.ctx.currentTime);
+          audioRef.master.gain.linearRampToValueAtTime(0, audioRef.ctx.currentTime + 0.4);
+        }
+      }
+      soundBtn.addEventListener("click", () => setSound(!soundOnRef));
+      if (soundStored) {   // was on last visit — browsers demand a fresh gesture, so arm it
+        window.addEventListener("pointerdown", () => { if (!soundOnRef) setSound(true); }, { once: true });
+      }
+
+      // occasional comets + solar flares once the curtain is up
+      if (renderer && PERF.events) master.call(() => {
+        spawnComet();
+        setTimeout(spawnFlare, 6500 + Math.random() * 3000);   // first flare lands early
+      });
+    } else {
+      boot.dataset.managed = "1";
+      boot.style.display = "none";
+    }
+  </script>
 </body>
 </html>
