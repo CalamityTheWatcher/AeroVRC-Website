@@ -2,12 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
+  <!-- ===== MAINTENANCE MODE: site locked. Delete this block (and restore app.js) to bring the site back. ===== -->
+  <script>location.replace("/");</script>
+  <noscript><meta http-equiv="refresh" content="0; url=/" /></noscript>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#040816" />
   <title>Download — AeroVRC</title>
   <meta name="description" content="Download AeroVRC free for Windows 10 & 11. Portable single .exe — no installer, no admin required. See system requirements and how updates work." />
 
-  <meta property="og:site_name" content="AeroVRC" />
   <meta property="og:title" content="Download AeroVRC" />
   <meta property="og:description" content="Free, portable and updated regularly. Windows 10 & 11 (64-bit). Just download and run." />
   <meta property="og:type" content="website" />
@@ -20,177 +21,11 @@
   <link rel="icon" href="favicon.ico" />
   <link rel="stylesheet" href="style.css" />
 
-  <!-- Display face only — body stays on Segoe UI to match the app. -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&display=swap" rel="stylesheet" />
-
   <script>window.AEROVRC_REPO = "CalamityTheWatcher/AeroVRC";</script>
-
-  <!-- Static, all-true structured data — no fabricated fields. -->
-  <script type="application/ld+json">
-  {"@context":"https://schema.org","@type":"SoftwareApplication","name":"AeroVRC",
-   "operatingSystem":"Windows 10, Windows 11","applicationCategory":"UtilitiesApplication",
-   "offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},
-   "downloadUrl":"https://github.com/CalamityTheWatcher/AeroVRC/releases/latest/download/AeroVRC.exe",
-   "url":"https://aerovrc.com/download.html"}
-  </script>
-
-  <style>
-    /* ============================================================
-       "Pre-flight" — download page cosmic skin (2026-07-24 overhaul).
-       Every rule is page-scoped; shared style.css and app.js are
-       frozen donors and stay untouched.
-       ============================================================ */
-
-    /* ---- Phase 1 · cosmic backdrop (pure CSS, zero rAF) ---- */
-    body.dl-cosmic{
-      --bg-deep:#040816;
-      --cyan:#00f0ff;
-      --font-display:"Chakra Petch","Segoe UI",system-ui,sans-serif;
-      background:
-        radial-gradient(1100px 700px at 18% 12%, rgba(74,156,255,.14), transparent 60%),
-        radial-gradient(900px 640px at 84% 78%, rgba(0,240,255,.07), transparent 60%),
-        radial-gradient(760px 560px at 70% 8%,  rgba(88,101,242,.10), transparent 62%),
-        linear-gradient(180deg,#0a1230 0%, var(--bg-deep) 68%);
-      background-attachment:fixed;
-    }
-    /* vignette — pseudo-element dodges the style.css body>* stacking trap */
-    body.dl-cosmic::after{
-      content:"";position:fixed;inset:0;z-index:1;pointer-events:none;
-      background:radial-gradient(120% 100% at 50% 45%, transparent 55%, rgba(2,5,14,.55) 100%);
-    }
-    /* film grain — fixed DIV, so it MUST take the !important hammer
-       (style.css L42 gives body children position:relative at ID specificity) */
-    .grain{
-      position:fixed !important;inset:-8%;z-index:2 !important;pointer-events:none;
-      opacity:.028;mix-blend-mode:overlay;
-      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-      animation:grainShift .9s steps(8) infinite;
-    }
-    @keyframes grainShift{
-      0%{transform:translate(0,0)}12.5%{transform:translate(-2%,1%)}25%{transform:translate(1%,-2%)}
-      37.5%{transform:translate(-1%,2%)}50%{transform:translate(2%,1%)}62.5%{transform:translate(-2%,-1%)}
-      75%{transform:translate(1%,2%)}87.5%{transform:translate(2%,-2%)}100%{transform:translate(0,0)}
-    }
-    /* [cosmic-kit:freeze v1] — halt every CSS animation when unwatched
-       so the page idles at ~0% GPU (rule is NOT in style.css; page ships it) */
-    body.frozen *, body.frozen *::before, body.frozen *::after{
-      animation-play-state:paused !important;
-    }
-
-    /* ---- Phase 1 · display typography (fixes the dead .download-card h2 rule) ---- */
-    #download h1{
-      font-family:var(--font-display);font-weight:700;
-      font-size:clamp(2.3rem,5.4vw,3.6rem);
-      letter-spacing:-.01em;line-height:1.1;
-      text-shadow:0 2px 24px rgba(4,8,22,.9);
-    }
-    #download .dl-sub{font-size:1.08rem;text-shadow:0 1px 12px rgba(4,8,22,.85)}
-    body.dl-cosmic .footer{background:rgba(4,8,22,.72);border-top-color:rgba(130,198,255,.16)}
-
-    /* ---- Phase 2 · pre-flight hero ---- */
-    .dl-hero{min-height:calc(100vh - 64px);min-height:calc(100svh - 64px);
-      display:flex;flex-direction:column;align-items:center;justify-content:center;
-      text-align:center;padding-top:2rem;padding-bottom:2.5rem}
-    .dl-hero .dl-copy{max-width:760px;display:flex;flex-direction:column;align-items:center}
-    .dl-copy > *{position:relative;z-index:1}   /* halo (abs, z0) must never paint over copy */
-    .dl-stage{position:relative;width:96px;height:96px;margin:0 auto 1.4rem}
-    .dl-kicker{font-family:var(--font-display);letter-spacing:.18em;background:rgba(6,12,32,.78)}
-    .dl-alt{margin:.9rem 0 0;font-size:.9rem}
-    .dl-alt a{color:var(--accent-hi)} .dl-alt a:hover{text-decoration:underline}
-    .hud{display:flex;justify-content:center;flex-wrap:wrap;gap:1rem 0;margin-top:2.4rem}
-    .hud-cell{display:flex;flex-direction:column;gap:.3rem;padding:0 1.4rem;text-align:center}
-    .hud-cell[hidden]{display:none}   /* .hud-cell's display:flex would defeat the UA [hidden] rule */
-    .hud-cell + .hud-cell{border-left:1px solid rgba(130,198,255,.16)}
-    .hud-label{font:600 .62rem/1.6 var(--font-display);letter-spacing:.18em;text-transform:uppercase;
-      color:rgba(147,164,199,.75)}   /* .55 donor value measures ~3:1 over #040816 — floored at .75 */
-    .hud-value{font-size:.95rem;color:var(--text);font-variant-numeric:tabular-nums}
-    .hud-value [data-downloads]{color:var(--accent-hi);font-weight:600}
-
-    /* ---- Phase 2 · trust section ---- */
-    .dl-trust{max-width:860px}
-    .chips{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;text-align:left}
-    .chip{background:rgba(10,16,40,.72);border:1px solid rgba(130,198,255,.16);border-radius:14px;
-      padding:1.15rem 1.25rem;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}   /* solid tint, no backdrop-filter */
-    .chip strong{display:block;font-family:var(--font-semi);margin-bottom:.3rem}
-    .chip span{color:var(--muted);font-size:.92rem}
-    .chip a{color:var(--accent-hi)} .chip a:hover{text-decoration:underline}
-    .dl-panel{background:rgba(10,16,40,.72);border:1px solid rgba(130,198,255,.2);border-radius:18px;
-      box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 30px 80px -30px rgba(0,0,0,.85);
-      padding:1.8rem 2rem;text-align:left}
-    .dl-panel h3{font-size:1.05rem;margin-bottom:.5rem}
-    .dl-panel p{color:var(--muted);margin:.4rem 0}
-    .ss{margin-top:1.4rem}
-    /* purely typographic SmartScreen steps — NO dialog mockups (authenticity rule) */
-    .ss-steps{list-style:none;margin:.9rem 0 0;padding:0;counter-reset:ss;display:flex;flex-direction:column;gap:.7rem}
-    .ss-steps li{counter-increment:ss;position:relative;padding-left:2.6rem;color:var(--muted)}
-    .ss-steps li::before{content:counter(ss);position:absolute;left:0;top:.05rem;width:1.7rem;height:1.7rem;
-      display:grid;place-items:center;border-radius:8px;
-      font:700 .8rem/1 var(--font-display);color:var(--accent-hi);
-      background:rgba(74,156,255,.08);border:1px solid rgba(130,198,255,.35);
-      box-shadow:0 2px 0 rgba(130,198,255,.25),inset 0 1px 0 rgba(255,255,255,.08)}
-    .ss-steps strong{color:var(--text)}
-    .cmd{display:inline-block;font-family:Consolas,monospace;font-size:.86em;background:rgba(255,255,255,.06);border:1px solid rgba(130,180,255,.18);border-radius:6px;padding:2px 7px;}
-
-    /* ---- Phase 2 · flight readiness + hand-off ---- */
-    .dl-ready{max-width:860px}
-    .dl-panel.sysreq{margin-top:0}
-    body.dl-cosmic .sysreq{border-top:0;padding-top:0}
-    .dl-panel-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem}
-
-    /* ---- Phase 3 · entrance choreography (rides app.js data-stagger) ---- */
-    .js .dl-stage{animation:dlStageIn .9s ease both}
-    @keyframes dlStageIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
-    .js .dl-copy > .reveal{transition-duration:.8s}   /* slower cadence, no theatrics */
-
-    /* ---- Phase 3 · honest one-shot download-click feedback ---- */
-    .cta-wrap{position:relative;display:inline-flex;border-radius:12px}
-    .cta-wrap::after{content:"";position:absolute;inset:-2px;border-radius:14px;opacity:0;pointer-events:none}
-    .cta-wrap.launching::after{animation:launchPulse .8s ease-out}
-    @keyframes launchPulse{0%{opacity:.8;box-shadow:0 0 0 0 rgba(0,240,255,.5)}100%{opacity:0;box-shadow:0 0 0 30px rgba(0,240,255,0)}}
-    .dl-started{margin:.9rem 0 0;font-size:.88rem;color:var(--muted);opacity:0;transition:opacity .5s ease}
-    /* guard: the reveal stagger (and its reduced-motion force-visible rule) must
-       never surface the note before a real click */
-    .js .dl-started:not(.on){opacity:0 !important}
-    .dl-started.on{opacity:1}
-
-    /* ---- Phase 3 · accessibility ---- */
-    .dl-alt a:focus-visible, .chip a:focus-visible, .dl-panel a:focus-visible{
-      outline:2px solid var(--accent-hi);outline-offset:2px;border-radius:4px}
-
-    /* ---- Phase 3 · responsive hardening ---- */
-    @media (max-width:760px){ .dl-panel-row{grid-template-columns:1fr} }
-    @media (max-width:640px){ .chips{grid-template-columns:1fr} }
-    @media (max-width:560px){
-      .dl-hero{min-height:auto;padding-top:3rem}
-      .hud{flex-direction:column;gap:1rem}
-      .hud-cell + .hud-cell{border-left:0}
-      .ss-steps li{padding-left:2.4rem}
-    }
-  </style>
-
-  <!-- three.js via import map — same pinned build as the flagship splash.
-       cosmic-sky.js paints the living backdrop; the CSS sky above is the
-       no-WebGL / reduced-motion floor. -->
-  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.module.js" />
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.module.js",
-        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.166.1/examples/jsm/"
-      }
-    }
-  </script>
 </head>
-<body class="dl-cosmic">
+<body>
 
-  <!-- shared cosmic sky (WebGL) — layered behind everything. Inline
-       !important: style.css's body>* stacking trap would otherwise turn
-       this fixed layer into a flow block. -->
-  <canvas id="sky" aria-hidden="true" style="position:fixed !important;inset:0 !important;z-index:0 !important;display:block"></canvas>
-
-  <div class="grain" aria-hidden="true"></div>
+  <canvas id="sparkles" aria-hidden="true"></canvas>
 
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
     <defs>
@@ -226,7 +61,6 @@
       <nav class="nav-links" id="navlinks">
         <a href="features.html">Features</a>
         <a href="screenshots.html">Screenshots</a>
-        <a href="quickstart.html">Quick Start</a>
         <a href="changelog.html">Changelog</a>
         <a href="faq.html">FAQ</a>
         <a href="contact.html">Contact</a>
@@ -235,90 +69,44 @@
     </div>
   </header>
 
-  <!-- ================= PRE-FLIGHT HERO ================= -->
-  <section class="section dl-hero" id="download">
-    <div class="dl-stage" aria-hidden="true">
+  <!-- ================= DOWNLOAD ================= -->
+  <section class="section" id="download">
+    <div class="download-card reveal">
       <div class="orb-halo dl"></div>
       <svg class="orb orb-lg"><use href="#orb" /></svg>
-    </div>
-    <div class="dl-copy" data-stagger>
-      <span class="kicker dl-kicker">Pre-flight · free · portable</span>
       <h1>Get AeroVRC</h1>
       <p class="dl-sub">Free, portable, and updated regularly. Just download and run.</p>
-      <div class="hero-cta">
-        <span class="cta-wrap">
-          <a class="btn btn-primary btn-lg" data-download href="#">
-            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 3a1 1 0 0 1 1 1v9.6l3.3-3.3a1 1 0 0 1 1.4 1.4l-5 5a1 1 0 0 1-1.4 0l-5-5a1 1 0 0 1 1.4-1.4l3.3 3.3V4a1 1 0 0 1 1-1Zm-7 15a1 1 0 0 1 1 1v1h12v-1a1 1 0 1 1 2 0v2a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-2a1 1 0 0 1 1-1Z"/></svg>
-            Download AeroVRC.exe
-          </a>
-        </span>
+      <a class="btn btn-primary btn-lg" data-download href="#">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 3a1 1 0 0 1 1 1v9.6l3.3-3.3a1 1 0 0 1 1.4 1.4l-5 5a1 1 0 0 1-1.4 0l-5-5a1 1 0 0 1 1.4-1.4l3.3 3.3V4a1 1 0 0 1 1-1Zm-7 15a1 1 0 0 1 1 1v1h12v-1a1 1 0 1 1 2 0v2a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-2a1 1 0 0 1 1-1Z"/></svg>
+        Download AeroVRC.exe
+      </a>
+      <div class="dl-meta">
+        <span data-version>Checking latest version…</span>
+        <span class="dot">·</span>
+        <span>Windows 10 &amp; 11 (64-bit)</span>
+        <span class="dot" data-downloads-wrap hidden>·</span>
+        <span data-downloads-wrap hidden><span class="dl-downloads" data-downloads>0</span> downloads</span>
       </div>
-      <p class="dl-alt"><a href="https://github.com/CalamityTheWatcher/AeroVRC/releases" target="_blank" rel="noopener">View all releases on GitHub →</a></p>
-      <p class="dl-started" aria-live="polite">Download started. When it finishes, just run the file; there is nothing to install.</p>
-      <div class="hud">
-        <div class="hud-cell"><span class="hud-label">Build</span>
-          <span class="hud-value" data-version>Checking latest version…</span></div>
-        <div class="hud-cell"><span class="hud-label">Platform</span>
-          <span class="hud-value">Windows 10 &amp; 11 · 64-bit</span></div>
-        <div class="hud-cell" data-downloads-wrap hidden><span class="hud-label">Downloads</span>
-          <span class="hud-value"><span class="dl-downloads" data-downloads>0</span></span></div>
+      <p class="dl-note">
+        Windows SmartScreen may warn about an unrecognized app the first time — that&rsquo;s normal for
+        indie tools that aren&rsquo;t code-signed. Click <em>More info → Run anyway</em>.
+      </p>
+      <div class="sysreq">
+        <h4>System requirements</h4>
+        <dl>
+          <dt>Operating system</dt><dd>Windows 10 or 11 (64-bit)</dd>
+          <dt>Runtime</dt><dd>None to install — self-contained <code>.exe</code></dd>
+          <dt>Disk space</dt><dd>~150&nbsp;MB free (app, logs &amp; thumbnails)</dd>
+          <dt>Memory</dt><dd>~100&nbsp;MB while running in the background</dd>
+          <dt>Works with</dt><dd>VRChat (Steam or standalone); VRCX optional</dd>
+          <dt>Permissions</dt><dd>No admin needed to run</dd>
+        </dl>
       </div>
-    </div>
-  </section>
-
-  <!-- ================= TRUST ================= -->
-  <section class="section dl-trust" id="safety">
-    <div class="section-head reveal">
-      <span class="kicker dl-kicker">Safety</span>
-      <h2>Is it safe?</h2>
-      <p>Short answer: yes. Here is exactly why, and how to check for yourself.</p>
-    </div>
-    <ul class="chips" data-stagger>
-      <li class="chip"><strong>Reads logs only</strong><span>Watches the VRChat process and its own local log files. It never injects code, modifies the game, or automates play, and it isn&rsquo;t a mod or a cheat. See the <a href="privacy.html">privacy page</a> for exactly what it reads and sends.</span></li>
-      <li class="chip"><strong>Built in the open</strong><span>Every build is published as a <a href="https://github.com/CalamityTheWatcher/AeroVRC/releases" target="_blank" rel="noopener">GitHub Release</a>, and the button above always points at the official latest-release file.</span></li>
-      <li class="chip"><strong>No admin needed</strong><span>A portable single <code>.exe</code>: no installer, no elevated permissions, and deleting the file uninstalls it.</span></li>
-      <li class="chip"><strong>Verify it yourself</strong><span>Scan with <a href="https://www.virustotal.com/gui/home/upload" target="_blank" rel="noopener">VirusTotal</a>, or hash it in PowerShell with <code class="cmd">Get-FileHash .\AeroVRC.exe -Algorithm SHA256</code> and compare against the SHA-256 shown for the asset on the GitHub release.</span></li>
-    </ul>
-    <div class="dl-panel ss reveal">
-      <h3>The one warning you will see</h3>
-      <p>AeroVRC isn&rsquo;t code-signed (certificates are costly for a free tool), so Windows SmartScreen shows a generic &ldquo;unrecognized app&rdquo; prompt the first time you run it. Three clicks:</p>
-      <ol class="ss-steps">
-        <li><strong>Windows shows &ldquo;Windows protected your PC.&rdquo;</strong> Normal for any unsigned app.</li>
-        <li><strong>Click &ldquo;More info&rdquo;.</strong> The prompt expands to show the app&rsquo;s name.</li>
-        <li><strong>Click &ldquo;Run anyway&rdquo;.</strong> That&rsquo;s it; Windows only asks the first time.</li>
-      </ol>
-    </div>
-    <!-- Tip: attach a checksums.txt (SHA-256) to each GitHub release so visitors can verify against a published hash. -->
-  </section>
-
-  <!-- ================= FLIGHT READINESS ================= -->
-  <section class="section dl-ready">
-    <div class="section-head tight reveal">
-      <span class="kicker dl-kicker">Flight readiness</span>
-      <h2>System requirements</h2>
-    </div>
-    <div class="dl-panel sysreq reveal">
-      <dl>
-        <dt>Operating system</dt><dd>Windows 10 or 11 (64-bit)</dd>
-        <dt>Runtime</dt><dd>None to install — self-contained <code>.exe</code></dd>
-        <dt>Disk space</dt><dd>~150&nbsp;MB free (app, logs &amp; thumbnails)</dd>
-        <dt>Memory</dt><dd>~100&nbsp;MB while running in the background</dd>
-        <dt>Works with</dt><dd>VRChat (Steam or standalone); VRCX optional</dd>
-        <dt>Permissions</dt><dd>No admin needed to run</dd>
-      </dl>
-    </div>
-    <div class="dl-panel-row" data-stagger>
-      <div class="dl-panel">
-        <h3>How updates work</h3>
+      <div class="how-updates">
+        <h4>How updates work</h4>
         <p>Each new version is published as a GitHub Release. The button above always points at the
         newest build, so re-downloading here (or using AeroVRC&rsquo;s built-in update check) is all you need.
         See the <a href="changelog.html">full changelog</a> for what&rsquo;s changed.</p>
-      </div>
-      <div class="dl-panel">
-        <h3>After it lands</h3>
-        <p>Run <code>AeroVRC.exe</code> from wherever it downloaded; there&rsquo;s nothing to install. If
-        Windows shows its <a href="#safety">first-run prompt</a>, it takes two clicks. Then the
-        <a href="quickstart.html">Quick Start guide</a> walks you through your first session.</p>
       </div>
     </div>
   </section>
@@ -331,33 +119,10 @@
         <span class="brand-name">AeroVRC</span>
       </div>
       <p class="foot-note">An independent companion for VRChat · Not affiliated with VRChat Inc.</p>
-      <p class="foot-copy">© <span data-year>2026</span> AeroVRC · <a href="index.html">Welcome</a> · <a href="quickstart.html">Quick Start</a> · <a href="privacy.html">Privacy</a> · <a href="changelog.html">Changelog</a> · <a href="https://github.com/CalamityTheWatcher/AeroVRC" target="_blank" rel="noopener">GitHub</a></p>
+      <p class="foot-copy">© <span data-year>2026</span> AeroVRC · <a href="index.html">Welcome</a> · <a href="changelog.html">Changelog</a> · <a href="https://github.com/CalamityTheWatcher/AeroVRC" target="_blank" rel="noopener">GitHub</a></p>
     </div>
   </footer>
 
   <script src="app.js"></script>
-  <script>
-  (function(){
-    /* [cosmic-kit:freeze v1] — 0% GPU when unwatched */
-    function frost(){ document.body.classList.toggle("frozen", document.hidden || !document.hasFocus()); }
-    window.addEventListener("blur", frost);
-    window.addEventListener("focus", frost);
-    document.addEventListener("visibilitychange", frost);
-    frost(); /* correct state even when loaded unfocused */
-
-    /* download-click feedback — honest, one-shot; never preventDefault,
-       the GitHub navigation must proceed */
-    var wrap = document.querySelector(".cta-wrap"), note = document.querySelector(".dl-started");
-    var cta = wrap && wrap.querySelector("[data-download]");
-    if (cta) cta.addEventListener("click", function(){
-      if (note) note.classList.add("on");
-      if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-      wrap.classList.remove("launching"); void wrap.offsetWidth; wrap.classList.add("launching");
-    });
-  })();
-  </script>
-  <!-- shared cosmic sky + input polish (GSAP pinned, classic, before the module) -->
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
-  <script type="module" src="cosmic-sky.js"></script>
 </body>
 </html>
