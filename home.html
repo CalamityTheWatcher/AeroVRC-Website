@@ -2,9 +2,6 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <!-- ===== MAINTENANCE MODE: site locked. Delete this block (and restore app.js) to bring the site back. ===== -->
-  <script>location.replace("/");</script>
-  <noscript><meta http-equiv="refresh" content="0; url=/" /></noscript>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>AeroVRC — The all-in-one companion for VRChat</title>
   <meta name="description" content="AeroVRC keeps VRChat running, launches your companion apps, and gives you a live dashboard, VRCX integration, and one-click performance tweaks — free for Windows." />
@@ -22,13 +19,547 @@
   <link rel="stylesheet" href="style.css" />
 
   <script>window.AEROVRC_REPO = "CalamityTheWatcher/AeroVRC";</script>
+
+  <!-- Display face for the journey headlines — body stays Segoe UI. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&display=swap" rel="stylesheet" />
+
+  <!-- three.js + addons via import map — pinned versions, no build step. -->
+  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.module.js" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.166.1/examples/jsm/"
+      }
+    }
+  </script>
+
+  <style>
+    /* ============================================================
+       AeroVRC · Home v2 — "Flight Through the AeroVRC Galaxy".
+       PHASE 1: the world + the five-act scroll-flown camera.
+       All rules scoped under body.cosmic so shared style.css keeps
+       serving every other page untouched.
+       ============================================================ */
+    body.cosmic{
+      --bg-deep:#040816;
+      --cyan:#00f0ff;
+      --gold:#ffcf4a;
+      --font-display:"Chakra Petch","Segoe UI",system-ui,sans-serif;
+      /* CSS nebula = no-WebGL fallback; the live scene renders its own. */
+      background:
+        radial-gradient(1100px 700px at 18% 12%, rgba(74,156,255,.14), transparent 60%),
+        radial-gradient(900px 640px at 84% 78%, rgba(0,240,255,.07), transparent 60%),
+        radial-gradient(760px 560px at 70% 8%,  rgba(88,101,242,.10), transparent 62%),
+        linear-gradient(180deg, #0a1230 0%, var(--bg-deep) 68%);
+      background-attachment:fixed;
+      overflow-x:hidden;
+    }
+
+    /* the galaxy — one fixed canvas behind everything.
+       !important: style.css has a high-specificity body>* stacking rule
+       (`body > *:not(#sparkles):not(svg):not(.nav)…{position:relative}`)
+       that would otherwise turn these fixed layers into flow blocks and
+       shove the whole page down a viewport. It also already gives every
+       content child position:relative + z-index:1, so no blanket rule here. */
+    #scene{position:fixed !important;inset:0;z-index:0;display:block}
+    .no-webgl #scene{display:none}
+
+    /* app.js injects a thin top progress bar on every page — this page
+       will grow its own flight-path rail (Phase 3), so hide the bar. */
+    body.cosmic .scroll-progress{display:none}
+
+    /* vignette — deepens the edges for spatial contrast */
+    body.cosmic::after{
+      content:"";position:fixed;inset:0;z-index:1;pointer-events:none;
+      background:radial-gradient(120% 100% at 50% 45%, transparent 55%, rgba(2,5,14,.55) 100%);
+    }
+    /* living film grain so the gradients never band (freeze zeroes its cost) */
+    .grain{
+      position:fixed !important;inset:-8%;z-index:3;pointer-events:none;opacity:.028;mix-blend-mode:overlay;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      animation:grainShift .9s steps(8) infinite;
+    }
+    @keyframes grainShift{
+      0%{transform:translate(0,0)}12.5%{transform:translate(-2%,1%)}25%{transform:translate(1%,-2%)}
+      37.5%{transform:translate(-1%,2%)}50%{transform:translate(2%,1%)}62.5%{transform:translate(-2%,-1%)}
+      75%{transform:translate(1%,2%)}87.5%{transform:translate(2%,-2%)}100%{transform:translate(0,0)}
+    }
+    body.aq-flat .grain{display:none}   /* lite tier: drop the overlay-blend repaint */
+    .no-fx .grain{display:none}
+
+    /* dev-only ?perf HUD */
+    #perf-hud{
+      position:fixed !important;left:.75rem;bottom:.75rem;z-index:70;pointer-events:none;
+      font:600 11px/1.4 Consolas,monospace;color:#9fdcff;
+      background:rgba(4,8,22,.8);border:1px solid rgba(130,198,255,.25);
+      padding:.45rem .6rem;border-radius:8px;white-space:pre;
+    }
+
+    /* JS adds .frozen when the tab loses focus / is hidden — halt every CSS
+       animation so an unwatched page costs the compositor ~0 GPU */
+    body.frozen *, body.frozen *::before, body.frozen *::after{
+      animation-play-state:paused !important;
+    }
+
+    /* ============ the acts ============ */
+    /* fallback layout (no-JS / reduced-motion / mobile / no-WebGL): a calm,
+       readable stacked page — every act simply visible over the galaxy */
+    .act{position:relative}
+    .act-inner{
+      min-height:100vh;min-height:100svh;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      text-align:center;padding:6.5rem 1.5rem 3rem;
+    }
+
+    /* STATION MODE (desktop + WebGL + motion OK; JS adds body.stations) —
+       the page never scrolls. The viewport is a fixed stage; each act is a
+       station pinned to it. All reveals are inline opacity/transform driven
+       by the flight timeline on pre-promoted layers (opacity floors at 0.001
+       so they stay rasterized: no repaint at the reveal moment, no
+       transitions, no class toggles — nothing that can hitch the flight). */
+    body.stations{overflow:hidden;height:100vh;height:100svh}
+    body.stations .act{height:0;min-height:0}
+    body.stations .act-inner{
+      position:fixed !important;inset:0;z-index:5;min-height:0;
+      opacity:0.001;transform:scale(.94);
+      pointer-events:none;will-change:opacity,transform;
+    }
+    /* the footer rides with the final station */
+    body.stations .footer{
+      position:fixed !important;left:0;right:0;bottom:0;z-index:5;
+      margin-top:0;opacity:0.001;pointer-events:none;will-change:opacity;
+    }
+
+    /* flight rail — primary navigation between stations.
+       !important: style.css's body>* stacking rule outranks IDs here
+       (same trap as #scene/.grain — see the comment up top). */
+    #rail{display:none}
+    body.stations #rail{
+      position:fixed !important;right:1.15rem;top:50%;transform:translateY(-50%);
+      z-index:6 !important;
+      display:flex;flex-direction:column;gap:1.05rem;
+    }
+    #rail button{
+      position:relative;width:26px;height:26px;padding:0;background:none;border:0;cursor:pointer;
+      display:grid;place-items:center;
+    }
+    #rail button i{
+      width:10px;height:10px;border-radius:50%;
+      background:rgba(130,198,255,.55);
+      box-shadow:0 0 6px rgba(4,8,22,.9);   /* reads against the starfield */
+      transition:transform .3s ease, background .3s ease, box-shadow .3s ease;
+    }
+    #rail button:hover i{background:var(--accent-hi)}
+    #rail button.on i{
+      background:var(--cyan);box-shadow:0 0 12px rgba(0,240,255,.8);transform:scale(1.4);
+    }
+    #rail button span{
+      position:absolute;right:34px;top:50%;transform:translateY(-50%);white-space:nowrap;
+      font:600 .68rem/1 var(--font-display);letter-spacing:.13em;text-transform:uppercase;
+      color:var(--muted);opacity:0;transition:opacity .25s ease;pointer-events:none;
+    }
+    #rail button:hover span,#rail button.on span{opacity:1;color:var(--accent-hi)}
+
+    /* ---- Station I: the floating workspace ---- */
+    /* panels sit behind the hero text inside the act's own stacking context
+       (will-change on .act-inner guarantees one), clicks pass through */
+    .workspace{position:absolute;inset:0;z-index:-1;pointer-events:none}
+    .wsp{position:absolute;will-change:transform}   /* GSAP cursor-parallax writes x/y here */
+    .wsp-card{
+      position:relative;
+      /* bob + static tilt share one transform via vars inside the keyframes */
+      animation:wspBob var(--bob,8s) ease-in-out infinite;
+    }
+    @keyframes wspBob{
+      0%,100%{transform:perspective(1100px) rotateY(var(--ry,0deg)) rotateX(var(--rx,0deg)) translateY(0)}
+      50%{transform:perspective(1100px) rotateY(var(--ry,0deg)) rotateX(var(--rx,0deg)) translateY(-9px)}
+    }
+    .wsp-shot{
+      position:relative;overflow:hidden;border-radius:12px;background:var(--nav);
+      border:1px solid var(--border-hi);
+      box-shadow:var(--lit),0 30px 70px -28px rgba(0,0,0,.85),0 10px 30px -16px rgba(28,92,200,.45);
+    }
+    .wsp-shot img{display:block;width:100%;height:auto}
+    /* depth dimming — an overlay wash, NOT a filter (no repaint over the canvas) */
+    .wsp-shot::after{content:"";position:absolute;inset:0;pointer-events:none;background:rgba(6,10,26,var(--dim,0))}
+    /* travelling specular glare — transform-only, compositor-cheap */
+    .wsp-glare{
+      position:absolute;inset:-40%;pointer-events:none;z-index:2;
+      background:linear-gradient(115deg,transparent 42%,rgba(255,255,255,.09) 50%,transparent 58%);
+      transform:translateX(-70%);animation:wspGlare var(--glared,10s) ease-in-out infinite;
+    }
+    @keyframes wspGlare{0%,55%{transform:translateX(-70%)}80%,100%{transform:translateX(70%)}}
+    /* placement (1600×900 reference; panels shrink with the viewport) */
+    .wsp-dash{right:5%;top:24%;width:clamp(300px,26vw,430px)}   /* clear of the rail labels */
+    .wsp-players{left:2.5%;top:15%;width:clamp(240px,20vw,330px)}
+    .wsp-stats{left:6%;bottom:9%;width:clamp(220px,18vw,300px)}
+    .wsp-apps{right:11%;top:9%;width:clamp(180px,14vw,250px)}
+    .wsp-dash .mini-dash{top:auto;bottom:-30px;right:-14px}   /* clear of the apps panel above */
+    /* only the film gets the workspace — fallback stays a clean text hero */
+    body:not(.stations) .workspace{display:none}
+    @media (max-width:1099px){.workspace{display:none}}
+
+    /* ---- Station II: the rescue stage ---- */
+    .rescue-stage{position:relative;width:clamp(320px,34vw,540px);margin:1.4rem auto 1.8rem}
+    .rs-panel{
+      position:relative;border-radius:12px;overflow:hidden;background:var(--nav);
+      border:1px solid var(--border-hi);
+      box-shadow:var(--lit),0 30px 70px -28px rgba(0,0,0,.85),0 10px 34px -16px rgba(240,102,114,.35);
+      will-change:transform,opacity;
+    }
+    .rs-panel img{display:block;width:100%;height:auto}
+    .rs-revive{position:absolute;inset:0;height:100%;object-fit:cover;opacity:0.001}
+    /* crash static: sliced scanline jitter, pure transform/opacity */
+    .rs-glitch{
+      position:absolute;inset:0;pointer-events:none;opacity:0;mix-blend-mode:screen;
+      background:repeating-linear-gradient(0deg,
+        transparent 0 7px, rgba(240,102,114,.16) 7px 9px,
+        transparent 9px 15px, rgba(0,240,255,.10) 15px 16px);
+    }
+    .rs-glitch.on{opacity:1;animation:rsJitter .32s steps(3) infinite}
+    @keyframes rsJitter{
+      0%{transform:translateX(0)}33%{transform:translateX(-3px) scaleY(1.01)}
+      66%{transform:translateX(2px)}100%{transform:translateX(0)}
+    }
+    .rs-flash{ /* relaunch snap */
+      position:absolute;inset:0;pointer-events:none;opacity:0;
+      background:radial-gradient(80% 80% at 50% 50%, rgba(234,242,255,.95), rgba(0,240,255,.35) 70%, transparent 100%);
+    }
+    .rs-pulse{ /* the watchdog's expanding sweep */
+      position:absolute;left:50%;top:50%;width:120px;height:120px;margin:-60px 0 0 -60px;
+      border-radius:50%;pointer-events:none;opacity:0;
+      border:2px solid rgba(0,240,255,.85);
+      box-shadow:0 0 24px rgba(0,240,255,.5), inset 0 0 18px rgba(0,240,255,.25);
+      will-change:transform,opacity;
+    }
+    /* the four beats: dim until the sequence lights them */
+    body.stations .rescue-line li{opacity:.32;transition:opacity .5s ease}
+    body.stations .rescue-line li .r-dot{transition:box-shadow .5s ease}
+    body.stations .rescue-line li.lit{opacity:1}
+    body.stations .rescue-line li.lit .r-dot{box-shadow:0 0 20px currentColor, 0 0 14px rgba(74,156,255,.9)}
+    /* fallback: show the happy ending, all beats lit */
+    body:not(.stations) .rs-crash{display:none}
+    body:not(.stations) .rs-revive{position:static;opacity:1;height:auto}
+    body:not(.stations) .rs-pulse{display:none}
+
+    /* Space-to-fly hint — only in station mode; retires after first use */
+    #space-hint{
+      /* !important: style.css's body>* stacking rule would unfix this */
+      display:none;position:fixed !important;left:50%;bottom:1.4rem;z-index:6 !important;transform:translateX(-50%);
+      align-items:center;gap:.6rem;pointer-events:none;
+      font:600 .74rem/1 var(--font-display);letter-spacing:.12em;text-transform:uppercase;
+      color:var(--muted);
+      opacity:0;transition:opacity .8s ease;
+      animation:hintFloat 2.6s ease-in-out infinite;
+    }
+    body.stations #space-hint{display:flex}
+    body.stations #space-hint.on{opacity:.9}
+    body.stations #space-hint.used{opacity:0}
+    #space-hint .key{
+      display:inline-block;padding:.45em 1.1em;border-radius:8px;
+      color:var(--accent-hi);background:rgba(74,156,255,.08);
+      border:1px solid rgba(130,198,255,.35);
+      box-shadow:0 2px 0 rgba(130,198,255,.25), inset 0 1px 0 rgba(255,255,255,.08);
+    }
+    @keyframes hintFloat{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-5px)}}
+
+    /* journey typography */
+    .act h1{
+      font-family:var(--font-display);
+      font-size:clamp(2.4rem,5.6vw,4rem);
+      font-weight:700;letter-spacing:-.01em;line-height:1.1;
+    }
+    .act h2{
+      font-family:var(--font-display);
+      font-size:clamp(1.8rem,3.8vw,2.7rem);
+      font-weight:700;letter-spacing:-.01em;
+    }
+    .act .lead{color:var(--muted);font-size:1.14rem;max-width:58ch;margin:1.2rem auto 1.8rem}
+
+    /* solid glass-lite panel — NO backdrop-filter (a blur surface over an
+       animating canvas recomposits every frame; lesson from the splash) */
+    .wp-panel{
+      background:rgba(10,16,40,.72);
+      border:1px solid rgba(130,198,255,.2);border-radius:18px;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.06), 0 30px 80px -30px rgba(0,0,0,.85);
+      padding:2rem 2.2rem;
+    }
+
+    /* Phase-2 marker chips — honest placeholders for the beta gate */
+    .wp-note{
+      display:inline-flex;align-items:center;gap:.5rem;margin-top:1.6rem;
+      font:600 .72rem/1 var(--font-display);letter-spacing:.14em;text-transform:uppercase;
+      color:var(--cyan);padding:.5em 1em;border-radius:999px;
+      background:rgba(0,240,255,.06);border:1px dashed rgba(0,240,255,.35);
+    }
+
+    /* ---- Act II: rescue timeline (cosmic re-skin; scripted beats in Ph2) ---- */
+    .rescue-line{
+      list-style:none;padding:0;margin:2.2rem auto 0;max-width:720px;
+      display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;
+    }
+    .rescue-line li{position:relative;padding-top:1.4rem;font-size:.92rem}
+    .rescue-line li::before{ /* connecting light line */
+      content:"";position:absolute;top:.55rem;left:calc(-50% + 14px);right:calc(50% + 14px);height:2px;
+      background:linear-gradient(90deg,rgba(130,198,255,.1),rgba(130,198,255,.4));
+    }
+    .rescue-line li:first-child::before{display:none}
+    .r-dot{
+      position:absolute;top:0;left:50%;margin-left:-7px;width:14px;height:14px;border-radius:50%;
+      background:var(--accent);box-shadow:0 0 14px rgba(74,156,255,.8);
+    }
+    .r-bad .r-dot{background:var(--danger);box-shadow:0 0 14px rgba(240,102,114,.8)}
+    .r-good .r-dot{background:var(--success);box-shadow:0 0 14px rgba(74,202,142,.8)}
+    .rescue-line strong{display:block;font-family:var(--font-semi)}
+    .rescue-line em{color:var(--muted);font-style:normal;font-size:.84rem}
+
+    /* ---- Act III: statband re-skin (constellation drawn in Ph2) ---- */
+    .cosmic-stats .statband{
+      display:flex;gap:3.5rem;justify-content:center;flex-wrap:wrap;
+      padding:2.4rem 3rem;margin-top:1.4rem;
+    }
+    .cosmic-stats .stat{text-align:center}
+    .cosmic-stats .stat-num{
+      font-family:var(--font-display);font-weight:700;font-size:clamp(1.9rem,3.6vw,2.7rem);
+      color:var(--text);display:block;
+      font-variant-numeric:tabular-nums;   /* no width jitter while counting up */
+      text-shadow:0 0 26px rgba(74,156,255,.55);
+    }
+    .cosmic-stats .stat-label{color:var(--muted);font-size:.9rem;letter-spacing:.06em;text-transform:uppercase}
+
+    /* ---- Act IV: explore cards (orbital system lands in Ph2) ---- */
+    .wp-grid{
+      display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;
+      max-width:980px;margin:2.2rem auto 0;text-align:left;
+    }
+    .wp-card{
+      display:block;padding:1.25rem 1.3rem;border-radius:14px;
+      background:rgba(10,16,40,.72);border:1px solid rgba(130,198,255,.16);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.05);
+      transition:transform .25s cubic-bezier(.2,.7,.2,1), border-color .25s ease, box-shadow .25s ease;
+    }
+    .wp-card:hover{
+      transform:translateY(-4px);border-color:rgba(130,198,255,.45);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.08), 0 18px 44px -18px rgba(74,156,255,.5);
+    }
+    .wp-card h3{font-size:1.04rem;margin-bottom:.3rem;font-family:var(--font-semi)}
+    .wp-card h3 .arrow{color:var(--accent-hi);float:right;transition:transform .25s ease}
+    .wp-card:hover h3 .arrow{transform:translateX(4px)}
+    .wp-card p{color:var(--muted);font-size:.88rem;margin:0}
+    /* ============ Phase 3: boot, cursor, pings, sound ============
+       every fixed overlay needs position/z-index !important — style.css's
+       body>* stacking rule outranks even ID selectors (see top comment) */
+    #boot{
+      position:fixed !important;inset:0;z-index:80 !important;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.1rem;
+      background:radial-gradient(700px 500px at 50% 45%, rgba(74,156,255,.08), transparent 65%), var(--bg-deep);
+      clip-path:circle(120% at 50% 50%);
+    }
+    #boot svg{width:74px;height:74px;filter:drop-shadow(0 0 22px rgba(74,156,255,.55));animation:bootPulse 1.4s ease-in-out infinite}
+    @keyframes bootPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+    .boot-word{font-family:var(--font-display);font-weight:600;font-size:.8rem;letter-spacing:.55em;text-indent:.55em;color:var(--muted)}
+    .boot-bar{width:180px;height:2px;border-radius:2px;background:rgba(130,198,255,.15);overflow:hidden}
+    .boot-bar-fill{width:100%;height:100%;transform:scaleX(0);transform-origin:left;
+      background:linear-gradient(90deg,var(--accent),var(--cyan))}
+    @media (prefers-reduced-motion:reduce){ #boot{display:none} }
+
+    /* custom cursor: fast dot + lagging ring + spark trail (desktop film only) */
+    #cursor-dot,#cursor-ring{position:fixed !important;top:0;left:0;z-index:60 !important;pointer-events:none;border-radius:50%;opacity:0}
+    #cursor-dot{width:6px;height:6px;margin:-3px 0 0 -3px;background:var(--accent-hi);box-shadow:0 0 8px var(--accent)}
+    #cursor-ring{width:30px;height:30px;margin:-15px 0 0 -15px}
+    #cursor-ring::after{
+      content:"";position:absolute;inset:0;border-radius:50%;
+      border:1px solid rgba(130,198,255,.5);
+      transition:transform .25s ease,border-color .25s ease;
+    }
+    #cursor-ring.is-hover::after{transform:scale(1.53);border-color:var(--cyan)}
+    .cursor-trail-dot{
+      position:fixed !important;top:0;left:0;z-index:59 !important;pointer-events:none;border-radius:50%;
+      background:var(--cyan);box-shadow:0 0 6px rgba(0,240,255,.8);opacity:0;
+    }
+    body.custom-cursor, body.custom-cursor a, body.custom-cursor button{cursor:none}
+
+    /* click pings: pooled expanding rings at the cursor */
+    .click-ping{
+      position:fixed !important;top:0;left:0;z-index:58 !important;pointer-events:none;
+      width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;opacity:0;
+      border:2px solid rgba(0,240,255,.75);
+      box-shadow:0 0 18px rgba(0,240,255,.4), inset 0 0 12px rgba(0,240,255,.2);
+      will-change:transform,opacity;
+    }
+
+    /* ambient sound toggle */
+    #sound-toggle{
+      position:fixed !important;right:clamp(1rem,3vw,1.8rem);bottom:clamp(1rem,3vw,1.8rem);z-index:7 !important;
+      width:46px;height:46px;border-radius:50%;cursor:pointer;
+      display:none;align-items:center;justify-content:center;
+      color:var(--muted);background:rgba(74,156,255,.07);
+      border:1px solid rgba(130,198,255,.25);
+      transition:color .25s ease,border-color .25s ease,background .25s ease,box-shadow .25s ease;
+    }
+    body.stations #sound-toggle{display:flex}
+    #sound-toggle:hover{color:var(--accent-hi);border-color:rgba(130,198,255,.45);background:rgba(74,156,255,.14)}
+    #sound-toggle.on{color:var(--cyan);border-color:rgba(0,240,255,.5);box-shadow:0 0 18px rgba(0,240,255,.25)}
+    #sound-toggle svg{width:22px;height:22px}
+    #sound-toggle .snd-waves{opacity:0;transition:opacity .2s ease}
+    #sound-toggle.on .snd-waves{opacity:1}
+    #sound-toggle .snd-slash{transition:opacity .2s ease}
+    #sound-toggle.on .snd-slash{opacity:0}
+    @media (prefers-reduced-motion:reduce){ #sound-toggle{display:none !important} }
+
+    /* fallback hero shot — film mode hides it (the workspace replaces it) */
+    .fallback-shot{
+      display:block;width:min(640px,92%);height:auto;margin:1.8rem auto 0;
+      border-radius:12px;border:1px solid var(--border-hi);
+      box-shadow:var(--lit),0 30px 70px -28px rgba(0,0,0,.85);
+    }
+    body.stations .fallback-shot{display:none}
+
+    /* satellites drift on their orbits — `translate` so the hover transform
+       (translateY lift) and the bob never fight over one property */
+    body.stations .wp-card{animation:cardBob 7.5s ease-in-out infinite}
+    body.stations .wp-card:nth-child(odd){animation-duration:8.6s;animation-delay:-2.2s}
+    body.stations .wp-card:nth-child(3n){animation-duration:9.4s;animation-delay:-4.1s}
+    @keyframes cardBob{0%,100%{translate:0 0}50%{translate:0 -7px}}
+
+    /* ============ station layouts ============
+       every station reads as a centered composition — copy on the axis,
+       the set pieces frame it from behind */
+
+    /* copy must hold against the moving sky at every station */
+    body.stations .act h1,body.stations .act h2{text-shadow:0 2px 24px rgba(4,8,22,.9)}
+    body.stations .act .lead{text-shadow:0 1px 12px rgba(4,8,22,.85)}
+
+    /* Station II: header centered; stage + mission log paired below,
+       the pair centered on the axis (fixed column caps so
+       justify-content:center actually centers the track) */
+    body.stations #act-rescue .act-inner{
+      display:grid;
+      grid-template-columns:minmax(0,540px) minmax(0,380px);
+      grid-template-areas:"kick kick" "head head" "lead lead" "stage line";
+      column-gap:clamp(2rem,4vw,4rem);
+      align-content:center;justify-content:center;
+      text-align:center;
+      padding-left:clamp(1.5rem,4vw,4rem);padding-right:clamp(1.5rem,4vw,4rem);
+    }
+    body.stations #act-rescue .kicker{grid-area:kick;justify-self:center}
+    body.stations #act-rescue h2{grid-area:head}
+    body.stations #act-rescue .lead{grid-area:lead;margin-left:auto;margin-right:auto}
+    body.stations #act-rescue .rescue-stage{grid-area:stage;margin:1.2rem auto 0;width:100%;max-width:540px}
+    body.stations #act-rescue .rescue-line{
+      grid-area:line;display:flex;flex-direction:column;gap:1.4rem;
+      margin:1.2rem 0 0;max-width:none;align-self:center;text-align:left;
+    }
+    body.stations #act-rescue .rescue-line li{display:flex;gap:.9rem;align-items:flex-start;padding:0;font-size:.95rem}
+    body.stations #act-rescue .rescue-line::before,
+    body.stations #act-rescue .rescue-line li::before{display:none}   /* style.css's horizontal track */
+    body.stations #act-rescue .rescue-line .r-dot{position:static;margin:.4rem 0 0;flex:none}
+
+    /* Station III: centered telemetry — numbers in a quiet row under the
+       lead, the constellation hangs in the sky above the headline */
+    body.stations #act-constellation .act-inner{
+      align-items:center;text-align:center;justify-content:center;
+      padding-left:clamp(1.5rem,4vw,4rem);padding-right:clamp(1.5rem,4vw,4rem);
+    }
+    body.stations .cosmic-stats .statband-wrap{width:100%}
+    body.stations .cosmic-stats .statband{
+      background:none;border:0;box-shadow:none;padding:0;
+      margin:2.2rem auto 0;gap:clamp(1.5rem,4vw,3.5rem);justify-content:center;
+      flex-direction:row;align-items:flex-start;flex-wrap:wrap;
+      max-width:none;
+    }
+    body.stations .cosmic-stats .stat{
+      text-align:left;background:none;border:0;box-shadow:none;border-radius:0;
+      border-left:2px solid rgba(255,207,74,.5);padding:.1rem 0 .1rem 1.1rem;
+    }
+    body.stations #act-constellation .lead{max-width:44ch;margin-left:auto;margin-right:auto}
+    body.stations .cosmic-stats .stat-num{text-shadow:none;font-size:clamp(1.7rem,3vw,2.3rem)}
+    body.stations .cosmic-stats .stat-label{font-size:.72rem;letter-spacing:.14em}
+
+    /* Station IV: satellites on a shallow arc echoing the orbit rings —
+       `rotate`/margins, never `transform` (hover and bob own those) */
+    body.stations .wp-grid{display:flex;flex-wrap:wrap;justify-content:center;gap:.9rem 1rem;max-width:1060px}
+    body.stations .wp-card{width:242px;padding:.95rem 1.05rem}
+    body.stations .wp-card h3{font-size:.95rem}
+    body.stations .wp-card p{font-size:.78rem}
+    body.stations .wp-card:nth-child(1){margin-top:34px;rotate:-2.5deg}
+    body.stations .wp-card:nth-child(2){margin-top:10px;rotate:-1deg}
+    body.stations .wp-card:nth-child(3){margin-top:0px;rotate:.5deg}
+    body.stations .wp-card:nth-child(4){margin-top:16px;rotate:2deg}
+    body.stations .wp-card:nth-child(5){margin-top:26px;rotate:-1.5deg}
+    body.stations .wp-card:nth-child(6){margin-top:4px;rotate:1deg}
+    body.stations .wp-card:nth-child(7){margin-top:18px;rotate:2.5deg}
+
+    /* Station IV: copy must hold against the core's glow behind it */
+    body.stations #act-system h2{text-shadow:0 2px 22px rgba(4,8,22,.95)}
+    body.stations #act-system .kicker{background:rgba(6,12,32,.78)}
+
+    /* Station V: one big quiet statement — on short viewports, lift the CTA
+       clear of the fixed footer (tall screens keep the star-as-horizon frame) */
+    @media (max-height:860px){
+      body.stations #act-touchdown .act-inner{padding-bottom:12rem}
+    }
+    body.stations #act-touchdown h2{
+      font-size:clamp(2.6rem,6vw,4.6rem);letter-spacing:-.02em;max-width:16ch;
+      text-shadow:0 2px 26px rgba(4,8,22,.9);
+    }
+    body.stations #act-touchdown .lead{font-size:1rem;color:#c8d4ee;text-shadow:0 1px 14px rgba(4,8,22,.95)}
+
+    /* telemetry readout */
+    .tele{margin-top:2.6rem;font:600 .62rem/1.6 var(--font-display);
+      letter-spacing:.18em;text-transform:uppercase;color:rgba(147,164,199,.55)}
+    .tele span{color:var(--accent-hi)}
+    #rail span b{color:rgba(130,198,255,.55);font-weight:600;margin-right:.5em}
+    .wsp-tag{position:absolute;top:-1.3rem;left:2px;
+      font:600 .58rem/1 var(--font-display);letter-spacing:.15em;text-transform:uppercase;
+      color:rgba(147,164,199,.7);white-space:nowrap}
+
+    /* ---- Act V ---- */
+    #act-touchdown .hero-cta{margin-top:1.6rem}
+
+    /* footer sits after the journey on the calm final starfield */
+    body.cosmic .footer{background:rgba(4,8,22,.72);border-top-color:rgba(130,198,255,.16)}
+
+    /* ============ responsive ============ */
+    @media (max-width:920px){
+      .wp-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .rescue-line{grid-template-columns:repeat(2,1fr);row-gap:1.6rem}
+      .rescue-line li:nth-child(3)::before{display:none}
+    }
+    @media (max-width:640px){
+      .wp-grid{grid-template-columns:1fr}
+    }
+  </style>
 </head>
-<body>
+<body class="cosmic">
 
-  <!-- ===== animated sparkle backdrop (the app's signature look) ===== -->
-  <canvas id="sparkles" aria-hidden="true"></canvas>
+  <!-- ===== the galaxy (whole-page backdrop; camera flown by scroll) ===== -->
+  <canvas id="scene" aria-hidden="true"></canvas>
+  <div class="grain" aria-hidden="true"></div>
+  <div id="cursor-dot" aria-hidden="true"></div>
+  <div id="cursor-ring" aria-hidden="true"></div>
 
-  <!-- ===== reusable orb "A" logo (matches the app's drawn nav logo) ===== -->
+  <!-- ===== boot curtain (JS-managed; hidden for no-JS / fallback) ===== -->
+  <div id="boot" aria-hidden="true">
+    <svg><use href="#orb" /></svg>
+    <div class="boot-word">AEROVRC</div>
+    <div class="boot-bar"><div class="boot-bar-fill"></div></div>
+  </div>
+  <noscript><style>#boot{display:none}</style></noscript>
+
+  <!-- ambient sound toggle — OFF by default, synthesized in WebAudio (no files) -->
+  <button id="sound-toggle" type="button" aria-pressed="false" aria-label="Toggle ambient sound">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M4 9.5v5h3.5L12 18V6L7.5 9.5H4z" fill="currentColor" stroke="none"/>
+      <path class="snd-waves" d="M15.5 9.2a4 4 0 0 1 0 5.6M18 7a7.5 7.5 0 0 1 0 10"/>
+      <line class="snd-slash" x1="16" y1="9" x2="20.5" y2="15"/>
+    </svg>
+  </button>
+
+  <!-- ===== reusable orb "A" logo ===== -->
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
     <defs>
       <radialGradient id="orbGlow" cx="50%" cy="50%" r="50%">
@@ -54,7 +585,11 @@
   <header class="nav" id="top">
     <div class="nav-inner">
       <a class="brand" href="home.html">
-        <svg class="orb orb-sm"><use href="#orb" /></svg>
+        <span class="orb-orbit">
+          <svg class="orb orb-sm"><use href="#orb" /></svg>
+          <span class="orbit" aria-hidden="true"><i></i></span>
+          <span class="orbit o2" aria-hidden="true"><i></i></span>
+        </span>
         <span class="brand-name">AeroVRC</span>
       </a>
       <button class="nav-toggle" data-nav-toggle aria-label="Toggle menu" aria-expanded="false" aria-controls="navlinks">
@@ -63,6 +598,7 @@
       <nav class="nav-links" id="navlinks">
         <a href="features.html">Features</a>
         <a href="screenshots.html">Screenshots</a>
+        <a href="quickstart.html">Quick Start</a>
         <a href="changelog.html">Changelog</a>
         <a href="faq.html">FAQ</a>
         <a href="contact.html">Contact</a>
@@ -71,94 +607,1565 @@
     </div>
   </header>
 
-  <!-- ================= HERO ================= -->
-  <section class="hero">
-    <div class="hero-inner" data-stagger>
-      <span class="pill"><span class="pill-dot"></span> Free · Windows 10 &amp; 11 · Portable</span>
-      <h1>The all-in-one companion<br />for <span class="grad">VRChat</span></h1>
-      <p class="lead">
-        AeroVRC watches VRChat and brings it back when it crashes, launches your companion
-        apps automatically, and gives you a live dashboard of your world, your frame times,
-        and who&rsquo;s in the instance — all in one clean app.
-      </p>
-      <div class="hero-cta">
-        <a class="btn btn-primary btn-lg" href="download.html">
-          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 3a1 1 0 0 1 1 1v9.6l3.3-3.3a1 1 0 0 1 1.4 1.4l-5 5a1 1 0 0 1-1.4 0l-5-5a1 1 0 0 1 1.4-1.4l3.3 3.3V4a1 1 0 0 1 1-1Zm-7 15a1 1 0 0 1 1 1v1h12v-1a1 1 0 1 1 2 0v2a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-2a1 1 0 0 1 1-1Z"/></svg>
-          Get AeroVRC
+  <!-- ================= THE JOURNEY (five acts, one galaxy) ================= -->
+  <main id="journey">
+
+    <!-- ====== ACT I · ARRIVAL ====== -->
+    <section class="act" id="act-arrival">
+      <div class="act-inner">
+        <a class="whatsnew" data-latest href="changelog.html">
+          <span class="spark" aria-hidden="true"></span>
+          What&rsquo;s new in <span data-latest-tag>the latest release</span>
+          <span class="whatsnew-arrow" aria-hidden="true">→</span>
         </a>
-        <a class="btn btn-secondary btn-lg" href="screenshots.html">See it in action</a>
+        <span class="pill"><span class="pill-dot"></span> Free · Windows 10 &amp; 11 · Portable</span>
+        <h1>The all-in-one companion<br />for <span class="grad">VRChat</span></h1>
+        <p class="lead">
+          AeroVRC watches VRChat and relaunches it the moment it crashes.
+          A live dashboard tracks your world, your frame times, and everyone in the instance.
+        </p>
+        <div class="hero-cta">
+          <a class="btn btn-primary btn-lg" href="download.html">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 3a1 1 0 0 1 1 1v9.6l3.3-3.3a1 1 0 0 1 1.4 1.4l-5 5a1 1 0 0 1-1.4 0l-5-5a1 1 0 0 1 1.4-1.4l3.3 3.3V4a1 1 0 0 1 1-1Zm-7 15a1 1 0 0 1 1 1v1h12v-1a1 1 0 1 1 2 0v2a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-2a1 1 0 0 1 1-1Z"/></svg>
+            Get AeroVRC
+          </a>
+          <a class="btn btn-secondary btn-lg" href="screenshots.html">See it in action</a>
+        </div>
+        <p class="cta-sub">
+          Portable <code>.exe</code> · no installer, no admin rights
+          <span class="dot">·</span>
+          <span class="cta-meta" data-version>Latest release</span>
+        </p>
+
+        <!-- fallback hero shot (mobile / no-JS / reduced-motion / no-WebGL):
+             the workspace collapses to one clean framed screenshot -->
+        <img class="fallback-shot" src="img/cs_dashboard.png" width="1120" height="680"
+             alt="The AeroVRC dashboard monitoring a live VRChat session." loading="lazy" decoding="async">
+
+        <!-- the floating workspace: real app screens as glass panels adrift
+             around the hero. Pure decoration (data-decor keeps it out of the
+             interactivity switch) — clicks pass through to the CTAs. -->
+        <div class="workspace" data-decor aria-hidden="true">
+          <div class="wsp wsp-apps" data-depth="0.4">
+            <div class="wsp-card" style="--ry:-12deg;--rx:3deg;--bob:11s;--dim:.38">
+              <div class="wsp-shot"><img src="img/cs_apps.png" width="1120" height="680" alt="" loading="lazy" decoding="async"><span class="wsp-glare" style="--glared:12s"></span></div>
+            </div>
+          </div>
+          <div class="wsp wsp-players" data-depth="0.7">
+            <div class="wsp-card" style="--ry:11deg;--rx:3deg;--bob:8.5s;--dim:.2">
+              <span class="wsp-tag">Instance roster</span>
+              <div class="wsp-shot"><img src="img/cs_players.png" width="1120" height="680" alt="" loading="lazy" decoding="async"><span class="wsp-glare" style="--glared:10s"></span></div>
+            </div>
+          </div>
+          <div class="wsp wsp-stats" data-depth="0.55">
+            <div class="wsp-card" style="--ry:9deg;--rx:-2deg;--bob:9.5s;--dim:.28">
+              <div class="wsp-shot"><img src="img/cs_statistics.png" width="1120" height="680" alt="" loading="lazy" decoding="async"><span class="wsp-glare" style="--glared:11s"></span></div>
+            </div>
+          </div>
+          <div class="wsp wsp-dash" data-depth="1">
+            <div class="wsp-card" style="--ry:-8deg;--rx:2deg;--bob:7s;--dim:0">
+              <span class="wsp-tag">Live session · real screenshot</span>
+              <div class="wsp-shot">
+                <img src="img/cs_dashboard.png" width="1120" height="680" alt="" loading="eager" decoding="async">
+                <span class="wsp-glare" style="--glared:9s"></span>
+                <span class="ghost-cursor">
+                  <svg viewBox="0 0 24 24"><path d="M5 3l14 9-6 1-3 6z" fill="#fff" stroke="#1c2246" stroke-width="1.5" stroke-linejoin="round"/></svg>
+                </span>
+                <span class="ghost-ripple gr1"></span>
+                <span class="ghost-ripple gr2"></span>
+              </div>
+              <aside class="mini-dash">
+                <div class="md-top"><span class="md-dot"></span> Monitoring — VRChat up</div>
+                <div class="md-world">The Great Pug</div>
+                <div class="md-sub">Instance #42 · Friends+</div>
+                <div class="md-row">
+                  <div class="md-cell"><span class="md-label">Uptime</span><span class="md-val" data-md-uptime>2h 47m 13s</span></div>
+                  <div class="md-cell"><span class="md-label">In instance</span><span class="md-val" data-md-players>14</span></div>
+                </div>
+              </aside>
+            </div>
+          </div>
+        </div>
       </div>
-      <p class="cta-sub">
-        Portable <code>.exe</code> — no installer, no admin required to run
-        <span class="dot">·</span>
-        <span class="cta-meta" data-version>Latest release</span>
-        <span class="dot" data-downloads-wrap hidden>·</span>
-        <span class="cta-meta" data-downloads-wrap hidden><span data-downloads>0</span> downloads</span>
-      </p>
-    </div>
+    </section>
 
-    <!-- A single picture of the app — the live dashboard -->
-    <div class="hero-shot reveal" style="--rd:340ms">
-      <div class="orb-halo hero-glow" aria-hidden="true"></div>
-      <figure class="device">
-        <img src="img/cs_dashboard.png" width="1120" height="680" loading="eager" decoding="async"
-             alt="The AeroVRC dashboard while monitoring a live VRChat session — current world (The Great Pug, Friends+, 14 players), plus session stat cards for uptime, players, restarts and played-today." />
-      </figure>
-    </div>
-  </section>
+    <!-- ====== ACT II · THE RESCUE ====== -->
+    <section class="act" id="act-rescue">
+      <div class="act-inner">
+        <span class="kicker">Crash watchdog</span>
+        <h2>From crash to back-in-world</h2>
+        <p class="lead">
+          VRChat freezes. AeroVRC detects it in under a second, relaunches the
+          game, and rejoins the exact instance you were in.
+        </p>
 
-  <!-- ================= EXPLORE (hub links) ================= -->
-  <section class="section" id="explore">
-    <div class="section-head reveal">
-      <h2>Explore AeroVRC</h2>
-      <p>Everything has its own page — dive into whichever part you like.</p>
-    </div>
-    <div class="explore" data-stagger>
-      <a class="explore-card" href="features.html">
-        <div class="ficon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div>
-        <h3>Features <span class="arrow" aria-hidden="true">→</span></h3>
-        <p>The crash watchdog, live dashboard, app launcher, stats, VRCX integration and more.</p>
-      </a>
-      <a class="explore-card" href="screenshots.html">
-        <div class="ficon"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.8"/><path d="M21 17l-5-5-4 4-2-2-4 4"/></svg></div>
-        <h3>Screenshots <span class="arrow" aria-hidden="true">→</span></h3>
-        <p>Real screens from every page of the app, in one interactive gallery.</p>
-      </a>
-      <a class="explore-card" href="download.html">
-        <div class="ficon"><svg viewBox="0 0 24 24"><path d="M12 4v10m0 0 4-4m-4 4-4-4"/><path d="M5 19h14"/></svg></div>
-        <h3>Download <span class="arrow" aria-hidden="true">→</span></h3>
-        <p>Grab the free, portable build for Windows and see the system requirements.</p>
-      </a>
-      <a class="explore-card" href="changelog.html">
-        <div class="ficon"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg></div>
-        <h3>Changelog <span class="arrow" aria-hidden="true">→</span></h3>
-        <p>Every release and its notes, pulled live from GitHub — newest first.</p>
-      </a>
-      <a class="explore-card" href="faq.html">
-        <div class="ficon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.2 9.3a2.8 2.8 0 0 1 5.4 1c0 1.9-2.8 2.5-2.8 2.5"/><path d="M12 17h.01"/></svg></div>
-        <h3>FAQ <span class="arrow" aria-hidden="true">→</span></h3>
-        <p>Is it safe? Does it cost anything? Why does Windows warn me? Answered here.</p>
-      </a>
-      <a class="explore-card" href="contact.html">
-        <div class="ficon"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 6 8 6 8-6"/></svg></div>
-        <h3>Contact <span class="arrow" aria-hidden="true">→</span></h3>
-        <p>Send a bug report or feature request straight to the developer.</p>
-      </a>
-    </div>
-  </section>
+        <!-- the rescue, acted out: a glitching crashed window adrift in the red
+             nebula, swept by the watchdog pulse, re-formed into the live session -->
+        <div class="rescue-stage" data-decor aria-hidden="true">
+          <span class="rs-pulse"></span>
+          <span class="rs-pulse rs-pulse2"></span>
+          <div class="rs-panel">
+            <img class="rs-crash" src="img/Crash.png" width="775" height="419" alt="" loading="lazy" decoding="async">
+            <img class="rs-revive" src="img/Revive.png" width="942" height="525" alt="" loading="lazy" decoding="async">
+            <span class="rs-glitch"></span>
+            <span class="rs-flash"></span>
+          </div>
+        </div>
+
+        <ol class="rescue-line">
+          <li class="r-bad"><span class="r-dot"></span><strong>VRChat crashes</strong><em>frozen mid-world</em></li>
+          <li><span class="r-dot"></span><strong>Watchdog detects it</strong><em>&lt; 1 second</em></li>
+          <li><span class="r-dot"></span><strong>Relaunches the game</strong><em>automatically</em></li>
+          <li class="r-good"><span class="r-dot"></span><strong>Auto-rejoins your world</strong><em>right where you were</em></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ====== ACT III · THE CONSTELLATION (live numbers) ====== -->
+    <section class="act cosmic-stats" id="act-constellation">
+      <div class="act-inner">
+        <span class="kicker">Live from GitHub</span>
+        <h2>Built in the open</h2>
+        <p class="lead">Downloads, releases and the current build, pulled straight from the GitHub API.</p>
+        <div class="statband-wrap" data-statband>
+          <div class="statband wp-panel">
+            <div class="stat">
+              <span class="stat-num"><span data-stat-downloads>0</span></span>
+              <span class="stat-label">Total downloads</span>
+            </div>
+            <div class="stat">
+              <span class="stat-num"><span data-stat-releases>0</span></span>
+              <span class="stat-label">Releases shipped</span>
+            </div>
+            <div class="stat">
+              <span class="stat-num" data-stat-version>&mdash;</span>
+              <span class="stat-label">Latest version</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====== ACT IV · THE SYSTEM (explore) ====== -->
+    <section class="act" id="act-system">
+      <div class="act-inner">
+        <span class="kicker">Sitemap</span>
+        <h2>Explore AeroVRC</h2>
+        <div class="wp-grid">
+          <a class="wp-card" href="quickstart.html">
+            <h3>Quick Start <span class="arrow" aria-hidden="true">→</span></h3>
+            <p>New here? Download, run and start monitoring in about two minutes.</p>
+          </a>
+          <a class="wp-card" href="features.html">
+            <h3>Features <span class="arrow" aria-hidden="true">→</span></h3>
+            <p>The crash watchdog, live dashboard, app launcher, stats, VRCX integration and more.</p>
+          </a>
+          <a class="wp-card" href="screenshots.html">
+            <h3>Screenshots <span class="arrow" aria-hidden="true">→</span></h3>
+            <p>Real screens from every page of the app, in one interactive gallery.</p>
+          </a>
+          <a class="wp-card" href="download.html">
+            <h3>Download <span class="arrow" aria-hidden="true">→</span></h3>
+            <p>Grab the free, portable build for Windows and see the system requirements.</p>
+          </a>
+          <a class="wp-card" href="changelog.html">
+            <h3>Changelog <span class="arrow" aria-hidden="true">→</span></h3>
+            <p>Every release and its notes, pulled live from GitHub, newest first.</p>
+          </a>
+          <a class="wp-card" href="faq.html">
+            <h3>FAQ <span class="arrow" aria-hidden="true">→</span></h3>
+            <p>Is it safe? Does it cost anything? Why does Windows warn me? Answered here.</p>
+          </a>
+          <a class="wp-card" href="contact.html">
+            <h3>Contact <span class="arrow" aria-hidden="true">→</span></h3>
+            <p>Send a bug report or feature request straight to the developer.</p>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====== ACT V · TOUCHDOWN ====== -->
+    <section class="act" id="act-touchdown">
+      <div class="act-inner">
+        <span class="pill"><span class="pill-dot"></span> Free · no installer · no account</span>
+        <h2>Your next session, looked after.</h2>
+        <p class="lead">Download the portable build and start monitoring in about two minutes.</p>
+        <div class="hero-cta">
+          <a class="btn btn-primary btn-lg" href="download.html">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 3a1 1 0 0 1 1 1v9.6l3.3-3.3a1 1 0 0 1 1.4 1.4l-5 5a1 1 0 0 1-1.4 0l-5-5a1 1 0 0 1 1.4-1.4l3.3 3.3V4a1 1 0 0 1 1-1Zm-7 15a1 1 0 0 1 1 1v1h12v-1a1 1 0 1 1 2 0v2a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-2a1 1 0 0 1 1-1Z"/></svg>
+            Get AeroVRC
+          </a>
+          <a class="btn btn-secondary btn-lg" href="quickstart.html">Quick Start guide</a>
+        </div>
+        <p class="tele" aria-hidden="true">Build <span data-version>&mdash;</span> · Station <span id="tele-station">05 / 05</span></p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- flight rail: primary navigation between stations (station mode only) -->
+  <nav id="rail" aria-label="Journey stations">
+    <button type="button" data-station="0" class="on"><i></i><span><b>01</b>Arrival</span></button>
+    <button type="button" data-station="1"><i></i><span><b>02</b>The Rescue</span></button>
+    <button type="button" data-station="2"><i></i><span><b>03</b>Constellation</span></button>
+    <button type="button" data-station="3"><i></i><span><b>04</b>The System</span></button>
+    <button type="button" data-station="4"><i></i><span><b>05</b>Touchdown</span></button>
+  </nav>
+
+  <!-- navigation hint (station mode only; JS reveals + retires it) -->
+  <div id="space-hint" aria-hidden="true"><span class="key">Space</span> or scroll · fly to the next waypoint</div>
 
   <!-- ================= FOOTER ================= -->
   <footer class="footer">
     <div class="footer-inner">
       <div class="foot-brand">
-        <svg class="orb orb-sm"><use href="#orb" /></svg>
+        <span class="orb-orbit">
+          <svg class="orb orb-sm"><use href="#orb" /></svg>
+          <span class="orbit" aria-hidden="true"><i></i></span>
+          <span class="orbit o2" aria-hidden="true"><i></i></span>
+        </span>
         <span class="brand-name">AeroVRC</span>
       </div>
+      <p class="live-badge" data-visits-wrap hidden>
+        <span class="live-dot" aria-hidden="true"></span>
+        <span><strong data-visits>0</strong> players online in VRChat right now</span>
+      </p>
       <p class="foot-note">An independent companion for VRChat · Not affiliated with VRChat Inc.</p>
-      <p class="foot-copy">© <span data-year>2026</span> AeroVRC · <a href="index.html">Welcome</a> · <a href="changelog.html">Changelog</a> · <a href="https://github.com/CalamityTheWatcher/AeroVRC" target="_blank" rel="noopener">GitHub</a></p>
+      <p class="foot-copy">© <span data-year>2026</span> AeroVRC · <a href="index.html">Welcome</a> · <a href="quickstart.html">Quick Start</a> · <a href="privacy.html">Privacy</a> · <a href="changelog.html">Changelog</a> · <a href="https://github.com/CalamityTheWatcher/AeroVRC" target="_blank" rel="noopener">GitHub</a></p>
     </div>
   </footer>
 
+  <!-- GSAP first (classic), then shared site JS, then the engine. -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <!-- safety: if the module fails (very old browser), never leave the curtain up -->
+  <script>
+    setTimeout(function () {
+      var b = document.getElementById("boot");
+      if (b && !b.dataset.managed) b.style.display = "none";
+    }, 2500);
+  </script>
   <script src="app.js"></script>
+
+  <script type="module">
+    import * as THREE from "three";
+    import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+    import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+    import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+    import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
+
+    const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const isDesktop = () => matchMedia("(min-width: 900px)").matches;
+    const hasGsap = !!window.gsap;
+
+    /* ?perf debug mode — dev-only HUD + ablation flags for profiling.
+       home.html?perf&nobloom&nostars … — inert without the query string. */
+    const qs = new URLSearchParams(location.search);
+    const PERF = {
+      hud:    qs.has("perf"),
+      bloom:  !qs.has("nobloom"),
+      stars:  !qs.has("nostars"),
+      nebula: !qs.has("nonebula"),
+      dust:   !qs.has("nodust"),
+      ring:   !qs.has("noring"),
+      fx:     !qs.has("nofx"),
+      events: !qs.has("noevents")
+    };
+    if (!PERF.fx) document.body.classList.add("no-fx");
+    let hudEl = null, hudAcc = 0, hudFrames = 0;
+    if (PERF.hud) {
+      hudEl = document.createElement("div");
+      hudEl.id = "perf-hud";
+      hudEl.textContent = "perf…";
+      document.body.appendChild(hudEl);
+    }
+
+    /* ================= renderer (graceful fallback) ================= */
+    let renderer = null;
+    try {
+      renderer = new THREE.WebGLRenderer({
+        canvas: document.getElementById("scene"),
+        antialias: true,
+        powerPreference: "high-performance"
+      });
+      renderer.setClearColor(0x040816, 1);
+    } catch (err) {
+      document.body.classList.add("no-webgl");
+    }
+
+    /* ================= adaptive quality tiers =================
+       Same system as the maintenance splash: GPU-name guess picks the start
+       tier, a runtime fps watchdog steps DOWN (DPR first, then bloom) if
+       frames sag. The scene is fill-rate bound — DPR + bloom are the levers. */
+    const TIER_ORDER = ["ultra", "high", "balanced", "lite"];
+    const TIERS = {
+      ultra:    { dpr: 1.75, bloom: true,  bloomStr: 0.55, bloomHalf: false, aurora: "blur", parts: 1.0,  neb: 4 },
+      high:     { dpr: 1.5,  bloom: true,  bloomStr: 0.48, bloomHalf: false, aurora: "blur", parts: 0.85, neb: 4 },
+      balanced: { dpr: 1.25, bloom: true,  bloomStr: 0.44, bloomHalf: true,  aurora: "soft", parts: 0.6,  neb: 3 },
+      lite:     { dpr: 1.0,  bloom: false, bloomStr: 0,    bloomHalf: true,  aurora: "flat", parts: 0.4,  neb: 3 }
+    };
+    function guessTierFromGPU() {
+      let s = "";
+      try {
+        const gl = renderer.getContext();
+        const dbg = gl.getExtension("WEBGL_debug_renderer_info");
+        s = (dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : "").toLowerCase();
+      } catch (e) {}
+      if (/swiftshader|llvmpipe|software|mali|adreno|powervr|apple gpu/.test(s)) return "lite";
+      if (/rtx\s*(40|50)\d\d|rtx\s*30(80|90)|rx\s*(69|78|79)\d\d/.test(s)) return "ultra";
+      if (/rtx\s*(20|30)\d\d|gtx\s*16\d\d|rx\s*(58|59|66|67|68)\d\d|apple\s*m[1-9]/.test(s)) return "high";
+      if (/gtx\s*(10|9)\d\d|rx\s*(4|5[0-6])\d\d|iris|radeon|geforce/.test(s)) return "balanced";
+      if (/intel|uhd|hd graphics/.test(s)) return "lite";
+      return "high";
+    }
+    const forcedTier = qs.get("tier");
+    let tierIdx = TIER_ORDER.indexOf(
+      TIER_ORDER.includes(forcedTier) ? forcedTier
+      : !isDesktop() ? "balanced"
+      : renderer ? guessTierFromGPU() : "lite"
+    );
+    if (tierIdx < 0) tierIdx = 1;
+    const Q = { ...TIERS[TIER_ORDER[tierIdx]] };
+    let bloomOn = Q.bloom;
+    document.body.classList.add("aq-" + Q.aurora);
+    document.documentElement.dataset.tier = TIER_ORDER[tierIdx];
+    const pScale = (n) => Math.max(24, Math.round(n * Q.parts));
+
+    /* ================= scene graph ================= */
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x040816, 0.010);
+
+    /* the rig is the "ship" the journey flies; the camera nests inside it and
+       carries only pointer-parallax + breathing, so the two never fight */
+    const camera = new THREE.PerspectiveCamera(isDesktop() ? 42 : 52, innerWidth / innerHeight, 0.1, 220);
+    const rig = new THREE.Group();
+    rig.add(camera);
+    scene.add(rig);
+
+    /* ================= the journey =================
+       Six camera keys along a winding corridor through the galaxy.
+       W1 (rescue, red alert) resolves through W1b (success green) — the
+       red→green grade change IS the story beat, told in light.        */
+    const WAYPOINTS = [
+      { pos: [   0,  0.2,  14], look: [  0,   0, -10], fog: 0x040816, den: 0.010, nebA: 0x4a9cff, nebB: 0x5966f2, nebC: 0x00f0ff, bloomK: 1.00 }, // I  · arrival
+      { pos: [   7, -1.5, -12], look: [ 10,  -2, -30], fog: 0x150612, den: 0.016, nebA: 0xff4a55, nebB: 0xd93a70, nebC: 0xff9c6b, bloomK: 1.18 }, // II · red alert
+      { pos: [ 8.5, -0.5, -24], look: [  6, 0.5, -44], fog: 0x06140f, den: 0.013, nebA: 0x3ddc97, nebB: 0x2aa876, nebC: 0x9cffd0, bloomK: 1.06 }, // IIb· rescued
+      { pos: [   2,    4, -38], look: [  0,   5, -58], fog: 0x0a0d20, den: 0.010, nebA: 0xffcf4a, nebB: 0x00f0ff, nebC: 0xffe9a8, bloomK: 1.00 }, // III· constellation (core far left, centered copy, the A overhead)
+      { pos: [  -8,  2.5, -56], look: [-14,   4, -76], fog: 0x070b1e, den: 0.009, nebA: 0x4a9cff, nebB: 0x8476ff, nebC: 0xd05aff, bloomK: 1.00 }, // IV · the system
+      { pos: [  -9,  5.8, -63], look: [-13.4, 3.2, -76], fog: 0x05122a, den: 0.008, nebA: 0x5ba6ff, nebB: 0xa8d0ff, nebC: 0x82c6ff, bloomK: 0.95 }  // V  · touchdown (star as glowing horizon below the CTA)
+    ];
+    /* J is the single flight state: GSAP writes it, tick() reads it — never
+       tween anything the render loop reassigns (splash lesson #4). */
+    const W0 = WAYPOINTS[0];
+    const J = {
+      pos:  { x: W0.pos[0], y: W0.pos[1], z: W0.pos[2] },
+      look: { x: W0.look[0], y: W0.look[1], z: W0.look[2] },
+      fog:  new THREE.Color(W0.fog), den: W0.den,
+      nebA: new THREE.Color(W0.nebA), nebB: new THREE.Color(W0.nebB), nebC: new THREE.Color(W0.nebC),
+      bloomK: W0.bloomK, prog: 0
+    };
+    const _fc = new THREE.Color();
+
+    /* ---- deep-space nebula: fbm plane parented to the CAMERA, so it rides
+       along as an infinite backdrop. Wisp colors are grade uniforms. ---- */
+    const nebulaMat = new THREE.ShaderMaterial({
+      uniforms: {
+        uTime: { value: 0 },
+        /* live references — GSAP mutates these Color objects, three re-uploads
+           them every render, so the whole sky grades with the flight */
+        uBase: { value: J.fog },
+        uColA: { value: J.nebA }, uColB: { value: J.nebB }, uColC: { value: J.nebC }
+      },
+      depthWrite: false,
+      vertexShader: /* glsl */`
+        varying vec2 vUv;
+        void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+      fragmentShader: /* glsl */`
+        uniform float uTime; uniform vec3 uBase; uniform vec3 uColA; uniform vec3 uColB; uniform vec3 uColC;
+        varying vec2 vUv;
+        float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+        float noise(vec2 p){
+          vec2 i = floor(p), f = fract(p);
+          vec2 u = f * f * (3.0 - 2.0 * f);
+          return mix(mix(hash(i), hash(i + vec2(1,0)), u.x),
+                     mix(hash(i + vec2(0,1)), hash(i + vec2(1,1)), u.x), u.y);
+        }
+        float fbm(vec2 p){
+          float v = 0.0, a = 0.5;
+          for (int i = 0; i < ${Q.neb}; i++){ v += a * noise(p); p *= 2.03; a *= 0.5; }
+          return v;
+        }
+        void main(){
+          vec2 uv = vUv * vec2(2.2, 1.4);
+          float n1 = fbm(uv * 2.0 + vec2(uTime * 0.016, -uTime * 0.011));
+          float n2 = fbm(uv * 3.4 - vec2(uTime * 0.009,  uTime * 0.013) + 7.3);
+          vec3 base = uBase * 0.9 + vec3(0.004, 0.008, 0.02);   // graded sky floor, never pure black
+          vec3 col = base;
+          col += uColA * smoothstep(0.52, 0.95, n1) * 0.20;
+          col += uColB * smoothstep(0.58, 0.98, n2) * 0.15;
+          col += uColC * smoothstep(0.72, 1.00, n1 * n2 * 1.6) * 0.10;
+          float falloff = 1.0 - smoothstep(0.25, 0.75, distance(vUv, vec2(0.5, 0.52)));
+          col = mix(base, col, falloff);
+          gl_FragColor = vec4(col, 1.0);
+        }`
+    });
+    const nebula = new THREE.Mesh(new THREE.PlaneGeometry(240, 140), nebulaMat);
+    nebula.position.z = -60;
+    nebula.visible = PERF.nebula;
+    camera.add(nebula);
+
+    /* ---- shared twinkle shader for all point systems ---- */
+    function makeTwinkleMaterial(basePx) {
+      return new THREE.ShaderMaterial({
+        uniforms: { uTime: { value: 0 }, uPx: { value: basePx }, uFade: { value: 1 } },
+        transparent: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        vertexShader: /* glsl */`
+          uniform float uTime; uniform float uPx;
+          attribute float aSize; attribute float aPhase; attribute float aSpeed;
+          attribute vec3 aColor;
+          varying vec3 vColor; varying float vTw;
+          void main(){
+            vTw = 0.55 + 0.45 * sin(uTime * aSpeed + aPhase);
+            vColor = aColor;
+            vec4 mv = modelViewMatrix * vec4(position, 1.0);
+            gl_PointSize = clamp(aSize * vTw * (uPx / -mv.z), 1.0, 34.0);
+            gl_Position = projectionMatrix * mv;
+          }`,
+        fragmentShader: /* glsl */`
+          uniform float uFade;
+          varying vec3 vColor; varying float vTw;
+          void main(){
+            float d = length(gl_PointCoord - 0.5);
+            float a = smoothstep(0.5, 0.06, d);
+            gl_FragColor = vec4(vColor, a * vTw * uFade);
+          }`
+      });
+    }
+    const AERO = [0.29, 0.61, 1.0], CYAN = [0.0, 0.94, 1.0], ICE = [0.66, 0.82, 1.0];
+    const RED  = [1.0, 0.30, 0.34], EMBER = [1.0, 0.55, 0.30], GOLD = [1.0, 0.78, 0.35];
+
+    function buildPoints(count, material, place, colorPick, sizeMin, sizeMax) {
+      const pos = new Float32Array(count * 3);
+      const col = new Float32Array(count * 3);
+      const size = new Float32Array(count);
+      const phase = new Float32Array(count);
+      const speed = new Float32Array(count);
+      for (let i = 0; i < count; i++) {
+        place(i, pos);
+        const c = colorPick();
+        const b = 0.4 + Math.random() * 0.6;
+        col[i*3] = c[0]*b; col[i*3+1] = c[1]*b; col[i*3+2] = c[2]*b;
+        size[i]  = sizeMin + Math.random() * (sizeMax - sizeMin);
+        phase[i] = Math.random() * Math.PI * 2;
+        speed[i] = 0.4 + Math.random() * 1.6;
+      }
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+      geo.setAttribute("aColor",   new THREE.BufferAttribute(col, 3));
+      geo.setAttribute("aSize",    new THREE.BufferAttribute(size, 1));
+      geo.setAttribute("aPhase",   new THREE.BufferAttribute(phase, 1));
+      geo.setAttribute("aSpeed",   new THREE.BufferAttribute(speed, 1));
+      return new THREE.Points(geo, material);
+    }
+
+    /* ---- starfield: one great shell wrapping the whole corridor ---- */
+    const FIELD_C = new THREE.Vector3(-4, 2, -32);   // corridor midpoint
+    const starMat = makeTwinkleMaterial(300);
+    const stars = buildPoints(pScale(Math.min(3000, (innerWidth * innerHeight) / 420)), starMat,
+      (i, pos) => {
+        const r = 30 + Math.pow(Math.random(), 0.7) * 40;
+        const th = Math.random() * Math.PI * 2;
+        const ph = Math.acos(2 * Math.random() - 1);
+        pos[i*3]     = FIELD_C.x + r * Math.sin(ph) * Math.cos(th);
+        pos[i*3 + 1] = FIELD_C.y + r * Math.sin(ph) * Math.sin(th) * 0.75;
+        pos[i*3 + 2] = FIELD_C.z + r * Math.cos(ph);
+      },
+      () => Math.random() < 0.65 ? AERO : (Math.random() < 0.7 ? CYAN : ICE),
+      0.5, 1.4);
+    stars.frustumCulled = false;      // the shell surrounds the camera at all times
+    stars.visible = PERF.stars;
+    scene.add(stars);
+
+    /* ---- near stars + corridor dust: motes seeded along the flight path
+       tube, so every leg of the flight has depth streaming past ---- */
+    const PATH = WAYPOINTS.map(w => new THREE.Vector3(...w.pos));
+    const alongPath = (spread) => (i, pos) => {
+      const s = Math.min(PATH.length - 2, Math.floor(Math.random() * (PATH.length - 1)));
+      const t = Math.random();
+      const g = () => (Math.random() + Math.random() + Math.random() - 1.5) * spread;
+      pos[i*3]     = THREE.MathUtils.lerp(PATH[s].x, PATH[s+1].x, t) + g();
+      pos[i*3 + 1] = THREE.MathUtils.lerp(PATH[s].y, PATH[s+1].y, t) + g() * 0.7;
+      pos[i*3 + 2] = THREE.MathUtils.lerp(PATH[s].z, PATH[s+1].z, t) + g();
+    };
+    const nearMat = makeTwinkleMaterial(260);
+    const nearStars = buildPoints(pScale(1100), nearMat, alongPath(13),
+      () => Math.random() < 0.6 ? AERO : (Math.random() < 0.65 ? ICE : CYAN),
+      0.5, 1.3);
+    nearStars.frustumCulled = false;
+    nearStars.visible = PERF.stars;
+    scene.add(nearStars);
+
+    const dustMat = makeTwinkleMaterial(220);
+    const dust = buildPoints(pScale(2400), dustMat, alongPath(3.9),
+      () => Math.random() < 0.55 ? ICE : (Math.random() < 0.7 ? AERO : CYAN),
+      0.14, 0.5);
+    dust.frustumCulled = false;
+    dust.visible = PERF.dust;
+    scene.add(dust);
+
+    /* ---- act-local color pockets: the red alert cloud (II) and the
+       gold constellation nursery (III) — the grades' physical sources ---- */
+    const pocketMat = makeTwinkleMaterial(260);
+    const redPocket = buildPoints(pScale(520), pocketMat,
+      (i, pos) => {
+        const g = () => (Math.random() + Math.random() + Math.random() - 1.5) * 3.4;
+        pos[i*3] = 9 + g(); pos[i*3+1] = -2 + g() * 0.8; pos[i*3+2] = -27 + g();
+      },
+      () => Math.random() < 0.6 ? RED : EMBER,
+      0.3, 1.0);
+    redPocket.frustumCulled = false;
+    redPocket.visible = PERF.dust;
+    scene.add(redPocket);
+
+    const goldMat = makeTwinkleMaterial(260);
+    const goldPocket = buildPoints(pScale(430), goldMat,
+      (i, pos) => {
+        const g = () => (Math.random() + Math.random() + Math.random() - 1.5) * 3.8;
+        pos[i*3] = -1 + g(); pos[i*3+1] = 5 + g() * 0.7; pos[i*3+2] = -54 + g();
+      },
+      () => Math.random() < 0.62 ? GOLD : CYAN,
+      0.3, 1.05);
+    goldPocket.frustumCulled = false;
+    goldPocket.visible = PERF.dust;
+    scene.add(goldPocket);
+
+    /* ---- the Aero Core: the molten star, far landmark → Act IV/V anchor ---- */
+    const coreGroup = new THREE.Group();
+    coreGroup.position.set(-14, 5, -78);
+    coreGroup.scale.setScalar(2.5);
+    scene.add(coreGroup);
+
+    const coreMat = new THREE.ShaderMaterial({
+      uniforms: {
+        uTime: { value: 0 },
+        uBoost: { value: 1 },
+        uDeep: { value: new THREE.Color("#1c5cc8") },
+        uCore: { value: new THREE.Color("#4a9cff") },
+        uCyan: { value: new THREE.Color("#00f0ff") },
+        uRim:  { value: new THREE.Color("#a8d0ff") }
+      },
+      vertexShader: /* glsl */`
+        uniform float uTime;
+        varying vec3 vN; varying vec3 vV; varying float vDisp; varying vec3 vP;
+        void main(){
+          float t = uTime * 0.6;
+          float d = sin(position.x * 4.0 + t) * sin(position.y * 5.0 + t * 1.3) * sin(position.z * 6.0 - t * 0.7);
+          vDisp = d;
+          vP = position;
+          vec3 p = position + normal * d * 0.035;
+          vec4 mv = modelViewMatrix * vec4(p, 1.0);
+          vN = normalize(normalMatrix * normal);
+          vV = normalize(-mv.xyz);
+          gl_Position = projectionMatrix * mv;
+        }`,
+      fragmentShader: /* glsl */`
+        uniform float uTime; uniform float uBoost;
+        uniform vec3 uDeep; uniform vec3 uCore; uniform vec3 uCyan; uniform vec3 uRim;
+        varying vec3 vN; varying vec3 vV; varying float vDisp; varying vec3 vP;
+        float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+        float noise(vec2 p){
+          vec2 i = floor(p), f = fract(p);
+          vec2 u = f * f * (3.0 - 2.0 * f);
+          return mix(mix(hash(i), hash(i + vec2(1,0)), u.x),
+                     mix(hash(i + vec2(0,1)), hash(i + vec2(1,1)), u.x), u.y);
+        }
+        float fbm(vec2 p){
+          float v = 0.0, a = 0.5;
+          for (int i = 0; i < 4; i++){ v += a * noise(p); p *= 2.03; a *= 0.5; }
+          return v;
+        }
+        void main(){
+          float t = uTime;
+          vec3 p = normalize(vP);
+          float sw = t * 0.02;
+          vec2 q = mat2(cos(sw), -sin(sw), sin(sw), cos(sw)) * p.xz;
+          vec2 d1 = vec2(q.x, p.y * 1.4);
+          vec2 d2 = vec2(q.y, p.y * 1.4);
+          float n1 = 0.5 * (fbm(d1 * 2.4 + t * 0.015) + fbm(d2 * 2.4 - t * 0.011 + 7.0));
+          float n2 = 0.5 * (fbm(d1 * 6.0 - t * 0.020) + fbm(d2 * 6.0 + t * 0.017 + 3.0));
+          vec3 col = mix(uDeep * 0.85, uCore, smoothstep(0.22, 0.66, n1));
+          col = mix(col, uRim, smoothstep(0.55, 0.90, n1 * n2 * 2.2) * 0.55);
+          col += uCyan * smoothstep(0.66, 0.95, n2) * 0.24;
+          col += col * vDisp * 0.4;
+          col *= 0.62 + 0.55 * max(dot(vN, normalize(vec3(-0.45, 0.55, 0.72))), 0.0);
+          col *= 0.94 + 0.06 * sin(t * 0.9);
+          float fres = pow(1.0 - max(dot(vN, vV), 0.0), 3.0);   // max() guards NaN → bloom black boxes
+          col = mix(col, uRim, fres * 0.35);
+          col *= uBoost;
+          gl_FragColor = vec4(col, 1.0);
+        }`
+    });
+    const core = new THREE.Mesh(new THREE.SphereGeometry(1, 96, 96), coreMat);
+    coreGroup.add(core);
+
+    const atmoMat = new THREE.ShaderMaterial({
+      uniforms: { uGlow: { value: new THREE.Color("#4a9cff") }, uBoost: { value: 1 } },
+      side: THREE.BackSide,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      vertexShader: /* glsl */`
+        varying vec3 vN; varying vec3 vV;
+        void main(){
+          vec4 mv = modelViewMatrix * vec4(position, 1.0);
+          vN = normalize(normalMatrix * normal);
+          vV = normalize(-mv.xyz);
+          gl_Position = projectionMatrix * mv;
+        }`,
+      fragmentShader: /* glsl */`
+        uniform vec3 uGlow; uniform float uBoost;
+        varying vec3 vN; varying vec3 vV;
+        void main(){
+          float i = pow(clamp(0.6 - dot(vN, vV), 0.0, 1.6), 2.0);
+          gl_FragColor = vec4(uGlow, 1.0) * (i * 0.78 * uBoost);
+        }`
+    });
+    const atmo = new THREE.Mesh(new THREE.SphereGeometry(1, 64, 64), atmoMat);
+    atmo.scale.setScalar(1.35);
+    atmo.renderOrder = 1;
+    coreGroup.add(atmo);
+
+    const shell = new THREE.Mesh(
+      new THREE.IcosahedronGeometry(1.5, 1),
+      new THREE.MeshBasicMaterial({ color: 0x82c6ff, wireframe: true, transparent: true, opacity: 0.16 })
+    );
+    coreGroup.add(shell);
+
+    /* the core's signature dust ring (fine band + coarse grains — one ring) */
+    const halo = new THREE.Group();
+    halo.rotation.set(THREE.MathUtils.degToRad(74), 0, THREE.MathUtils.degToRad(-18));
+    coreGroup.add(halo);
+    const ringDustMat = makeTwinkleMaterial(190);
+    const ringDust = buildPoints(pScale(2100), ringDustMat,
+      (i, pos) => {
+        const a = Math.random() * Math.PI * 2;
+        const g = (Math.random() + Math.random() - 1);
+        pos[i*3]     = Math.cos(a) * (2.1 + g * 0.05);
+        pos[i*3 + 1] = Math.sin(a) * (2.1 + g * 0.05);
+        pos[i*3 + 2] = (Math.random() + Math.random() - 1) * 0.035;
+      },
+      () => Math.random() < 0.6 ? ICE : (Math.random() < 0.75 ? AERO : CYAN),
+      0.12, 0.38);
+    ringDust.renderOrder = 2;
+    halo.add(ringDust);
+    const streamMat = makeTwinkleMaterial(210);
+    const stream = buildPoints(pScale(550), streamMat,
+      (i, pos) => {
+        const a = Math.random() * Math.PI * 2;
+        const g = (Math.random() + Math.random() - 1);
+        pos[i*3]     = Math.cos(a) * (2.1 + g * 0.06);
+        pos[i*3 + 1] = Math.sin(a) * (2.1 + g * 0.06);
+        pos[i*3 + 2] = (Math.random() + Math.random() - 1) * 0.045;
+      },
+      () => Math.random() < 0.45 ? ICE : (Math.random() < 0.64 ? AERO : CYAN),
+      0.3, 0.75);
+    stream.renderOrder = 3;
+    ringDust.visible = stream.visible = PERF.ring;
+    halo.add(stream);
+
+    /* ---- Station III: the constellation — the brand "A" drawn in gold stars,
+       facing the station's camera; lines draw in on arrival ---- */
+    const constGroup = new THREE.Group();
+    constGroup.position.set(2.6, 9.2, -55);   // hangs in the sky above the centered headline
+    constGroup.scale.setScalar(0.62);
+    scene.add(constGroup);
+    const CONST_PTS = [
+      [-3.4, -2.4, 0], [-1.7, 1.1, 0], [0, 4.6, 0], [1.7, 1.1, 0], [3.4, -2.4, 0],  // the A's legs
+      [-1.95, 0.2, 0], [1.95, 0.2, 0]                                               // the crossbar
+    ];
+    const constMat = makeTwinkleMaterial(520);
+    constMat.uniforms.uFade.value = 0;
+    const constStars = buildPoints(CONST_PTS.length, constMat,
+      (i, pos) => { pos[i*3] = CONST_PTS[i][0]; pos[i*3+1] = CONST_PTS[i][1]; pos[i*3+2] = CONST_PTS[i][2]; },
+      () => GOLD, 2.6, 3.6);
+    constStars.frustumCulled = false;
+    constGroup.add(constStars);
+    /* the strokes are DUST, not lines — hard vectors clash with a world made
+       of soft particles. Motes carry aOff (order along the stroke) and
+       condense smoothly as uReveal sweeps 0→1. */
+    const CONST_SEGS = [[0, 1], [1, 2], [2, 3], [3, 4], [5, 6]];
+    const CD_N = 300;
+    const segLens = CONST_SEGS.map(([a, b]) => Math.hypot(
+      CONST_PTS[b][0] - CONST_PTS[a][0], CONST_PTS[b][1] - CONST_PTS[a][1]));
+    const strokeLen = segLens.reduce((s, l) => s + l, 0);
+    const cdPos = new Float32Array(CD_N * 3);
+    const cdCol = new Float32Array(CD_N * 3);
+    const cdOff = new Float32Array(CD_N);
+    const cdSize = new Float32Array(CD_N);
+    const cdPhase = new Float32Array(CD_N);
+    const cdSpeed = new Float32Array(CD_N);
+    {
+      let k = 0, lenBefore = 0;
+      CONST_SEGS.forEach(([a, b], si) => {
+        const n = Math.max(8, Math.round(CD_N * segLens[si] / strokeLen));
+        for (let i = 0; i < n && k < CD_N; i++, k++) {
+          const t = (i + Math.random() * 0.8) / n;
+          cdPos[k*3]     = THREE.MathUtils.lerp(CONST_PTS[a][0], CONST_PTS[b][0], t) + (Math.random() - 0.5) * 0.16;
+          cdPos[k*3 + 1] = THREE.MathUtils.lerp(CONST_PTS[a][1], CONST_PTS[b][1], t) + (Math.random() - 0.5) * 0.16;
+          cdPos[k*3 + 2] = (Math.random() - 0.5) * 0.1;
+          cdOff[k] = (lenBefore + t * segLens[si]) / strokeLen;   // order along the whole stroke
+          const c = Math.random() < 0.78 ? GOLD : ICE;
+          const br = 0.5 + Math.random() * 0.5;
+          cdCol[k*3] = c[0]*br; cdCol[k*3+1] = c[1]*br; cdCol[k*3+2] = c[2]*br;
+          cdSize[k] = 0.16 + Math.random() * 0.34;
+          cdPhase[k] = Math.random() * Math.PI * 2;
+          cdSpeed[k] = 0.5 + Math.random() * 1.8;
+        }
+        lenBefore += segLens[si];
+      });
+    }
+    const cdGeo = new THREE.BufferGeometry();
+    cdGeo.setAttribute("position", new THREE.BufferAttribute(cdPos, 3));
+    cdGeo.setAttribute("aColor",   new THREE.BufferAttribute(cdCol, 3));
+    cdGeo.setAttribute("aOff",     new THREE.BufferAttribute(cdOff, 1));
+    cdGeo.setAttribute("aSize",    new THREE.BufferAttribute(cdSize, 1));
+    cdGeo.setAttribute("aPhase",   new THREE.BufferAttribute(cdPhase, 1));
+    cdGeo.setAttribute("aSpeed",   new THREE.BufferAttribute(cdSpeed, 1));
+    const constDustMat = new THREE.ShaderMaterial({
+      uniforms: { uTime: { value: 0 }, uPx: { value: 430 }, uReveal: { value: 0 } },
+      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+      vertexShader: /* glsl */`
+        uniform float uTime; uniform float uPx; uniform float uReveal;
+        attribute float aSize; attribute float aPhase; attribute float aSpeed;
+        attribute float aOff; attribute vec3 aColor;
+        varying vec3 vColor; varying float vA;
+        void main(){
+          float tw = 0.6 + 0.4 * sin(uTime * aSpeed + aPhase);
+          vA = smoothstep(aOff - 0.12, aOff, uReveal) * tw;   // condenses in stroke order
+          vColor = aColor;
+          vec4 mv = modelViewMatrix * vec4(position, 1.0);
+          gl_PointSize = clamp(aSize * tw * (0.55 + 0.45 * vA) * (uPx / -mv.z), 1.0, 20.0);
+          gl_Position = projectionMatrix * mv;
+        }`,
+      fragmentShader: /* glsl */`
+        varying vec3 vColor; varying float vA;
+        void main(){
+          float d = length(gl_PointCoord - 0.5);
+          float a = smoothstep(0.5, 0.07, d);
+          gl_FragColor = vec4(vColor, a * vA);
+        }`
+    });
+    const constDust = new THREE.Points(cdGeo, constDustMat);
+    constDust.frustumCulled = false;
+    constGroup.add(constDust);
+    {   // face the plane toward station III's camera (camera-convention matrix)
+      const eye = new THREE.Vector3(...WAYPOINTS[3].pos);
+      const m = new THREE.Matrix4().lookAt(eye, constGroup.position, new THREE.Vector3(0, 1, 0));
+      constGroup.quaternion.setFromRotationMatrix(m);
+    }
+
+    /* ---- Station IV: precessing orbit rings around the core — the explore
+       cards' "satellite" tracks; hovering a card lights its ring ---- */
+    const orbitRings = [];
+    [{ r: 2.4, tilt: 0.45, spd: 0.20 }, { r: 2.9, tilt: -0.35, spd: -0.14 }, { r: 3.4, tilt: 0.15, spd: 0.10 }]
+      .forEach(cfg => {
+        const pts = [];
+        for (let i = 0; i <= 128; i++) {
+          const a = (i / 128) * Math.PI * 2;
+          pts.push(new THREE.Vector3(Math.cos(a) * cfg.r, Math.sin(a) * cfg.r * 0.94, 0));
+        }
+        const g = new THREE.BufferGeometry().setFromPoints(pts);
+        const m = new THREE.LineBasicMaterial({
+          color: 0x82c6ff, transparent: true, opacity: 0.13,
+          blending: THREE.AdditiveBlending, depthWrite: false
+        });
+        const ring = new THREE.Line(g, m);
+        ring.rotation.x = Math.PI / 2 + cfg.tilt;
+        ring.userData.spd = cfg.spd;
+        coreGroup.add(ring);
+        orbitRings.push(ring);
+      });
+
+    /* ---- comets: occasional glowing streaks near the current leg ---- */
+    const cometTex = (() => {
+      const c = document.createElement("canvas"); c.width = 256; c.height = 32;
+      const g = c.getContext("2d");
+      const grad = g.createLinearGradient(0, 0, 256, 0);
+      grad.addColorStop(0, "rgba(255,255,255,0)");
+      grad.addColorStop(0.75, "rgba(255,255,255,.55)");
+      grad.addColorStop(1, "rgba(255,255,255,1)");
+      g.fillStyle = grad; g.fillRect(0, 0, 256, 32);
+      return new THREE.CanvasTexture(c);
+    })();
+    const cometPool = [];
+    for (let i = 0; i < 8; i++) {
+      const m = new THREE.Mesh(
+        new THREE.PlaneGeometry(2.6, 0.05),
+        new THREE.MeshBasicMaterial({ map: cometTex, color: 0x82c6ff, transparent: true, opacity: 0,
+                                      blending: THREE.AdditiveBlending, depthWrite: false })
+      );
+      m.visible = false;
+      scene.add(m);
+      cometPool.push(m);
+    }
+    function spawnComet() {
+      if (!document.hidden) {
+        const m = cometPool.find(c => !c.userData.busy);
+        if (m) {
+          m.userData.busy = true;
+          const sx = J.pos.x - 26 + Math.random() * 30;
+          const sy = J.pos.y + 4 + Math.random() * 8;
+          const sz = J.pos.z - 14 - Math.random() * 16;
+          const ang = -0.18 - Math.random() * 0.4;
+          const dist = 20 + Math.random() * 14;
+          m.position.set(sx, sy, sz);
+          m.rotation.z = ang;
+          m.visible = true;
+          const dur = 1.1 + Math.random() * 0.9;
+          gsap.timeline({ onComplete() { m.visible = false; m.userData.busy = false; } })
+            .to(m.position, { x: sx + Math.cos(ang) * dist, y: sy + Math.sin(ang) * dist, duration: dur, ease: "none" }, 0)
+            .to(m.material, { opacity: 0.85, duration: dur * 0.25, ease: "power1.out" }, 0)
+            .to(m.material, { opacity: 0,   duration: dur * 0.55, ease: "power1.in"  }, dur * 0.45);
+        }
+      }
+      setTimeout(spawnComet, 3200 + Math.random() * 5200);
+    }
+
+    /* flight streaks: space rushing past during a station flight — pooled
+       comets spawned along the route, faster and brighter than ambient ones.
+       (NOT the removed warp: no FOV punch, no lens distortion.) */
+    function spawnStreak(tgt) {
+      if (document.hidden) return;
+      const m = cometPool.find(c => !c.userData.busy);
+      if (!m) return;
+      m.userData.busy = true;
+      const t = 0.3 + Math.random() * 0.5;
+      const sx = THREE.MathUtils.lerp(J.pos.x, tgt[0], t) + (Math.random() - 0.5) * 14;
+      const sy = THREE.MathUtils.lerp(J.pos.y, tgt[1], t) + (Math.random() - 0.5) * 9;
+      const sz = THREE.MathUtils.lerp(J.pos.z, tgt[2], t) + (Math.random() - 0.5) * 12;
+      const ang = -0.3 + Math.random() * 0.6;
+      const dist = 26 + Math.random() * 12;
+      m.position.set(sx, sy, sz);
+      m.rotation.z = ang;
+      m.scale.set(1.5 + Math.random(), 0.8, 1);
+      m.visible = true;
+      const dur = 0.5 + Math.random() * 0.35;
+      gsap.timeline({ onComplete() { m.visible = false; m.userData.busy = false; m.scale.set(1, 1, 1); } })
+        .to(m.position, { x: sx + Math.cos(ang) * dist, y: sy + Math.sin(ang) * dist, duration: dur, ease: "none" }, 0)
+        .to(m.material, { opacity: 0.95, duration: dur * 0.2, ease: "power1.out" }, 0)
+        .to(m.material, { opacity: 0, duration: dur * 0.5, ease: "power1.in" }, dur * 0.5);
+    }
+
+    /* ================= post-processing: bloom (per-tier) ================= */
+    let composer = null, bloomPass = null;
+    bloomOn = bloomOn && !!renderer && PERF.bloom;
+    if (bloomOn) {
+      composer = new EffectComposer(renderer);
+      composer.addPass(new RenderPass(scene, camera));
+      bloomPass = new UnrealBloomPass(
+        new THREE.Vector2(innerWidth, innerHeight),
+        Q.bloomStr * (isDesktop() ? 1 : 0.75),
+        0.9,
+        0.30
+      );
+      if (Q.bloomHalf) {
+        const base = bloomPass.setSize.bind(bloomPass);
+        bloomPass.setSize = (w, h) => base(w / 2, h / 2);
+      }
+      composer.addPass(bloomPass);
+      composer.addPass(new OutputPass());
+    }
+
+    /* ================= layout / resize ================= */
+    function layout() {
+      if (!renderer) return;
+      const dpr = Math.min(devicePixelRatio, Q.dpr);
+      renderer.setPixelRatio(dpr);
+      renderer.setSize(innerWidth, innerHeight);
+      if (composer) { composer.setPixelRatio(dpr); composer.setSize(innerWidth, innerHeight); }
+      camera.aspect = innerWidth / innerHeight;
+      camera.fov = isDesktop() ? 42 : 52;
+      camera.updateProjectionMatrix();
+    }
+    layout();
+    window.addEventListener("resize", layout, { passive: true });
+
+    /* ================= station navigation (shared state) =================
+       The page never scrolls. The viewport is a fixed stage; the five acts
+       are STATIONS, and every input (wheel notch, keys, swipe, rail click)
+       triggers the same authored, time-based GSAP flight between them —
+       nothing is tied to browser scroll physics, so every transition is
+       identical on every machine. Shared state lives up here so the render
+       loop and HUD can read it without declaration-order hazards. */
+    const acts = [...document.querySelectorAll(".act")];
+    const NAV = { station: 0, lastInput: 0, active: () => false };
+    /* sound hooks — no-ops until the audio kit wires them; the freeze
+       handler reads audioRef/soundOnRef, so they live at module scope */
+    const sfx = { click(){}, arrive(){}, crash(){}, revive(){}, whoosh(){} };
+    let audioRef = null, soundOnRef = false;
+    const stationsOn = hasGsap && !reduceMotion && !!renderer && isDesktop();
+    if (stationsOn) document.body.classList.add("stations");
+
+    /* fallback (no film): dismiss the boot curtain immediately */
+    if (!stationsOn) {
+      const b = document.getElementById("boot");
+      if (b) { b.dataset.managed = "1"; b.style.display = "none"; }
+    }
+
+    /* ================= interaction state ================= */
+    const pointer = { x: 0, y: 0, tx: 0, ty: 0 };
+    window.addEventListener("pointermove", (e) => {
+      pointer.tx = (e.clientX / innerWidth) * 2 - 1;
+      pointer.ty = (e.clientY / innerHeight) * 2 - 1;
+    }, { passive: true });
+
+    /* ================= the station system ================= */
+    if (stationsOn) {
+      const hint = document.getElementById("space-hint");
+
+      /* ---- decrypt text: glyph noise resolves into the real copy ---- */
+      const SOFT = "<>/\\|=+*#10";
+      function scrambleNode(node, dur) {
+        const finalText = node.nodeValue;
+        if (!finalText || !finalText.trim()) return;
+        const n = finalText.length, obj = { p: 0 };
+        gsap.to(obj, { p: 1, duration: dur, ease: "power2.out",
+          onUpdate() {
+            let out = "";
+            const solved = Math.floor(obj.p * n);
+            for (let i = 0; i < n; i++) {
+              const ch = finalText[i];
+              out += (i < solved || /\s/.test(ch)) ? ch : SOFT[(Math.random() * SOFT.length) | 0];
+            }
+            node.nodeValue = out;
+          },
+          onComplete() { node.nodeValue = finalText; } });
+      }
+      function scramble(el, dur = 0.7) {
+        if (!el) return;
+        const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+        let node;
+        while ((node = walker.nextNode())) scrambleNode(node, dur);
+      }
+      const decrypted = new Set();
+      const scrambleStation = (i) => {
+        if (decrypted.has(i)) return;   // the trick lands once per station, ever
+        decrypted.add(i);
+        const inner = document.querySelectorAll(".act-inner")[i];
+        ["h1", "h2", ".kicker"].forEach(sel => scramble(inner.querySelector(sel), 0.8));
+      };
+
+      /* ---- ambient sound: fully synthesized, off by default, persisted ---- */
+      const soundBtn = document.getElementById("sound-toggle");
+      function initAudio() {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const master = ctx.createGain(); master.gain.value = 0; master.connect(ctx.destination);
+        // pad: three detuned oscillators through a slowly-breathing lowpass
+        const pad = ctx.createGain(); pad.gain.value = 0.035; pad.connect(master);
+        const lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 240; lp.Q.value = 0.8; lp.connect(pad);
+        [55, 82.5, 110.3].forEach((f, i) => {
+          const o = ctx.createOscillator();
+          o.type = i ? "sine" : "triangle"; o.frequency.value = f; o.detune.value = (i - 1) * 6;
+          o.connect(lp); o.start();
+        });
+        const lfo = ctx.createOscillator(); lfo.frequency.value = 0.06;
+        const lfoAmt = ctx.createGain(); lfoAmt.gain.value = 90;
+        lfo.connect(lfoAmt); lfoAmt.connect(lp.frequency); lfo.start();
+        // airy noise bed (buffer shared with the flight whoosh)
+        const len = ctx.sampleRate * 2, buf = ctx.createBuffer(1, len, ctx.sampleRate);
+        const d0 = buf.getChannelData(0);
+        for (let i = 0; i < len; i++) d0[i] = Math.random() * 2 - 1;
+        const noise = ctx.createBufferSource(); noise.buffer = buf; noise.loop = true;
+        const bp = ctx.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = 420; bp.Q.value = 0.5;
+        const ng = ctx.createGain(); ng.gain.value = 0.010;
+        noise.connect(bp); bp.connect(ng); ng.connect(master); noise.start();
+        return { ctx, master, noiseBuf: buf };
+      }
+      function chime(freq, gain = 0.05, dur = 0.7, delay = 0) {
+        if (!audioRef || !soundOnRef) return;
+        const { ctx, master } = audioRef;
+        const t0 = ctx.currentTime + delay;
+        const o = ctx.createOscillator(); o.type = "sine"; o.frequency.value = freq;
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(gain, t0);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+        o.connect(g); g.connect(master); o.start(t0); o.stop(t0 + dur + 0.05);
+      }
+      sfx.click  = () => chime(620 + Math.random() * 160, 0.04);
+      sfx.arrive = () => { chime(659, 0.035, 0.9); chime(880, 0.03, 1.1, 0.12); };
+      sfx.crash  = () => chime(110, 0.07, 1.3);
+      sfx.revive = () => { chime(523, 0.045, 0.8); chime(784, 0.04, 1.0, 0.14); };
+      sfx.whoosh = (dur) => {   // filtered-noise swell riding each flight
+        if (!audioRef || !soundOnRef) return;
+        const { ctx, master, noiseBuf } = audioRef;
+        const t0 = ctx.currentTime;
+        const src = ctx.createBufferSource(); src.buffer = noiseBuf; src.loop = true;
+        const bp = ctx.createBiquadFilter(); bp.type = "bandpass"; bp.Q.value = 1.1;
+        bp.frequency.setValueAtTime(160, t0);
+        bp.frequency.exponentialRampToValueAtTime(820, t0 + dur * 0.45);
+        bp.frequency.exponentialRampToValueAtTime(240, t0 + dur);
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(0.0001, t0);
+        g.gain.exponentialRampToValueAtTime(0.13, t0 + dur * 0.4);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+        src.connect(bp); bp.connect(g); g.connect(master);
+        src.start(t0); src.stop(t0 + dur + 0.1);
+      };
+      function setSound(on) {
+        soundOnRef = on;
+        try { localStorage.setItem("aerovrc-home-sound", on ? "1" : "0"); } catch (e) {}
+        soundBtn.classList.toggle("on", on);
+        soundBtn.setAttribute("aria-pressed", String(on));
+        if (on) {
+          if (!audioRef) audioRef = initAudio();
+          audioRef.ctx.resume();
+          audioRef.master.gain.cancelScheduledValues(audioRef.ctx.currentTime);
+          audioRef.master.gain.linearRampToValueAtTime(1, audioRef.ctx.currentTime + 0.8);
+        } else if (audioRef) {
+          audioRef.master.gain.cancelScheduledValues(audioRef.ctx.currentTime);
+          audioRef.master.gain.linearRampToValueAtTime(0, audioRef.ctx.currentTime + 0.4);
+        }
+      }
+      soundBtn.addEventListener("click", () => setSound(!soundOnRef));
+      if ((() => { try { return localStorage.getItem("aerovrc-home-sound") === "1"; } catch (e) { return false; } })()) {
+        // was on last visit — browsers demand a fresh gesture, so arm it
+        window.addEventListener("pointerdown", () => { if (!soundOnRef) setSound(true); }, { once: true });
+      }
+
+      /* ---- custom cursor + spark trail (fine pointers only) ---- */
+      const finePointer = matchMedia("(hover: hover) and (pointer: fine)").matches;
+      if (finePointer) {
+        const dot  = document.getElementById("cursor-dot");
+        const ring = document.getElementById("cursor-ring");
+        document.body.classList.add("custom-cursor");
+        const dx = gsap.quickTo(dot,  "x", { duration: 0.12, ease: "power2" });
+        const dy = gsap.quickTo(dot,  "y", { duration: 0.12, ease: "power2" });
+        const rx = gsap.quickTo(ring, "x", { duration: 0.35, ease: "power3" });
+        const ry = gsap.quickTo(ring, "y", { duration: 0.35, ease: "power3" });
+        const TRAIL_N = 4, trailEls = [], trailTo = [];
+        for (let i = 0; i < TRAIL_N; i++) {
+          const d = document.createElement("div");
+          d.className = "cursor-trail-dot";
+          const s = (5 * (1 - i / TRAIL_N) + 1.5);
+          d.style.width = d.style.height = s + "px";
+          document.body.appendChild(d);
+          gsap.set(d, { xPercent: -50, yPercent: -50 });
+          trailEls.push(d);
+          trailTo.push({
+            x: gsap.quickTo(d, "x", { duration: 0.16 + i * 0.055, ease: "power2" }),
+            y: gsap.quickTo(d, "y", { duration: 0.16 + i * 0.055, ease: "power2" })
+          });
+        }
+        window.addEventListener("pointermove", (e) => {
+          gsap.to([dot, ring], { opacity: 1, duration: 0.4, overwrite: "auto" });
+          gsap.to(trailEls, { opacity: (i) => 0.6 * (1 - i / TRAIL_N), duration: 0.4, overwrite: "auto" });
+          dx(e.clientX); dy(e.clientY);
+          rx(e.clientX); ry(e.clientY);
+          for (const t of trailTo) { t.x(e.clientX); t.y(e.clientY); }
+        }, { passive: true });
+        document.addEventListener("pointerover", (e) => {
+          ring.classList.toggle("is-hover", !!e.target.closest("a, button"));
+        });
+        document.documentElement.addEventListener("mouseleave", () => {
+          gsap.to([dot, ring, ...trailEls], { opacity: 0, duration: 0.3, overwrite: "auto" });
+        });
+      }
+
+      /* ---- click pings + the Touchdown core-flare egg ---- */
+      const pingPool = [];
+      for (let i = 0; i < 6; i++) {
+        const p = document.createElement("div");
+        p.className = "click-ping";
+        document.body.appendChild(p);
+        pingPool.push(p);
+      }
+      const _eggRay = new THREE.Raycaster(), _eggV = new THREE.Vector2();
+      window.addEventListener("pointerup", (e) => {
+        if (e.target.closest && e.target.closest("a, button, input, select, textarea")) return;
+        const p = pingPool.find(x => !x.dataset.busy) || pingPool[0];
+        p.dataset.busy = "1";
+        gsap.set(p, { x: e.clientX, y: e.clientY });
+        gsap.timeline({ onComplete() { delete p.dataset.busy; } })
+          .fromTo(p, { scale: 0.3, opacity: 0.9 }, { scale: 2.3, opacity: 0, duration: 0.9, ease: "expo.out" });
+        sfx.click();
+        // poke the Aero Core at Touchdown → it flares back at you
+        if (NAV.station === acts.length - 1 && !NAV.active()) {
+          _eggV.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
+          _eggRay.setFromCamera(_eggV, camera);
+          if (_eggRay.intersectObject(atmo, false).length) {
+            gsap.timeline()
+              .to(coreMat.uniforms.uBoost, { value: 1.55, duration: 0.25, ease: "power2.out", overwrite: "auto" })
+              .to(atmoMat.uniforms.uBoost, { value: 1.7, duration: 0.25, ease: "power2.out", overwrite: "auto" }, 0)
+              .to(coreMat.uniforms.uBoost, { value: 1, duration: 1.4, ease: "elastic.out(1, 0.5)" }, 0.25)
+              .to(atmoMat.uniforms.uBoost, { value: 1, duration: 1.4, ease: "power2.inOut" }, 0.25);
+            sfx.arrive();
+          }
+        }
+      });
+      const STATION_W = [0, 1, 3, 4, 5];   // station → waypoint (W2, the rescue's green resolve, is flown THROUGH)
+      const HASHES = ["arrival", "rescue", "constellation", "system", "touchdown"];
+      const inners = acts.map(sec => sec.querySelector(".act-inner"));
+      const footerEl = document.querySelector(".footer");
+      const LAST = acts.length - 1;
+      // the footer rides with the final station
+      const contentOf = (i) => (i === LAST && footerEl) ? [inners[i], footerEl] : [inners[i]];
+
+      /* everything starts offstage: dim, slightly small, non-interactive.
+         opacity floors at 0.001 so layers stay rasterized (no repaint at
+         the reveal moment — hard-won lesson). */
+      gsap.set([...inners, footerEl], { opacity: 0.001, y: 26, scale: 0.94 });
+      const enable = (i) => {
+        inners.forEach((inner, k) => {
+          inner.inert = k !== i;
+          for (const c of inner.children)
+            if (!c.hasAttribute("data-decor")) c.style.pointerEvents = k === i ? "auto" : "none";
+        });
+        if (footerEl) footerEl.style.pointerEvents = i === LAST ? "auto" : "none";
+      };
+      const disableAll = () => {
+        inners.forEach((inner) => {
+          inner.inert = true;
+          for (const c of inner.children)
+            if (!c.hasAttribute("data-decor")) c.style.pointerEvents = "none";
+        });
+        if (footerEl) footerEl.style.pointerEvents = "none";
+      };
+      disableAll();
+
+      /* fly J through every waypoint between two stations — passing through
+         skipped keys (like the rescue's red→green resolve) keeps the journey
+         continuous no matter which stations you jump between. Returns the
+         timeline position where the flight ends. */
+      const _c1 = new THREE.Color(), _c2 = new THREE.Color(), _c3 = new THREE.Color(), _c4 = new THREE.Color();
+      function flyPath(tl, fromW, toW, at) {
+        const dir = toW > fromW ? 1 : -1;
+        const chain = [];
+        for (let w = fromW + dir; w !== toW + dir; w += dir) chain.push(w);
+        const total = chain.length === 1 ? 1.5 : Math.min(2.7, 1.5 + (chain.length - 1) * 0.5);
+        const legD = total / chain.length;
+        chain.forEach((w, k) => {
+          const wp = WAYPOINTS[w];
+          const ease =
+            chain.length === 1 ? "power3.inOut"
+            : k === 0 ? "power2.in"
+            : k === chain.length - 1 ? "power2.out"
+            : "none";
+          const gEase = chain.length > 1 && k > 0 && k < chain.length - 1 ? "none" : "power1.inOut";
+          const p = at + k * legD;
+          _c1.set(wp.fog); _c2.set(wp.nebA); _c3.set(wp.nebB); _c4.set(wp.nebC);
+          tl.to(J.pos,  { x: wp.pos[0],  y: wp.pos[1],  z: wp.pos[2],  duration: legD, ease }, p)
+            .to(J.look, { x: wp.look[0], y: wp.look[1], z: wp.look[2], duration: legD, ease }, p)
+            .to(J.fog,  { r: _c1.r, g: _c1.g, b: _c1.b, duration: legD, ease: gEase }, p)
+            .to(J.nebA, { r: _c2.r, g: _c2.g, b: _c2.b, duration: legD, ease: gEase }, p)
+            .to(J.nebB, { r: _c3.r, g: _c3.g, b: _c3.b, duration: legD, ease: gEase }, p)
+            .to(J.nebC, { r: _c4.r, g: _c4.g, b: _c4.b, duration: legD, ease: gEase }, p)
+            .to(J,      { den: wp.den, bloomK: wp.bloomK, duration: legD, ease: gEase }, p);
+        });
+        tl.to(J, { prog: toW / (WAYPOINTS.length - 1), duration: total, ease: "none" }, at);
+        return at + total;
+      }
+      function applyWaypoint(w) {   // instant jump (hash deep-links)
+        const wp = WAYPOINTS[w];
+        J.pos.x = wp.pos[0]; J.pos.y = wp.pos[1]; J.pos.z = wp.pos[2];
+        J.look.x = wp.look[0]; J.look.y = wp.look[1]; J.look.z = wp.look[2];
+        J.fog.set(wp.fog); J.nebA.set(wp.nebA); J.nebB.set(wp.nebB); J.nebC.set(wp.nebC);
+        J.den = wp.den; J.bloomK = wp.bloomK; J.prog = w / (WAYPOINTS.length - 1);
+      }
+
+      /* ---- Station II: the rescue, scripted. Plays on every arrival;
+         killed cleanly if the visitor flies away mid-story. ---- */
+      const rescue = {
+        tl: null,
+        panel:  document.querySelector(".rs-panel"),
+        crash:  document.querySelector(".rs-crash"),
+        revive: document.querySelector(".rs-revive"),
+        glitch: document.querySelector(".rs-glitch"),
+        flash:  document.querySelector(".rs-flash"),
+        pulses: [...document.querySelectorAll(".rs-pulse")],
+        steps:  [...document.querySelectorAll(".rescue-line li")]
+      };
+      function stopRescue() {
+        if (rescue.tl) { rescue.tl.kill(); rescue.tl = null; }
+        rescue.glitch.classList.remove("on");
+        rescue.steps.forEach(s => s.classList.remove("lit"));
+        gsap.set(rescue.panel, { rotate: 0, x: 0, y: 0, scale: 1 });
+        gsap.set(rescue.crash, { opacity: 1 });
+        gsap.set(rescue.revive, { opacity: 0.001 });
+        gsap.set(rescue.pulses, { opacity: 0, scale: 1 });
+        gsap.set(rescue.flash, { opacity: 0 });
+      }
+      function startRescue() {
+        stopRescue();
+        const w2 = WAYPOINTS[2];   // the green "rescued" grade
+        _c1.set(w2.fog); _c2.set(w2.nebA); _c3.set(w2.nebB); _c4.set(w2.nebC);
+        rescue.tl = gsap.timeline()
+          // beat 1 — the crash: window adrift, static crawling over it
+          .call(() => { rescue.glitch.classList.add("on"); rescue.steps[0].classList.add("lit"); sfx.crash(); }, null, 0.1)
+          .fromTo(rescue.panel, { rotate: -5, y: -14 }, { rotate: 3.5, y: 8, duration: 2.4, ease: "sine.inOut" }, 0)
+          // beat 2 — detection: the watchdog pulse sweeps it
+          .call(() => rescue.steps[1].classList.add("lit"), null, 1.6)
+          .fromTo(rescue.pulses[0], { opacity: 0.9, scale: 0.25 }, { opacity: 0, scale: 4.2, duration: 1.1, ease: "power2.out" }, 1.6)
+          .fromTo(rescue.pulses[1], { opacity: 0.7, scale: 0.25 }, { opacity: 0, scale: 3.2, duration: 1.0, ease: "power2.out" }, 1.85)
+          // beat 3 — relaunch: flash, static dies, the window snaps upright
+          .call(() => { rescue.steps[2].classList.add("lit"); rescue.glitch.classList.remove("on"); }, null, 2.7)
+          .fromTo(rescue.flash, { opacity: 0 }, { opacity: 1, duration: 0.12, ease: "power1.out" }, 2.7)
+          .to(rescue.flash, { opacity: 0, duration: 0.5, ease: "power2.out" }, 2.85)
+          .to(rescue.panel, { rotate: 0, y: 0, duration: 0.9, ease: "elastic.out(1, 0.5)" }, 2.75)
+          // beat 4 — back in world: session re-forms, the sky heals red → green
+          .to(rescue.crash,  { opacity: 0.001, duration: 0.6, ease: "power2.inOut" }, 2.9)
+          .to(rescue.revive, { opacity: 1, duration: 0.6, ease: "power2.inOut" }, 2.9)
+          .call(() => { rescue.steps[3].classList.add("lit"); sfx.revive(); }, null, 3.4)
+          .to(J.fog,  { r: _c1.r, g: _c1.g, b: _c1.b, duration: 1.8, ease: "power1.inOut" }, 3.2)
+          .to(J.nebA, { r: _c2.r, g: _c2.g, b: _c2.b, duration: 1.8, ease: "power1.inOut" }, 3.2)
+          .to(J.nebB, { r: _c3.r, g: _c3.g, b: _c3.b, duration: 1.8, ease: "power1.inOut" }, 3.2)
+          .to(J.nebC, { r: _c4.r, g: _c4.g, b: _c4.b, duration: 1.8, ease: "power1.inOut" }, 3.2)
+          .to(J, { den: w2.den, bloomK: w2.bloomK, duration: 1.8, ease: "power1.inOut" }, 3.2);
+      }
+
+      /* ---- Station III: the constellation condenses out of stardust,
+         and the live numbers count up alongside it ---- */
+      let constTl = null;
+      function startConstellation() {
+        if (constTl) constTl.kill();
+        constDustMat.uniforms.uReveal.value = 0;   // re-condense on every arrival
+        constTl = gsap.timeline()
+          .to(constMat.uniforms.uFade, { value: 1, duration: 1.6, ease: "power2.out" }, 0.2)
+          .to(constDustMat.uniforms.uReveal, { value: 1, duration: 2.6, ease: "power1.inOut" }, 0.35);
+        // count the stats up from 0 — but NEVER before app.js's GitHub fetch
+        // has landed (a deep-link arrival fires at boot, racing the fetch;
+        // rolling a stale 0 would clobber the real value when it arrives)
+        document.querySelectorAll("[data-stat-downloads],[data-stat-releases]").forEach(el => {
+          const readTarget = () => parseInt(el.textContent.replace(/[^\d]/g, ""), 10);
+          const roll = (t) => {
+            const n = { v: 0 };
+            gsap.to(n, {
+              v: t, duration: 1.4, ease: "power2.out",
+              onUpdate() { el.textContent = Math.round(n.v).toLocaleString(); },
+              onComplete() { el.textContent = t.toLocaleString(); }
+            });
+          };
+          const now = readTarget();
+          if (isFinite(now) && now > 0) { roll(now); return; }
+          let tries = 0;                       // data still in flight — wait for it
+          const wait = setInterval(() => {
+            const t = readTarget();
+            if (isFinite(t) && t > 0) {
+              clearInterval(wait);
+              if (NAV.station === 2) roll(t);  // only if we're still at the station
+            } else if (++tries > 24) clearInterval(wait);
+          }, 500);
+        });
+      }
+
+      /* ---- Station IV: hovering a card lights its orbit ring + flares the core ---- */
+      document.querySelectorAll(".wp-card").forEach((card, i) => {
+        const ring = orbitRings[i % orbitRings.length];
+        card.addEventListener("pointerenter", () => {
+          gsap.to(ring.material, { opacity: 0.5, duration: 0.4, overwrite: "auto" });
+          gsap.to(coreMat.uniforms.uBoost, { value: 1.16, duration: 0.5, overwrite: "auto" });
+          gsap.to(atmoMat.uniforms.uBoost, { value: 1.2, duration: 0.5, overwrite: "auto" });
+        });
+        card.addEventListener("pointerleave", () => {
+          gsap.to(ring.material, { opacity: 0.13, duration: 0.8, overwrite: "auto" });
+          gsap.to(coreMat.uniforms.uBoost, { value: 1, duration: 0.9, overwrite: "auto" });
+          gsap.to(atmoMat.uniforms.uBoost, { value: 1, duration: 0.9, overwrite: "auto" });
+        });
+      });
+
+      const onStationArrive = (n) => {
+        if (n === 1) startRescue();
+        else if (n === 2) startConstellation();
+      };
+
+      const railBtns = [...document.querySelectorAll("#rail button")];
+      const teleStation = document.getElementById("tele-station");
+      const updateRail = () => {
+        railBtns.forEach((b, i) => b.classList.toggle("on", i === NAV.station));
+        if (teleStation) teleStation.textContent =
+          String(NAV.station + 1).padStart(2, "0") + " / " + String(acts.length).padStart(2, "0");
+      };
+
+      let navLock = false, cooldownUntil = 0;
+      NAV.active = () => navLock;
+      function goTo(n) {
+        n = Math.max(0, Math.min(LAST, n));
+        if (n === NAV.station || navLock) return;
+        const from = NAV.station;
+        NAV.station = n;
+        NAV.lastInput = performance.now();
+        navLock = true;
+        hint.classList.add("used");
+        try { localStorage.setItem("aerovrc-hint", "1"); } catch (e) {}
+        updateRail();
+        try { history.replaceState(null, "", "#" + HASHES[n]); } catch (e) {}
+        disableAll();
+        if (from === 1) stopRescue();                  // leaving the rescue mid-story
+        const tl = gsap.timeline({
+          defaults: { overwrite: "auto" },
+          onComplete() {
+            navLock = false;
+            cooldownUntil = performance.now() + 350;   // swallow trackpad inertia tails
+            enable(n);
+            sfx.arrive();
+            onStationArrive(n);
+          }
+        });
+        // outgoing content folds away as the ship departs…
+        tl.to(contentOf(from), { opacity: 0.001, y: -20, scale: 0.965, duration: 0.4, ease: "power2.in" }, 0);
+        // …the flight plays…
+        const end = flyPath(tl, STATION_W[from], STATION_W[n], 0.18);
+        sfx.whoosh(Math.min(2.6, end));
+        // space rushes past en route
+        const tgt = WAYPOINTS[STATION_W[n]].pos;
+        const nStreaks = 6 + Math.round(Math.random() * 3);
+        for (let s = 0; s < nStreaks; s++) {
+          tl.call(spawnStreak, [tgt], 0.3 + (s / nStreaks) * Math.max(0.6, end - 0.75));
+        }
+        // …and the next station materializes inside the final deceleration,
+        // its headline decrypting as it lands
+        tl.call(() => scrambleStation(n), null, Math.max(0.5, end - 0.5));
+        tl.fromTo(contentOf(n), { opacity: 0.001, y: 26, scale: 0.94 },
+          { opacity: 1, y: 0, scale: 1, duration: 0.9, ease: "power3.out" }, Math.max(0.5, end - 0.55));
+      }
+
+      /* ---- inputs: every one of these is the SAME transition ---- */
+      // wheel: one notch = one station (locked during flight)
+      let wheelAcc = 0, wheelT = 0;
+      window.addEventListener("wheel", (e) => {
+        NAV.lastInput = performance.now();
+        if (navLock || performance.now() < cooldownUntil) { wheelAcc = 0; return; }
+        const now = performance.now();
+        if (now - wheelT > 400) wheelAcc = 0;
+        wheelT = now;
+        wheelAcc += e.deltaY;
+        if (Math.abs(wheelAcc) >= 90) { const d = Math.sign(wheelAcc); wheelAcc = 0; goTo(NAV.station + d); }
+      }, { passive: true });
+      // keys: Space / arrows / PageUp-Down / Home / End
+      window.addEventListener("keydown", (e) => {
+        const el = document.activeElement;                 // never steal keys from controls
+        if (el && /^(BUTTON|A|INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) return;
+        let d = null;
+        if (e.code === "Space") d = e.shiftKey ? -1 : 1;
+        else if (e.code === "ArrowDown" || e.code === "PageDown") d = 1;
+        else if (e.code === "ArrowUp" || e.code === "PageUp") d = -1;
+        else if (e.code === "Home") { e.preventDefault(); NAV.lastInput = performance.now(); goTo(0); return; }
+        else if (e.code === "End")  { e.preventDefault(); NAV.lastInput = performance.now(); goTo(LAST); return; }
+        if (d === null || e.repeat) return;
+        e.preventDefault();
+        NAV.lastInput = performance.now();
+        goTo(NAV.station + d);
+      });
+      // touch: vertical swipe
+      let touchY0 = null;
+      window.addEventListener("touchstart", (e) => { touchY0 = e.touches[0].clientY; }, { passive: true });
+      window.addEventListener("touchend", (e) => {
+        if (touchY0 === null) return;
+        const dy = touchY0 - e.changedTouches[0].clientY;
+        touchY0 = null;
+        NAV.lastInput = performance.now();
+        if (Math.abs(dy) > 60) goTo(NAV.station + Math.sign(dy));
+      }, { passive: true });
+      // the flight rail
+      railBtns.forEach((b) => b.addEventListener("click", () => goTo(+b.dataset.station)));
+      // hash deep-links (#rescue etc.) — navigating them flies there
+      window.addEventListener("hashchange", () => {
+        const i = HASHES.indexOf(location.hash.slice(1));
+        if (i >= 0) goTo(i);
+      });
+
+      /* ---- the entrance: boot curtain → iris open → arrival dolly.
+         Hash deep-links land instantly behind a quick iris. ---- */
+      const boot = document.getElementById("boot");
+      boot.dataset.managed = "1";
+      const h0 = HASHES.indexOf(location.hash.slice(1));
+      const bootTl = gsap.timeline();
+      bootTl.call(() => scramble(boot.querySelector(".boot-word"), 0.6), null, 0)
+        .to(".boot-bar-fill", { scaleX: 1, duration: 0.85, ease: "power2.inOut" })
+        .to(boot, { clipPath: "circle(0% at 50% 50%)", duration: 0.8, ease: "expo.inOut" }, "+=0.1")
+        .set(boot, { display: "none" });
+      if (h0 > 0) {
+        NAV.station = h0;
+        applyWaypoint(STATION_W[h0]);
+        gsap.set(contentOf(h0), { opacity: 1, y: 0, scale: 1 });
+        enable(h0);
+        onStationArrive(h0);
+        bootTl.call(() => scrambleStation(h0), null, ">-0.3");
+      } else {
+        // fresh visit: start pulled back, dolly in as the curtain opens
+        J.pos.z = WAYPOINTS[0].pos[2] + 13;
+        bootTl.to(J.pos, { z: WAYPOINTS[0].pos[2], duration: 2.4, ease: "expo.out" }, "-=0.55")
+          .call(() => scrambleStation(0), null, "-=2.1")
+          .to(contentOf(0), { opacity: 1, y: 0, scale: 1, duration: 1.1, ease: "power3.out",
+                              onComplete: () => enable(0) }, "-=2.15");
+      }
+      updateRail();
+      // the hint teaches once, ever — after that it stays retired
+      const hintSeen = (() => { try { return localStorage.getItem("aerovrc-hint") === "1"; } catch (e) { return false; } })();
+      if (!hintSeen) setTimeout(() => { if (!hint.classList.contains("used")) hint.classList.add("on"); }, 3400);
+
+      window.__stationsReady = true;   // marks a fully-initialized film for tests
+
+      /* ---- Station I: workspace cursor parallax ----
+         panels drift toward the cursor by depth (near = more), on their own
+         wrapper so GSAP's x/y never fights the CSS bob/tilt transform */
+      const panels = [...document.querySelectorAll(".wsp")].map(el => ({
+        depth: +el.dataset.depth || 0.5,
+        xTo: gsap.quickTo(el, "x", { duration: 0.9, ease: "power3" }),
+        yTo: gsap.quickTo(el, "y", { duration: 0.9, ease: "power3" })
+      }));
+      if (panels.length) window.addEventListener("pointermove", (e) => {
+        const nx = (e.clientX / innerWidth) * 2 - 1;
+        const ny = (e.clientY / innerHeight) * 2 - 1;
+        for (const p of panels) { p.xTo(-nx * 26 * p.depth); p.yTo(-ny * 16 * p.depth); }
+      }, { passive: true });
+    }
+
+    /* ================= render loop (adaptive, freezable) ================= */
+    const clock = new THREE.Clock();
+    const _look = new THREE.Vector3();
+    const _aim = new THREE.Matrix4();
+    const _up = new THREE.Vector3(0, 1, 0);
+    let slowFrames = 0, simTime = 0, frameAcc = 0;
+    let lastActive = performance.now();
+    const wake = () => { lastActive = performance.now(); };
+    window.addEventListener("pointermove", wake, { passive: true });
+    window.addEventListener("pointerdown", wake, { passive: true });
+    window.addEventListener("wheel", wake, { passive: true });
+    window.addEventListener("keydown", wake, { passive: true });
+    let idleMode = false;
+    function loop() {
+      frameAcc += clock.getDelta();
+      const now = performance.now();
+      idleMode = now - lastActive > 8000;
+      /* while a station flight is running (or input just landed), render
+         every rAF — the 60fps skip-cap has UNEVEN frame pacing on
+         high-refresh monitors, which reads as judder exactly when the
+         camera is moving. The cap only applies to the calm ambient scene. */
+      const hot = NAV.active() || now - NAV.lastInput < 1100;
+      if (!hot && frameAcc < (idleMode ? 1 / 31 : 1 / 62)) return;
+      tick(Math.min(frameAcc, 0.05));
+      frameAcc = 0;
+    }
+    function downgradeQuality() {
+      if (Q.dpr > 0.95) Q.dpr = Math.max(0.9, Q.dpr - 0.25);
+      else if (bloomOn) bloomOn = false;
+      else return;
+      if (document.documentElement.dataset.tier) document.documentElement.dataset.tier += "↓";
+      layout();
+    }
+    function tick(dt) {
+      if (renderer.info.autoReset) renderer.info.autoReset = false;
+      renderer.info.reset();
+      simTime += dt;
+      const t = simTime;
+
+      // fps watchdog — active flight only; idle 30fps cadence is intentional
+      if (!idleMode && (Q.dpr > 0.95 || bloomOn)) {
+        if (dt > 0.028) slowFrames++; else slowFrames = Math.max(0, slowFrames - 1);
+        if (slowFrames > 110) { downgradeQuality(); slowFrames = 0; }
+      }
+
+      // the ship flies where the station timeline says; the camera adds
+      // parallax + breath.
+      // NOTE: Group.lookAt points +Z at the target (only cameras use -Z), so
+      // aim the rig with a camera-convention matrix instead.
+      rig.position.set(J.pos.x, J.pos.y, J.pos.z);
+      _look.set(J.look.x, J.look.y, J.look.z);
+      _aim.lookAt(rig.position, _look, _up);
+      rig.quaternion.setFromRotationMatrix(_aim);
+      const k = 1 - Math.exp(-3 * dt);
+      pointer.x += (pointer.tx - pointer.x) * k;
+      pointer.y += (pointer.ty - pointer.y) * k;
+      camera.rotation.y = -pointer.x * 0.055 + Math.sin(t * 0.11) * 0.012;
+      camera.rotation.x = -pointer.y * 0.04 + Math.cos(t * 0.13) * 0.009;
+
+      // the grade — fog, nebula, bloom follow the act
+      scene.fog.color.copy(J.fog);
+      scene.fog.density = J.den;
+      renderer.setClearColor(J.fog, 1);
+      if (bloomOn && bloomPass) bloomPass.strength = Q.bloomStr * J.bloomK * (isDesktop() ? 1 : 0.75);
+
+      // the world breathes
+      core.rotation.y = t * 0.12;
+      core.scale.setScalar(1 + Math.sin(t * 0.8) * 0.015);
+      shell.rotation.y -= dt * 0.16;
+      shell.rotation.x += dt * 0.05;
+      shell.scale.setScalar(1 + Math.sin(t * 0.6) * 0.02);
+      stream.rotation.z = t * 0.085;
+      ringDust.rotation.z = t * 0.055;
+      stars.rotation.y = t * 0.004;
+      for (const r of orbitRings) r.rotation.z += dt * r.userData.spd;   // slow precession
+
+      coreMat.uniforms.uTime.value = t;
+      nebulaMat.uniforms.uTime.value = t;
+      starMat.uniforms.uTime.value = t;
+      nearMat.uniforms.uTime.value = t;
+      dustMat.uniforms.uTime.value = t;
+      pocketMat.uniforms.uTime.value = t;
+      goldMat.uniforms.uTime.value = t;
+      streamMat.uniforms.uTime.value = t;
+      ringDustMat.uniforms.uTime.value = t;
+      constMat.uniforms.uTime.value = t;
+      constDustMat.uniforms.uTime.value = t;
+
+      if (bloomOn && composer) composer.render();
+      else renderer.render(scene, camera);
+
+      if (hudEl) {
+        window.__frames = (window.__frames || 0) + 1;
+        hudAcc += dt; hudFrames++;
+        if (hudAcc >= 0.5) {
+          const ri = renderer.info.render;
+          hudEl.textContent =
+            "tier " + document.documentElement.dataset.tier + "  ·  " + (hudAcc / hudFrames * 1000).toFixed(1) + " ms/frame\n" +
+            "calls " + ri.calls + " · tris " + Math.round(ri.triangles / 1e3) + "k · pts " + Math.round(ri.points / 1e3) + "k\n" +
+            "bloom " + (bloomOn ? "ON" : "OFF") + " · dpr " + renderer.getPixelRatio().toFixed(2) +
+            " · flight " + (J.prog * 100).toFixed(0) + "%";
+          hudAcc = 0; hudFrames = 0;
+        }
+      }
+    }
+    if (PERF.hud) {
+      window.__dbg = {
+        station: () => NAV.station,
+        navActive: () => NAV.active(),
+        journey: () => ({
+          prog: +J.prog.toFixed(3),
+          pos: [J.pos.x, J.pos.y, J.pos.z].map(n => +n.toFixed(2)),
+          look: [J.look.x, J.look.y, J.look.z].map(n => +n.toFixed(2)),
+          den: +J.den.toFixed(4),
+          bloomK: +J.bloomK.toFixed(2)
+        })
+      };
+    }
+
+    if (renderer) {
+      if (reduceMotion) {
+        tick(1 / 60);                     // one composed frame, no loop, no flight
+      } else {
+        /* freeze on blur/hidden: stop the render loop AND pause every CSS
+           animation — an unwatched page must cost ~0% GPU (hard requirement) */
+        let running = false;
+        const setRunning = (on) => {
+          if (on === running) return;
+          running = on;
+          renderer.setAnimationLoop(on ? loop : null);
+          document.body.classList.toggle("frozen", !on);
+          // sound follows the freeze: silent when unwatched, back on focus
+          if (!on && audioRef && audioRef.ctx.state === "running") audioRef.ctx.suspend();
+          if (on && audioRef && soundOnRef) audioRef.ctx.resume();
+          if (on) { clock.getDelta(); frameAcc = 0; lastActive = performance.now(); }
+        };
+        setRunning(true);
+        window.addEventListener("blur",  () => setRunning(false));
+        window.addEventListener("focus", () => setRunning(true));
+        document.addEventListener("visibilitychange", () => {
+          setRunning(!document.hidden && document.hasFocus());
+        });
+        if (PERF.events) setTimeout(spawnComet, 4000);
+      }
+    }
+  </script>
 </body>
 </html>

@@ -2,9 +2,6 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <!-- ===== MAINTENANCE MODE: site locked. Delete this block (and restore app.js) to bring the site back. ===== -->
-  <script>location.replace("/");</script>
-  <noscript><meta http-equiv="refresh" content="0; url=/" /></noscript>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Changelog — AeroVRC</title>
   <meta name="description" content="Every AeroVRC release and its notes, pulled live from GitHub Releases. Search the full version history." />
@@ -21,12 +18,221 @@
   <link rel="icon" href="favicon.ico" />
   <link rel="stylesheet" href="style.css" />
 
-  <script>window.AEROVRC_REPO = "CalamityTheWatcher/AeroVRC";</script>
-</head>
-<body>
+  <!-- Display face only — body stays on Segoe UI to match the app and the
+       rest of the site. Chakra Petch's squared terminals give the headline
+       its aerospace-cockpit personality. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&display=swap" rel="stylesheet" />
 
-  <!-- ===== animated sparkle backdrop ===== -->
-  <canvas id="sparkles" aria-hidden="true"></canvas>
+  <style>
+    /* ============================================================
+       Changelog v2 — "Mission Log" (the ship's flight recorder).
+       All rules scoped under body.cl-cosmic so shared style.css
+       keeps serving every other page untouched. style.css and
+       app.js are frozen deps — the release renderer owns every
+       node inside the changelog container; decoration lives on
+       pseudo-elements and sibling markup only.
+       ============================================================ */
+    body.cl-cosmic{
+      --bg-deep:#040816;
+      --cyan:#00f0ff;
+      --font-display:"Chakra Petch","Segoe UI",system-ui,sans-serif;
+      background:
+        radial-gradient(1100px 700px at 18% 12%, rgba(74,156,255,.14), transparent 60%),
+        radial-gradient(900px 640px at 84% 78%, rgba(0,240,255,.07), transparent 60%),
+        radial-gradient(760px 560px at 70% 8%,  rgba(88,101,242,.10), transparent 62%),
+        linear-gradient(180deg, #0a1230 0%, var(--bg-deep) 68%);
+      background-attachment:fixed;
+      overflow-x:hidden;
+    }
+
+    /* vignette — deepens the edges for spatial contrast (pseudo-elements
+       dodge the body>* stacking trap, so no !important here) */
+    body.cl-cosmic::after{
+      content:"";position:fixed;inset:0;z-index:1;pointer-events:none;
+      background:radial-gradient(120% 100% at 50% 45%, transparent 55%, rgba(2,5,14,.55) 100%);
+    }
+
+    /* living film grain so the gradients never band (freeze zeroes its cost).
+       !important ×2: style.css has a high-specificity body>* stacking rule
+       (`body > *:not(#sparkles):not(svg):not(.nav)…{position:relative;z-index:1}`)
+       that would otherwise turn this fixed layer into a flow block; its
+       :not(#sparkles) gives the trap ID-level specificity, so z-index needs
+       the hammer too. */
+    .grain{
+      position:fixed !important;inset:-8%;z-index:3 !important;pointer-events:none;opacity:.028;mix-blend-mode:overlay;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      animation:grainShift .9s steps(8) infinite;
+    }
+    @keyframes grainShift{
+      0%{transform:translate(0,0)}12.5%{transform:translate(-2%,1%)}25%{transform:translate(1%,-2%)}
+      37.5%{transform:translate(-1%,2%)}50%{transform:translate(2%,1%)}62.5%{transform:translate(-2%,-1%)}
+      75%{transform:translate(1%,2%)}87.5%{transform:translate(2%,-2%)}100%{transform:translate(0,0)}
+    }
+
+    /* JS adds .frozen when the tab loses focus / is hidden — halt every CSS
+       animation so an unwatched page costs the compositor ~0 GPU */
+    body.frozen *, body.frozen *::before, body.frozen *::after{
+      animation-play-state:paused !important;
+    }
+
+    /* nav & footer conformance — solid tint, no blur surface above the
+       stepping grain (family doctrine) */
+    body.cl-cosmic .nav{background:rgba(4,8,22,.78);backdrop-filter:none;-webkit-backdrop-filter:none;
+      border-bottom-color:rgba(130,198,255,.14)}
+    body.cl-cosmic .nav.scrolled{background:rgba(4,8,22,.94);border-bottom-color:rgba(130,198,255,.28)}
+    body.cl-cosmic .footer{background:rgba(4,8,22,.72);border-top-color:rgba(130,198,255,.16)}
+    @media (max-width:760px){
+      body.cl-cosmic .nav-links{backdrop-filter:none;-webkit-backdrop-filter:none;background:#060a18}
+    }
+
+    /* ============ hero — "Flight Record" ============ */
+    body.cl-cosmic .cl-hero .kicker{font-family:var(--font-display)}
+    body.cl-cosmic .cl-hero h1{font-family:var(--font-display);font-size:clamp(2.2rem,5vw,3.4rem);
+      font-weight:700;letter-spacing:-.01em;line-height:1.1;text-shadow:0 2px 24px rgba(4,8,22,.9)}
+    body.cl-cosmic .cl-hero .lead{color:var(--muted);text-shadow:0 1px 12px rgba(4,8,22,.85)}
+    /* telemetry strip — every datum is real: app.js fills [data-changelog-count]
+       and [data-version] from the live GitHub Releases API */
+    body.cl-cosmic .cl-tele{margin-top:1.3rem;font:600 .68rem/1.8 var(--font-display);
+      letter-spacing:.16em;text-transform:uppercase;color:rgba(147,164,199,.85);
+      font-variant-numeric:tabular-nums}
+    body.cl-cosmic .cl-tele [data-changelog-count],
+    body.cl-cosmic .cl-tele [data-version]{color:var(--accent-hi)}
+    body.cl-cosmic .cl-tele .seg + .seg::before{content:"·";margin:0 .7em;color:rgba(147,164,199,.5)}
+    body.cl-cosmic .cl-tele .seg:empty{display:none}
+    body.cl-cosmic .cl-tele .seg:empty + .seg::before{content:""}   /* no orphan separator on error */
+
+    /* ============ toolbar — HUD scanner console ============ */
+    body.cl-cosmic .cl-search input{background:rgba(10,16,40,.72);border-color:rgba(130,198,255,.28);
+      font-family:ui-monospace,"Cascadia Mono",Consolas,monospace;font-size:.92rem;letter-spacing:.01em}
+    body.cl-cosmic .cl-search input:focus{outline:2px solid var(--cyan);outline-offset:2px;
+      border-color:rgba(0,240,255,.6);box-shadow:0 0 20px rgba(0,240,255,.18)}
+    body.cl-cosmic .cl-search input::placeholder{color:rgba(147,164,199,.65)}
+    /* scanner corner brackets */
+    body.cl-cosmic .cl-search::before,body.cl-cosmic .cl-search::after{content:"";position:absolute;
+      width:10px;height:10px;pointer-events:none;opacity:.7}
+    body.cl-cosmic .cl-search::before{left:-5px;top:-5px;border-left:2px solid var(--cyan);border-top:2px solid var(--cyan)}
+    body.cl-cosmic .cl-search::after{right:-5px;bottom:-5px;border-right:2px solid var(--cyan);border-bottom:2px solid var(--cyan)}
+    /* telemetry chip — page JS live-updates it to "N of M releases" while searching */
+    body.cl-cosmic .cl-count{font:600 .68rem/1 var(--font-display);letter-spacing:.14em;
+      text-transform:uppercase;color:var(--cyan);padding:.55em 1em;border-radius:999px;
+      background:rgba(0,240,255,.06);border:1px solid rgba(0,240,255,.3);
+      font-variant-numeric:tabular-nums}
+
+    /* ============ timeline spine ============
+       Rail = ::before on the container (CSS-generated, wipe-proof), nodes =
+       ::before on the injected .cl-item cards — zero DOM inside the renderer's
+       container. is-ready/is-alert are container classes set by page JS. */
+    body.cl-cosmic .changelog{position:relative;padding-left:2.4rem}
+    body.cl-cosmic .changelog.is-ready::before{content:"";position:absolute;left:7px;top:.5rem;bottom:.5rem;
+      width:2px;border-radius:2px;
+      background:linear-gradient(180deg,rgba(0,240,255,.75),rgba(74,156,255,.4) 16%,
+                 rgba(92,112,182,.2) 60%,transparent);
+      box-shadow:0 0 12px rgba(0,240,255,.25)}
+    body.cl-cosmic .cl-item{position:relative;background:rgba(10,16,40,.72);border-color:rgba(130,198,255,.18)}
+    body.cl-cosmic .cl-item:hover{border-color:rgba(130,198,255,.4)}
+    body.cl-cosmic .cl-item::before{content:"";position:absolute;left:calc(-2.4rem + 2.5px);top:1.45rem;
+      width:11px;height:11px;border-radius:50%;background:#0b1230;
+      border:2px solid var(--accent-hi);box-shadow:0 0 10px rgba(74,156,255,.55);
+      transition:border-color .25s ease,box-shadow .25s ease}
+    /* node lights on card hover */
+    body.cl-cosmic .cl-item:hover::before{border-color:var(--cyan);box-shadow:0 0 14px rgba(0,240,255,.7)}
+    @media (max-width:560px){  /* cards need the full width on phones */
+      body.cl-cosmic .changelog{padding-left:0}
+      body.cl-cosmic .changelog.is-ready::before,body.cl-cosmic .cl-item::before{display:none}
+    }
+
+    /* ============ LATEST feature treatment ============ */
+    body.cl-cosmic .changelog > .cl-item:first-child{border-color:rgba(0,240,255,.4);
+      box-shadow:var(--lit),0 0 0 1px rgba(0,240,255,.14),0 18px 48px -20px rgba(0,240,255,.35)}
+    body.cl-cosmic .changelog > .cl-item:first-child::before{border-color:var(--cyan);
+      box-shadow:0 0 14px rgba(0,240,255,.8)}
+    body.cl-cosmic .changelog > .cl-item:first-child .cl-tag{font-size:1.25rem}
+    body.cl-cosmic .changelog > .cl-item:first-child .cl-top::after{content:"LATEST";
+      font:700 .58rem/1 var(--font-display);letter-spacing:.14em;color:var(--cyan);
+      padding:.35em .7em;border-radius:999px;background:rgba(0,240,255,.07);
+      border:1px solid rgba(0,240,255,.45);margin-left:auto}
+    /* latest node ping — transform/opacity only, frozen-pausable, RM-killable */
+    body.cl-cosmic .changelog.is-ready > .cl-item:first-child::after{content:"";position:absolute;
+      left:calc(-2.4rem + .5px);top:calc(1.45rem - 2px);width:15px;height:15px;border-radius:50%;
+      border:1px solid rgba(0,240,255,.8);opacity:0;pointer-events:none;
+      animation:clPing 3.4s ease-out infinite 1s}
+    @keyframes clPing{0%{transform:scale(.5);opacity:.9}60%{transform:scale(2.4);opacity:0}100%{transform:scale(2.4);opacity:0}}
+    @media (max-width:560px){ body.cl-cosmic .changelog.is-ready > .cl-item:first-child::after{display:none} }
+
+    /* ============ version chips + dates (log typography) ============ */
+    body.cl-cosmic .cl-tag{font-family:var(--font-display);font-weight:700;font-size:1.05rem;
+      color:var(--accent-hi);padding:.12em .55em;border-radius:8px;
+      background:rgba(74,156,255,.08);border:1px solid rgba(130,198,255,.35)}
+    body.cl-cosmic .cl-date{font:600 .72rem/1.6 var(--font-display);letter-spacing:.12em;
+      text-transform:uppercase;font-variant-numeric:tabular-nums;color:var(--muted)}
+
+    /* ============ states ============ */
+    body.cl-cosmic .cl-empty{background:rgba(10,16,40,.55);border:1px dashed rgba(130,198,255,.3);
+      border-radius:14px;font-family:var(--font-display);letter-spacing:.02em}
+    body.cl-cosmic .cl-body blockquote{background:rgba(74,156,255,.06)}
+    body.cl-cosmic .cl-body code{background:rgba(6,10,26,.8)}
+
+    /* ============ outro CTA pair ============ */
+    body.cl-cosmic .cl-outro{display:flex;justify-content:center;gap:.9rem;flex-wrap:wrap;margin-top:2.8rem}
+
+    /* ============ entrance choreography ============
+       CSS-only; every animation's removal (reduced-motion global kill) leaves
+       the element in its natural, fully visible state. */
+    @keyframes clRise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+    body.cl-cosmic .cl-hero > *,body.cl-cosmic .cl-toolbar{animation:clRise .7s cubic-bezier(.2,.7,.2,1) both}
+    body.cl-cosmic .cl-hero .kicker{animation-delay:.05s}
+    body.cl-cosmic .cl-hero h1{animation-delay:.13s}
+    body.cl-cosmic .cl-hero .lead{animation-delay:.23s}
+    body.cl-cosmic .cl-hero .cl-tele{animation-delay:.33s}
+    body.cl-cosmic .cl-toolbar{animation-delay:.43s}
+    /* card stagger — delays capped so a long history never keeps the reader waiting */
+    @keyframes clCard{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+    body.cl-cosmic .cl-item{animation:clCard .55s ease both}
+    body.cl-cosmic .cl-item:nth-child(1){animation-delay:.06s}
+    body.cl-cosmic .cl-item:nth-child(2){animation-delay:.12s}
+    body.cl-cosmic .cl-item:nth-child(3){animation-delay:.18s}
+    body.cl-cosmic .cl-item:nth-child(4){animation-delay:.24s}
+    body.cl-cosmic .cl-item:nth-child(5){animation-delay:.30s}
+    body.cl-cosmic .cl-item:nth-child(6){animation-delay:.36s}
+    body.cl-cosmic .cl-item:nth-child(7){animation-delay:.42s}
+    body.cl-cosmic .cl-item:nth-child(n+8){animation-delay:.48s}
+    /* one-shot: after entrance, display toggles (search) must not replay the film */
+    body.cl-cosmic .changelog.cl-entered .cl-item{animation:none}
+
+    /* ============ responsive polish ============ */
+    @media (max-width:640px){
+      body.cl-cosmic .cl-search input{font-size:16px}   /* iOS focus-zoom guard */
+      body.cl-cosmic .cl-hero h1{font-size:clamp(1.9rem,8vw,2.4rem)}
+      body.cl-cosmic .cl-tele{line-height:2.1}
+    }
+  </style>
+
+  <script>window.AEROVRC_REPO = "CalamityTheWatcher/AeroVRC";</script>
+
+  <!-- three.js via import map — same pinned build as the flagship splash.
+       cosmic-sky.js paints the living backdrop; the CSS sky above is the
+       no-WebGL / reduced-motion floor. -->
+  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.module.js" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.166.1/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body class="cl-cosmic">
+
+  <!-- shared cosmic sky (WebGL) — layered behind everything. Inline
+       !important: style.css's body>* stacking trap would otherwise turn
+       this fixed layer into a flow block. -->
+  <canvas id="sky" aria-hidden="true" style="position:fixed !important;inset:0 !important;z-index:0 !important;display:block"></canvas>
+
+  <!-- ===== fixed backdrop layers ===== -->
+  <div class="grain" aria-hidden="true"></div>
 
   <!-- ===== reusable orb "A" logo ===== -->
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -63,6 +269,7 @@
       <nav class="nav-links" id="navlinks">
         <a href="features.html">Features</a>
         <a href="screenshots.html">Screenshots</a>
+        <a href="quickstart.html">Quick Start</a>
         <a href="changelog.html" aria-current="page">Changelog</a>
         <a href="faq.html">FAQ</a>
         <a href="contact.html">Contact</a>
@@ -73,9 +280,13 @@
 
   <!-- ================= CHANGELOG ================= -->
   <section class="section cl-page">
-    <div class="section-head">
-      <h2>Changelog</h2>
-      <p>Every AeroVRC release and its notes, pulled live from GitHub — newest first.</p>
+    <div class="section-head cl-hero">
+      <p class="kicker">Mission Log</p>
+      <h1>Flight <span class="grad">Record</span></h1>
+      <p class="lead">Every AeroVRC release and its notes, pulled live from GitHub — newest first.</p>
+      <p class="cl-tele">
+        <span class="seg" data-changelog-count></span><span class="seg">Build&nbsp;<span data-version>syncing…</span></span>
+      </p>
     </div>
 
     <div class="cl-toolbar">
@@ -83,17 +294,22 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
         <input type="search" placeholder="Search releases — version or keyword…" data-changelog-search aria-label="Search releases" />
       </label>
-      <span class="cl-count" data-changelog-count></span>
+      <span class="cl-count" data-changelog-count aria-live="polite"></span>
     </div>
 
     <div class="changelog" data-changelog-full>
       <div class="cl-empty">Loading release notes…</div>
     </div>
     <div class="cl-empty" data-changelog-nohits hidden>No releases match your search.</div>
+    <noscript><p class="cl-empty">JavaScript is off — <a href="https://github.com/CalamityTheWatcher/AeroVRC/releases">view releases on GitHub →</a></p></noscript>
 
-    <p style="text-align:center;margin-top:2rem">
-      <a class="btn btn-secondary btn-sm" href="home.html">← Back to home</a>
-    </p>
+    <div class="hero-cta cl-outro">
+      <a class="btn btn-primary btn-lg" href="download.html">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 3a1 1 0 0 1 1 1v9.6l3.3-3.3a1 1 0 0 1 1.4 1.4l-5 5a1 1 0 0 1-1.4 0l-5-5a1 1 0 0 1 1.4-1.4l3.3 3.3V4a1 1 0 0 1 1-1Zm-7 15a1 1 0 0 1 1 1v1h12v-1a1 1 0 1 1 2 0v2a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-2a1 1 0 0 1 1-1Z"/></svg>
+        Get AeroVRC
+      </a>
+      <a class="btn btn-secondary btn-lg" href="home.html">← Back to home</a>
+    </div>
   </section>
 
   <!-- ================= FOOTER ================= -->
@@ -104,10 +320,67 @@
         <span class="brand-name">AeroVRC</span>
       </div>
       <p class="foot-note">An independent companion for VRChat · Not affiliated with VRChat Inc.</p>
-      <p class="foot-copy">© <span data-year>2026</span> AeroVRC · <a href="index.html">Welcome</a> · <a href="home.html">Home</a> · <a href="https://github.com/CalamityTheWatcher/AeroVRC" target="_blank" rel="noopener">GitHub</a></p>
+      <p class="foot-copy">© <span data-year>2026</span> AeroVRC · <a href="index.html">Welcome</a> · <a href="quickstart.html">Quick Start</a> · <a href="privacy.html">Privacy</a> · <a href="home.html">Home</a> · <a href="https://github.com/CalamityTheWatcher/AeroVRC" target="_blank" rel="noopener">GitHub</a></p>
     </div>
   </footer>
 
   <script src="app.js"></script>
+  <script>
+    /* Mission Log page script — strictly additive, placed after app.js.
+       It never writes inside the renderer-owned container and never
+       rebinds app.js listeners. */
+    (function () {
+      /* ---- freeze harness: blur/hidden → body.frozen → all CSS animations
+         pause → ~0% GPU for an unwatched tab (no rAF anywhere on this page) ---- */
+      var setFrozen = function (on) { document.body.classList.toggle("frozen", on); };
+      window.addEventListener("blur",  function () { setFrozen(true);  });
+      window.addEventListener("focus", function () { setFrozen(false); });
+      document.addEventListener("visibilitychange", function () {
+        setFrozen(document.hidden || !document.hasFocus());
+      });
+      setFrozen(document.hidden || !document.hasFocus());   // load-while-unfocused starts frozen
+
+      var log = document.querySelector("[data-changelog-full]");
+      if (!log) return;
+
+      /* ---- container state classes (rail gating without :has()) ----
+         The observer attaches at parse time — before the async fetch can
+         resolve — so it always sees the first render. Reads only. */
+      var entered = false;
+      var sync = function () {
+        var ready = !!log.querySelector(".cl-item");
+        log.classList.toggle("is-ready", ready);
+        log.classList.toggle("is-alert", !!log.querySelector(".cl-empty"));
+        if (ready && !entered) {
+          entered = true;
+          setTimeout(function () { log.classList.add("cl-entered"); }, 1400);  // retire entrance stagger
+        }
+      };
+      new MutationObserver(sync).observe(log, { childList: true });
+      sync();
+
+      /* ---- live shown-count — app.js never updates the count during search
+         (its listener only toggles display). Defer one frame so app.js's
+         handler has run, then rewrite the TOOLBAR chip only (the hero seg
+         keeps the honest total). ---- */
+      var input = document.querySelector("[data-changelog-search]");
+      var chip  = document.querySelector(".cl-toolbar [data-changelog-count]");
+      if (input && chip) {
+        input.addEventListener("input", function () {
+          requestAnimationFrame(function () {
+            var items = log.querySelectorAll(".cl-item"), shown = 0;
+            items.forEach(function (el) { if (el.style.display !== "none") shown++; });
+            if (!items.length) return;
+            chip.textContent = (shown === items.length)
+              ? items.length + (items.length === 1 ? " release" : " releases")
+              : shown + " of " + items.length + " releases";
+          });
+        });
+      }
+    })();
+  </script>
+  <!-- shared cosmic sky + input polish (GSAP pinned, classic, before the module) -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script type="module" src="cosmic-sky.js"></script>
 </body>
 </html>

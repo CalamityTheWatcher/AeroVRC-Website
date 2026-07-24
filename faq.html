@@ -2,9 +2,6 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <!-- ===== MAINTENANCE MODE: site locked. Delete this block (and restore app.js) to bring the site back. ===== -->
-  <script>location.replace("/");</script>
-  <noscript><meta http-equiv="refresh" content="0; url=/" /></noscript>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>FAQ — AeroVRC</title>
   <meta name="description" content="Common questions about AeroVRC — is it safe, does it cost anything, why Windows warns about it, and how it works with VRChat and VRCX." />
@@ -22,10 +19,185 @@
   <link rel="stylesheet" href="style.css" />
 
   <script>window.AEROVRC_REPO = "CalamityTheWatcher/AeroVRC";</script>
-</head>
-<body>
 
-  <canvas id="sparkles" aria-hidden="true"></canvas>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ============================================================
+       FAQ overhaul — "Mission Support". Everything scoped under
+       body.faq-cosmic; shared style.css / app.js stay frozen.
+       ============================================================ */
+    body.faq-cosmic{
+      --bg-deep:#040816;
+      --cyan:#00f0ff;
+      --ink:#c6cfe6;                     /* answer body ink, replaces --muted for reading */
+      --font-display:"Chakra Petch","Segoe UI",system-ui,sans-serif;
+      background:
+        radial-gradient(1100px 700px at 18% 12%, rgba(74,156,255,.14), transparent 60%),
+        radial-gradient(900px 640px at 84% 78%, rgba(0,240,255,.07), transparent 60%),
+        radial-gradient(760px 560px at 70% 8%,  rgba(88,101,242,.10), transparent 62%),
+        linear-gradient(180deg,#0a1230 0%,var(--bg-deep) 68%);
+      background-attachment:fixed;
+    }
+    /* vignette — pseudo-element dodges the style.css body>* stacking trap, no !important needed */
+    body.faq-cosmic::after{
+      content:"";position:fixed;inset:0;z-index:1;pointer-events:none;
+      background:radial-gradient(120% 100% at 50% 45%, transparent 55%, rgba(2,5,14,.55) 100%);
+    }
+    /* film grain — a direct body child that must stay fixed: style.css's
+       body>* stacking rule has ID-level specificity via :not(#sparkles),
+       so BOTH position and z-index need the hammer */
+    .grain{
+      position:fixed !important;inset:-8%;z-index:2 !important;pointer-events:none;
+      opacity:.028;mix-blend-mode:overlay;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      animation:grainShift .9s steps(8) infinite;
+    }
+    @keyframes grainShift{
+      0%{transform:translate(0,0)}12.5%{transform:translate(-2%,1%)}25%{transform:translate(1%,-2%)}
+      37.5%{transform:translate(-1%,2%)}50%{transform:translate(2%,1%)}62.5%{transform:translate(-2%,-1%)}
+      75%{transform:translate(1%,2%)}87.5%{transform:translate(2%,-2%)}100%{transform:translate(0,0)}
+    }
+    /* JS adds body.frozen when the window blurs / hides — pause every CSS
+       animation so an unwatched page costs the compositor ~0 GPU */
+    body.frozen *, body.frozen *::before, body.frozen *::after{animation-play-state:paused !important}
+
+    /* ---------- header ceremony ---------- */
+    body.faq-cosmic .kicker{font-family:var(--font-display);font-weight:600;font-size:.72rem;
+      letter-spacing:.16em;color:var(--accent-hi);background:rgba(10,16,40,.72);
+      border-color:rgba(92,112,182,.5);backdrop-filter:none;-webkit-backdrop-filter:none}
+    body.faq-cosmic .section-head h1{font-family:var(--font-display);
+      font-size:clamp(2.2rem,5vw,3.3rem);letter-spacing:-.01em;line-height:1.1;
+      text-shadow:0 2px 24px rgba(4,8,22,.9)}
+    body.faq-cosmic .section-head p{color:var(--muted)}
+    body.faq-cosmic .section-head p a{color:var(--accent-hi);text-decoration:underline;text-underline-offset:2px}
+    body.faq-cosmic .section-head p a:hover{color:#fff}
+
+    /* ---------- cluster labels ---------- */
+    body.faq-cosmic .faq-label{font-family:var(--font-display);font-weight:600;font-size:.74rem;
+      letter-spacing:.14em;text-transform:uppercase;color:var(--accent-hi);
+      max-width:760px;margin:2.4rem auto .9rem;display:flex;align-items:center;gap:.8rem}
+    body.faq-cosmic .faq-label::after{content:"";flex:1;height:1px;
+      background:linear-gradient(90deg,rgba(92,112,182,.5),transparent)}
+    #g-trust .faq-label{margin-top:0}
+
+    /* ---------- cards ---------- */
+    body.faq-cosmic .faq details{
+      position:relative;
+      background:rgba(12,18,42,.78);            /* solid tint, NO backdrop-filter */
+      border-color:rgba(92,112,182,.38);
+      scroll-margin-top:5.5rem;                 /* sticky-nav clearance for deep links */
+      transition:border-color .25s ease,box-shadow .25s ease,background .25s ease,
+        transform .22s cubic-bezier(.2,.7,.2,1);
+    }
+    body.faq-cosmic .faq details:hover{border-color:var(--border-hi);transform:translateY(-2px)}
+    body.faq-cosmic .faq details[open]{border-color:var(--border-hi)}
+    body.faq-cosmic .faq details[open]:hover{transform:none}   /* an open card is being read — hold still */
+    /* open-card anchor rail */
+    body.faq-cosmic .faq details::before{content:"";position:absolute;left:0;top:0;bottom:0;
+      width:2px;border-radius:2px 0 0 2px;opacity:0;
+      background:linear-gradient(180deg,var(--cyan),var(--accent));transition:opacity .3s ease}
+    body.faq-cosmic .faq details[open]::before{opacity:.75}
+
+    /* ---------- summary anatomy ---------- */
+    body.faq-cosmic .faq summary{font-size:1.05rem;padding:1.2rem 0;
+      justify-content:flex-start;gap:.85rem}
+    body.faq-cosmic .faq .faq-num{font-family:var(--font-display);font-weight:600;font-size:.72rem;
+      letter-spacing:.08em;color:rgba(0,240,255,.55);flex:none;translate:0 .18em}
+    body.faq-cosmic .faq .faq-q{flex:1}
+    body.faq-cosmic .faq summary::after{font-size:1.6rem;color:var(--accent)}   /* keep the +→× rotate from style.css */
+    body.faq-cosmic .faq details[open] summary::after{color:var(--cyan);
+      text-shadow:0 0 12px rgba(0,240,255,.5)}
+    body.faq-cosmic .faq summary:focus-visible{outline:2px solid var(--accent-hi);
+      outline-offset:3px;border-radius:8px}
+
+    /* ---------- answers (legibility pass) ---------- */
+    body.faq-cosmic .faq details p{
+      color:var(--ink);max-width:66ch;line-height:1.65;margin:0 0 1.2rem}
+    body.faq-cosmic .faq details p a{color:var(--accent-hi);text-decoration:underline;
+      text-underline-offset:2px}
+    body.faq-cosmic .faq details p a:hover{color:#fff}
+
+    /* animated open/close — grid-rows glide. The RESTING state is fully OPEN;
+       the collapsed state exists ONLY under the transient JS-owned .collapsing
+       class, so no-JS / reduced-motion users can never be trapped out of content. */
+    body.faq-cosmic .faq .faq-a{display:grid;grid-template-rows:1fr;
+      transition:grid-template-rows .38s cubic-bezier(.25,.7,.2,1)}
+    body.faq-cosmic .faq details.collapsing .faq-a{grid-template-rows:0fr}
+    body.faq-cosmic .faq .faq-a-inner{overflow:hidden;min-height:0}
+
+    /* ---------- terminal CTA ---------- */
+    body.faq-cosmic .faq-cta{max-width:760px;margin:3rem auto 0;text-align:center;
+      background:rgba(10,16,40,.72);border:1px solid rgba(92,112,182,.4);border-radius:16px;
+      padding:1.8rem 1.5rem;box-shadow:var(--lit)}    /* solid tint, NO backdrop-filter */
+    body.faq-cosmic .faq-cta > p{margin:0 0 1rem;color:var(--text);
+      font-family:var(--font-semi);font-weight:600}
+
+    /* ---------- entrance choreography (JS + full-motion users only) ----------
+       Hidden initial states live ONLY inside this media query and behind .js,
+       so no-JS and reduced-motion users see everything instantly. */
+    @media (prefers-reduced-motion: no-preference){
+      .js body.faq-cosmic h1 .line{display:block;overflow:hidden;padding-bottom:.09em;margin-bottom:-.09em}
+      .js body.faq-cosmic h1 .line-inner{display:block;transform:translateY(112%);
+        animation:faqLineUp .8s cubic-bezier(.2,.7,.2,1) .15s forwards}
+      .js body.faq-cosmic .kicker{opacity:0;animation:faqFade .6s ease .05s forwards}
+      .js body.faq-cosmic .section-head p{opacity:0;animation:faqFade .6s ease .55s forwards}
+      @keyframes faqLineUp{to{transform:translateY(0)}}
+      @keyframes faqFade{to{opacity:1}}
+    }
+    /* tighten app.js's fixed 80ms reveal stagger to ~60ms without touching app.js */
+    body.faq-cosmic .reveal{transition-delay:calc(var(--rd,0ms)*.75)}
+
+    /* ---------- responsive ---------- */
+    @media (max-width:640px){
+      body.faq-cosmic .section-head h1{font-size:clamp(2rem,8vw,2.6rem)}
+      body.faq-cosmic .faq summary{font-size:1rem;gap:.65rem}
+      body.faq-cosmic .faq details p{max-width:none}
+      body.faq-cosmic .faq-label{margin-top:1.9rem}
+    }
+  </style>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {"@type":"Question","name":"Is AeroVRC safe? Is it a mod or a cheat?","acceptedAnswer":{"@type":"Answer","text":"No. AeroVRC does not modify, inject into, or automate the VRChat client. It launches VRChat normally, watches whether the process is running, and reads VRChat’s own local log files to show your current world and who’s in the instance — the same public information the game already writes to disk. Your VRCX data is read read-only."}},
+      {"@type":"Question","name":"Will this get me banned by EAC / VRChat?","acceptedAnswer":{"@type":"Answer","text":"No. AeroVRC runs entirely outside the game — it doesn’t inject, hook, read game memory or automate anything in VRChat. It only launches VRChat, watches whether the process is running, reads the public log files, and manages your own companion apps and Windows settings. In fact VRChat’s anti-cheat (EasyAntiCheat) actively blocks outside programs from touching the game’s process — so strictly that AeroVRC can’t even change VRChat’s CPU priority while EAC is running. Nothing it does is the kind of thing anti-cheat bans for."}},
+      {"@type":"Question","name":"Is this affiliated with VRChat?","acceptedAnswer":{"@type":"Answer","text":"No. AeroVRC is an independent, unofficial companion tool. VRChat is a trademark of VRChat Inc., and AeroVRC is not endorsed by or associated with them."}},
+      {"@type":"Question","name":"What data does AeroVRC collect?","acceptedAnswer":{"@type":"Answer","text":"None that leaves your PC. There’s no account, no telemetry and no tracking — everything is read locally and read-only. The full breakdown is on the privacy page at https://aerovrc.com/privacy.html."}},
+      {"@type":"Question","name":"Does it cost anything?","acceptedAnswer":{"@type":"Answer","text":"No. AeroVRC is completely free."}},
+      {"@type":"Question","name":"Do I need to install it?","acceptedAnswer":{"@type":"Answer","text":"No installer — it’s a single portable .exe. Put it wherever you like and run it. Settings are saved to your Windows %APPDATA% folder."}},
+      {"@type":"Question","name":"Why does Windows warn me when I open it?","acceptedAnswer":{"@type":"Answer","text":"AeroVRC isn’t code-signed (certificates are expensive for a free tool), so SmartScreen shows a generic “unrecognized app” prompt. Choose More info → Run anyway. You can always re-download from https://aerovrc.com/download.html to be sure you have the official build."}},
+      {"@type":"Question","name":"How do I get started?","acceptedAnswer":{"@type":"Answer","text":"Download the portable .exe, run it, and click Start Monitoring. The full two-minute walkthrough — including adding your companion apps — is at https://aerovrc.com/quickstart.html."}},
+      {"@type":"Question","name":"Do the performance tweaks change my system?","acceptedAnswer":{"@type":"Answer","text":"The Optimization page applies well-known Windows settings (like disabling Game DVR) that improve VRChat performance. Each tweak is explained in plain English before you apply it, and they’re all standard, reversible Windows options."}}
+    ]
+  }
+  </script>
+
+  <!-- three.js via import map — same pinned build as the flagship splash.
+       cosmic-sky.js paints the living backdrop; the CSS sky above is the
+       no-WebGL / reduced-motion floor. -->
+  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.module.js" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.166.1/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body class="faq-cosmic">
+
+  <!-- shared cosmic sky (WebGL) — layered behind everything. Inline
+       !important: style.css's body>* stacking trap would otherwise turn
+       this fixed layer into a flow block. -->
+  <canvas id="sky" aria-hidden="true" style="position:fixed !important;inset:0 !important;z-index:0 !important;display:block"></canvas>
+
+  <div class="grain" aria-hidden="true"></div>
 
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
     <defs>
@@ -61,6 +233,7 @@
       <nav class="nav-links" id="navlinks">
         <a href="features.html">Features</a>
         <a href="screenshots.html">Screenshots</a>
+        <a href="quickstart.html">Quick Start</a>
         <a href="changelog.html">Changelog</a>
         <a href="faq.html" aria-current="page">FAQ</a>
         <a href="contact.html">Contact</a>
@@ -72,43 +245,106 @@
   <!-- ================= FAQ ================= -->
   <section class="section" id="faq">
     <div class="section-head reveal">
-      <h1>Questions</h1>
+      <span class="kicker">Mission Support</span>
+      <h1><span class="line"><span class="line-inner">Questions</span></span></h1>
       <p>Still stuck? <a href="contact.html">Send a message</a> and I&rsquo;ll help.</p>
     </div>
-    <div class="faq" data-stagger>
-      <details>
-        <summary>Is AeroVRC safe? Is it a mod or a cheat?</summary>
-        <p>No. AeroVRC does not modify, inject into, or automate the VRChat client. It launches VRChat
-        normally, watches whether the process is running, and reads VRChat&rsquo;s own local log files to
-        show your current world and who&rsquo;s in the instance — the same public information the game already
-        writes to disk. Your VRCX data is read <strong>read-only</strong>.</p>
-      </details>
-      <details>
-        <summary>Does it cost anything?</summary>
-        <p>No. AeroVRC is completely free.</p>
-      </details>
-      <details>
-        <summary>Do I need to install it?</summary>
-        <p>No installer — it&rsquo;s a single portable <code>.exe</code>. Put it wherever you like and run it.
-        Settings are saved to your Windows <code>%APPDATA%</code> folder.</p>
-      </details>
-      <details>
-        <summary>Why does Windows warn me when I open it?</summary>
-        <p>AeroVRC isn&rsquo;t code-signed (certificates are expensive for a free tool), so SmartScreen shows a
-        generic &ldquo;unrecognized app&rdquo; prompt. Choose <em>More info → Run anyway</em>. You can always
-        re-download from the <a href="download.html">download page</a> to be sure you have the official build.</p>
-      </details>
-      <details>
-        <summary>Do the performance tweaks change my system?</summary>
-        <p>The Optimization page applies well-known Windows settings (like disabling Game DVR) that improve
-        VRChat performance. Each tweak is explained in plain English before you apply it, and they&rsquo;re all
-        standard, reversible Windows options.</p>
-      </details>
-      <details>
-        <summary>Is this affiliated with VRChat?</summary>
-        <p>No. AeroVRC is an independent, unofficial companion tool. VRChat is a trademark of VRChat Inc.,
-        and AeroVRC is not endorsed by or associated with them.</p>
-      </details>
+
+    <div class="faq-group" id="g-trust">
+      <h2 class="faq-label reveal">Trust &amp; Safety</h2>
+      <div class="faq" data-stagger>
+        <details id="safe">
+          <summary><span class="faq-num" aria-hidden="true">01</span><span class="faq-q">Is AeroVRC safe? Is it a mod or a cheat?</span></summary>
+          <div class="faq-a"><div class="faq-a-inner">
+            <p>No. AeroVRC does not modify, inject into, or automate the VRChat client. It launches VRChat
+            normally, watches whether the process is running, and reads VRChat&rsquo;s own local log files to
+            show your current world and who&rsquo;s in the instance — the same public information the game already
+            writes to disk. Your VRCX data is read <strong>read-only</strong>.</p>
+          </div></div>
+        </details>
+        <details id="eac-ban">
+          <summary><span class="faq-num" aria-hidden="true">02</span><span class="faq-q">Will this get me banned by EAC / VRChat?</span></summary>
+          <div class="faq-a"><div class="faq-a-inner">
+            <p>No. AeroVRC runs entirely <em>outside</em> the game — it doesn&rsquo;t inject, hook, read game memory or
+            automate anything in VRChat. It only launches VRChat, watches whether the process is running, reads the
+            public log files, and manages your own companion apps and Windows settings. In fact VRChat&rsquo;s anti-cheat
+            (EasyAntiCheat) actively blocks outside programs from touching the game&rsquo;s process — so strictly that
+            AeroVRC can&rsquo;t even change VRChat&rsquo;s CPU priority while EAC is running. Nothing it does is the kind of
+            thing anti-cheat bans for.</p>
+          </div></div>
+        </details>
+        <details id="affiliation">
+          <summary><span class="faq-num" aria-hidden="true">03</span><span class="faq-q">Is this affiliated with VRChat?</span></summary>
+          <div class="faq-a"><div class="faq-a-inner">
+            <p>No. AeroVRC is an independent, unofficial companion tool. VRChat is a trademark of VRChat Inc.,
+            and AeroVRC is not endorsed by or associated with them.</p>
+          </div></div>
+        </details>
+        <details id="privacy">
+          <summary><span class="faq-num" aria-hidden="true">04</span><span class="faq-q">What data does AeroVRC collect?</span></summary>
+          <div class="faq-a"><div class="faq-a-inner">
+            <p>None that leaves your PC. There&rsquo;s no account, no telemetry and no tracking — everything is read
+            locally and read-only. The full breakdown is on the <a href="privacy.html">privacy page</a>.</p>
+          </div></div>
+        </details>
+      </div>
+    </div>
+
+    <div class="faq-group" id="g-start">
+      <h2 class="faq-label reveal">Getting Started</h2>
+      <div class="faq" data-stagger>
+        <details id="cost">
+          <summary><span class="faq-num" aria-hidden="true">05</span><span class="faq-q">Does it cost anything?</span></summary>
+          <div class="faq-a"><div class="faq-a-inner">
+            <p>No. AeroVRC is completely free.</p>
+          </div></div>
+        </details>
+        <details id="portable">
+          <summary><span class="faq-num" aria-hidden="true">06</span><span class="faq-q">Do I need to install it?</span></summary>
+          <div class="faq-a"><div class="faq-a-inner">
+            <p>No installer — it&rsquo;s a single portable <code>.exe</code>. Put it wherever you like and run it.
+            Settings are saved to your Windows <code>%APPDATA%</code> folder.</p>
+          </div></div>
+        </details>
+        <details id="smartscreen">
+          <summary><span class="faq-num" aria-hidden="true">07</span><span class="faq-q">Why does Windows warn me when I open it?</span></summary>
+          <div class="faq-a"><div class="faq-a-inner">
+            <p>AeroVRC isn&rsquo;t code-signed (certificates are expensive for a free tool), so SmartScreen shows a
+            generic &ldquo;unrecognized app&rdquo; prompt. Choose <em>More info → Run anyway</em>. You can always
+            re-download from the <a href="download.html">download page</a> to be sure you have the official build.</p>
+          </div></div>
+        </details>
+        <details id="get-started">
+          <summary><span class="faq-num" aria-hidden="true">08</span><span class="faq-q">How do I get started?</span></summary>
+          <div class="faq-a"><div class="faq-a-inner">
+            <p>Download the portable <code>.exe</code>, run it, and click <strong>Start Monitoring</strong>. The full
+            two-minute walkthrough — including adding your companion apps — is on the
+            <a href="quickstart.html">Quick Start</a> page.</p>
+          </div></div>
+        </details>
+      </div>
+    </div>
+
+    <div class="faq-group" id="g-system">
+      <h2 class="faq-label reveal">Your System</h2>
+      <div class="faq" data-stagger>
+        <details id="tweaks">
+          <summary><span class="faq-num" aria-hidden="true">09</span><span class="faq-q">Do the performance tweaks change my system?</span></summary>
+          <div class="faq-a"><div class="faq-a-inner">
+            <p>The Optimization page applies well-known Windows settings (like disabling Game DVR) that improve
+            VRChat performance. Each tweak is explained in plain English before you apply it, and they&rsquo;re all
+            standard, reversible Windows options.</p>
+          </div></div>
+        </details>
+      </div>
+    </div>
+
+    <div class="faq-cta reveal">
+      <p>Didn&rsquo;t find your answer?</p>
+      <div class="contact-links">
+        <a class="pill-link" href="contact.html">Send a message</a>
+        <a class="pill-link" href="quickstart.html">Read the Quick Start</a>
+      </div>
     </div>
   </section>
 
@@ -120,10 +356,92 @@
         <span class="brand-name">AeroVRC</span>
       </div>
       <p class="foot-note">An independent companion for VRChat · Not affiliated with VRChat Inc.</p>
-      <p class="foot-copy">© <span data-year>2026</span> AeroVRC · <a href="index.html">Welcome</a> · <a href="changelog.html">Changelog</a> · <a href="https://github.com/CalamityTheWatcher/AeroVRC" target="_blank" rel="noopener">GitHub</a></p>
+      <p class="foot-copy">© <span data-year>2026</span> AeroVRC · <a href="index.html">Welcome</a> · <a href="quickstart.html">Quick Start</a> · <a href="privacy.html">Privacy</a> · <a href="changelog.html">Changelog</a> · <a href="https://github.com/CalamityTheWatcher/AeroVRC" target="_blank" rel="noopener">GitHub</a></p>
     </div>
   </footer>
 
   <script src="app.js"></script>
+  <script>
+    /* ===== FAQ page script — freeze plumbing, disclosure glide, deep links ===== */
+
+    /* freeze: pause page CSS animations whenever the window is unfocused/hidden */
+    (function(){
+      if (matchMedia("(prefers-reduced-motion: reduce)").matches) return; // already static
+      function set(on){ document.body.classList.toggle("frozen", !on); }
+      addEventListener("blur",  function(){ set(false); });
+      addEventListener("focus", function(){ set(true); });
+      document.addEventListener("visibilitychange", function(){ set(!document.hidden && document.hasFocus()); });
+      set(!document.hidden && document.hasFocus());   // correct even when loaded unfocused
+    })();
+
+    /* disclosure glide: grid-rows 0fr→1fr; native <details> semantics preserved.
+       .collapsing is transient — the resting state is always OPEN. */
+    (function faqAnim(){
+      var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+      var items = document.querySelectorAll(".faq details");
+      var DUR = 420; // transition 380ms + margin
+
+      items.forEach(function(d){
+        var summary = d.querySelector("summary");
+
+        // hash bookkeeping + external-open cleanup (find-in-page auto-expand,
+        // hash-open, dev tools) — toggle fires for EVERY open state change
+        d.addEventListener("toggle", function(){
+          if (d.open){
+            if (!d.__anim) d.classList.remove("collapsing");     // opened outside our flow
+            try { history.replaceState(null, "", "#" + d.id); } catch(e){}
+          } else if (location.hash === "#" + d.id) {
+            try { history.replaceState(null, "", location.pathname + location.search); } catch(e){}
+          }
+        });
+
+        if (reduce || !summary) return;      // reduced-motion: pure native, no animator
+
+        summary.addEventListener("click", function(e){
+          e.preventDefault();
+          if (d.__anim) return;              // debounce mid-flight clicks
+          d.__anim = true;
+          var done = function(fn){           // transitionend OR timeout, whichever first
+            var fired = false, h = function(){ if (fired) return; fired = true;
+              d.removeEventListener("transitionend", h); clearTimeout(t); fn(); };
+            d.addEventListener("transitionend", h);
+            var t = setTimeout(h, DUR);
+          };
+          if (d.open){                       // CLOSE: 1fr -> 0fr, then let native hide
+            d.classList.add("collapsing");
+            done(function(){ d.open = false; d.classList.remove("collapsing"); d.__anim = false; });
+          } else {                           // OPEN: render at 0fr, glide to resting 1fr
+            d.classList.add("collapsing");
+            d.open = true;
+            requestAnimationFrame(function(){ requestAnimationFrame(function(){
+              d.classList.remove("collapsing");
+              done(function(){ d.__anim = false; });
+            }); });
+          }
+        });
+      });
+    })();
+
+    /* deep links: #safe, #eac-ban, #smartscreen, … open on arrival + hashchange */
+    (function deepLink(){
+      var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+      function openFromHash(){
+        var id = location.hash.slice(1);
+        if (!id) return;
+        var d = document.getElementById(id);
+        if (d && d.tagName === "DETAILS"){
+          d.open = true;                                   // instant (arrival, not interaction)
+          requestAnimationFrame(function(){
+            d.scrollIntoView({block:"start", behavior: reduce ? "auto" : "smooth"});
+          });
+        }
+      }
+      addEventListener("hashchange", openFromHash);
+      openFromHash();
+    })();
+  </script>
+  <!-- shared cosmic sky + input polish (GSAP pinned, classic, before the module) -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script type="module" src="cosmic-sky.js"></script>
 </body>
 </html>

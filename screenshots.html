@@ -2,9 +2,6 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <!-- ===== MAINTENANCE MODE: site locked. Delete this block (and restore app.js) to bring the site back. ===== -->
-  <script>location.replace("/");</script>
-  <noscript><meta http-equiv="refresh" content="0; url=/" /></noscript>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Screenshots — AeroVRC</title>
   <meta name="description" content="Real screens from AeroVRC — the dashboard, apps, presets, statistics, settings and performance tools, in one hand-built dark theme." />
@@ -21,11 +18,245 @@
   <link rel="icon" href="favicon.ico" />
   <link rel="stylesheet" href="style.css" />
 
-  <script>window.AEROVRC_REPO = "CalamityTheWatcher/AeroVRC";</script>
-</head>
-<body>
+  <!-- Display face only — body copy stays on Segoe UI to match the app and
+       the rest of the site. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&display=swap" rel="stylesheet" />
 
-  <canvas id="sparkles" aria-hidden="true"></canvas>
+  <!-- the LCP image warms up in the first network wave -->
+  <link rel="preload" as="image" href="img/cs_dashboard_full.png" fetchpriority="high" />
+
+  <script>window.AEROVRC_REPO = "CalamityTheWatcher/AeroVRC";</script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ImageGallery",
+    "name": "AeroVRC screenshots",
+    "url": "https://aerovrc.com/screenshots.html",
+    "associatedMedia": [
+      {"@type":"ImageObject","contentUrl":"https://aerovrc.com/img/cs_dashboard_full.png","name":"Dashboard","description":"The dashboard. Monitoring status, your current world, and the live telemetry grid — uptime, in-world time, players nearby, the played-today goal ring — with hardware & tracking status underneath, always up to date.","width":1120,"height":832},
+      {"@type":"ImageObject","contentUrl":"https://aerovrc.com/img/cs_players.png","name":"Players","description":"Players. A live who’s-here roster with join times, watchlist stars and per-player notes — export the roster or look anyone up.","width":1120,"height":680},
+      {"@type":"ImageObject","contentUrl":"https://aerovrc.com/img/cs_hardware.png","name":"Hardware","description":"Hardware. Live sensors while VRChat runs — GPU, VRAM, temps, frame rate, ping and memory, each with a rolling 10-minute graph.","width":1120,"height":680},
+      {"@type":"ImageObject","contentUrl":"https://aerovrc.com/img/cs_apps.png","name":"Apps","description":"Apps. Add your OSC tools, trackers and utilities by .exe path or Steam App ID, then let AeroVRC open them the moment monitoring starts.","width":1120,"height":680},
+      {"@type":"ImageObject","contentUrl":"https://aerovrc.com/img/cs_presets.png","name":"Presets","description":"Presets. Group your apps into one-click sets — tick Auto-launch to open a whole preset the moment monitoring begins.","width":1120,"height":680},
+      {"@type":"ImageObject","contentUrl":"https://aerovrc.com/img/cs_statistics.png","name":"Statistics","description":"Statistics. Playtime charts, an activity heatmap, session lengths and restart counts — with daily and weekly goals, so you can watch the watchdog earn its keep.","width":1120,"height":680},
+      {"@type":"ImageObject","contentUrl":"https://aerovrc.com/img/cs_settings.png","name":"Settings","description":"Settings. Deep, friendly controls — crash and break alerts, automation, hardware monitoring, integrations, bedtime/sleep, watchlists and more.","width":1120,"height":680},
+      {"@type":"ImageObject","contentUrl":"https://aerovrc.com/img/cs_settings_perf.png","name":"Performance","description":"Performance. One toggle frees up resources for VRChat by closing the apps you list — then reopens them afterwards — plus VRChat cache management.","width":1120,"height":680}
+    ]
+  }
+  </script>
+
+  <style>
+    /* ============================================================
+       Screenshots — "The Observation Deck". The visitor inspects the
+       real product one screen at a time: filmstrip wayfinding, a
+       floating glass stage, and a full-resolution lightbox. All
+       rules scoped under body.screens-cosmic; style.css untouched.
+       Image pool is EXACTLY the eight audited captures on this page
+       (plus the dashboard og image) — nothing else may be added.
+       ============================================================ */
+    body.screens-cosmic{
+      --bg-deep:#040816; --cyan:#00f0ff;
+      --font-display:"Chakra Petch","Segoe UI",system-ui,sans-serif;
+      background:
+        radial-gradient(1100px 700px at 18% 8%, rgba(74,156,255,.13), transparent 60%),
+        radial-gradient(900px 640px at 84% 30%, rgba(0,240,255,.06), transparent 60%),
+        radial-gradient(760px 560px at 62% 90%, rgba(88,101,242,.09), transparent 62%),
+        linear-gradient(180deg,#0a1230 0%, var(--bg-deep) 58%);
+      background-attachment:fixed;
+    }
+    /* vignette — a body pseudo-element dodges style.css's body>* stacking trap */
+    body.screens-cosmic::after{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;
+      background:radial-gradient(120% 100% at 50% 45%, transparent 55%, rgba(2,5,14,.55) 100%)}
+    /* living film grain so the gradients never band (freeze zeroes its cost).
+       !important: style.css's body>* stacking rule carries ID-level specificity
+       via an ID inside :not(), so position AND z-index both need the hammer. */
+    .grain{
+      position:fixed !important;inset:-8%;z-index:3 !important;pointer-events:none;opacity:.028;mix-blend-mode:overlay;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      animation:grainShift .9s steps(8) infinite;
+    }
+    @keyframes grainShift{
+      0%{transform:translate(0,0)}12.5%{transform:translate(-2%,1%)}25%{transform:translate(1%,-2%)}
+      37.5%{transform:translate(-1%,2%)}50%{transform:translate(2%,1%)}62.5%{transform:translate(-2%,-1%)}
+      75%{transform:translate(1%,2%)}87.5%{transform:translate(2%,-2%)}100%{transform:translate(0,0)}
+    }
+    /* JS adds .frozen when the tab loses focus / is hidden — halt every CSS
+       animation so an unwatched page costs the compositor ~0 GPU */
+    body.frozen *,body.frozen *::before,body.frozen *::after{animation-play-state:paused !important}
+
+    /* solid tints — NO backdrop-filter over the animated grain */
+    body.screens-cosmic .nav{background:rgba(4,8,22,.85);
+      backdrop-filter:none;-webkit-backdrop-filter:none}
+    body.screens-cosmic .nav.scrolled{background:rgba(4,8,22,.96)}
+    body.screens-cosmic .footer{background:rgba(4,8,22,.72);border-top-color:rgba(130,198,255,.16)}
+
+    /* ---------- cosmic hero head ---------- */
+    .screens-hero h1{font-family:var(--font-display);font-size:clamp(2.2rem,5vw,3.4rem);
+      letter-spacing:-.01em;text-shadow:0 2px 24px rgba(4,8,22,.9)}
+    .screens-hero p{text-shadow:0 1px 12px rgba(4,8,22,.85)}
+    .screens-kicker{display:inline-flex;align-items:center;margin-bottom:1rem;
+      font:600 .72rem/1 var(--font-display);letter-spacing:.14em;text-transform:uppercase;
+      color:var(--cyan);padding:.5em 1em;border-radius:999px;
+      background:rgba(0,240,255,.06);border:1px solid rgba(0,240,255,.3)}
+    .screens-tele{margin-top:1rem;font:600 .62rem/1.6 var(--font-display);
+      letter-spacing:.18em;text-transform:uppercase;color:rgba(147,164,199,.62)}
+
+    /* ---------- filmstrip wayfinding ---------- */
+    .gal{max-width:min(1240px,94vw);margin:0 auto}
+    .gal-strip{display:flex;flex-wrap:wrap;justify-content:center;gap:.55rem;margin-bottom:.6rem}
+    .gal-thumb{flex:none;width:clamp(64px,8.5vw,96px);padding:3px;border-radius:9px;
+      border:1px solid rgba(130,198,255,.18);background:rgba(10,16,40,.55);cursor:pointer;
+      transition:border-color .2s,box-shadow .2s,transform .2s}
+    .gal-thumb img{display:block;width:100%;height:auto;border-radius:6px;opacity:.55;transition:opacity .2s}
+    .gal-thumb span{display:block;margin:.35rem 0 .1rem;text-align:center;
+      font:600 .56rem/1 var(--font-display);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+    .gal-thumb:hover{border-color:rgba(130,198,255,.4)}
+    .gal-thumb:hover img{opacity:.8}
+    .gal-thumb.is-active{border-color:rgba(0,240,255,.55);box-shadow:0 0 14px rgba(0,240,255,.28)}
+    .gal-thumb.is-active img{opacity:1}
+    .gal-thumb.is-active span{color:var(--cyan)}
+    .gal-thumb:focus-visible{outline:2px solid var(--accent-hi);outline-offset:3px}
+    .gal-counter{text-align:center;margin:.2rem 0 1rem;font:600 .68rem/1 var(--font-display);
+      letter-spacing:.2em;color:var(--muted)}
+    .gal-counter b{color:var(--cyan);font-weight:600}
+
+    /* ---------- floating glass stage ---------- */
+    .gal-stagewrap{perspective:1100px;touch-action:pan-y;margin-top:1.7rem}
+    /* resting tilt stays subtle (≤2.5deg, the workspace-card amplitude) —
+       the stage should read flat-ish with gentle drift, not a skewed billboard */
+    .gal-stage{display:grid;--ry:-2deg;--rx:.8deg;animation:galBob 9s ease-in-out infinite}
+    @keyframes galBob{
+      0%,100%{transform:perspective(1100px) rotateY(var(--ry,0deg)) rotateX(var(--rx,0deg)) translateY(0)}
+      50%{transform:perspective(1100px) rotateY(var(--ry,0deg)) rotateX(var(--rx,0deg)) translateY(-6px)}
+    }
+    /* all 8 panels share one grid cell — the cell holds the tallest panel's
+       height, so switching screens never jumps the page (CLS-free by
+       construction); cross-fade is opacity-only, visibility delays the hide */
+    .gal-panel{grid-area:1/1;display:flex;flex-direction:column;min-width:0;
+      opacity:0;visibility:hidden;transition:opacity .45s ease,visibility 0s linear .45s;pointer-events:none}
+    .gal-panel.is-active{opacity:1;visibility:visible;transition:opacity .45s ease;pointer-events:auto}
+    .gal-shotzone{flex:1;display:flex;align-items:center;justify-content:center}
+    /* figure = shadow + HUD tag (no clipping); inner div = radius/overflow clip.
+       The frame shrink-wraps its capped image and centers in the stage. */
+    .gal-shot{position:relative;margin:0 auto;width:-moz-fit-content;width:fit-content;max-width:100%;
+      border-radius:12px;
+      box-shadow:var(--lit),0 30px 70px -28px rgba(0,0,0,.85),0 10px 30px -16px rgba(28,92,200,.45)}
+    .gal-shot-clip{position:relative;overflow:hidden;border-radius:12px;background:var(--nav);
+      border:1px solid var(--border-hi)}
+    /* viewport-aware cap: the WHOLE active panel + caption must fit below the
+       hero at 1280×800 — letterbox inside a capped stage, never a full-bleed
+       990px slab. Grid-stack still holds the tallest panel, so no height jump. */
+    .gal-shot-clip img{display:block;width:auto;height:auto;max-height:min(56vh,760px);max-width:min(90vw,1120px)}
+    /* depth-dim hook — an overlay wash, never a filter; parked at 0 */
+    .gal-shot-clip::after{content:"";position:absolute;inset:0;pointer-events:none;background:rgba(6,10,26,var(--dim,0))}
+    .gal-zoom{display:block;cursor:zoom-in}
+    .gal-zoom:focus-visible{outline:2px solid var(--accent-hi);outline-offset:3px}
+    /* travelling specular glare — transform-only, compositor-cheap */
+    .gal-glare{position:absolute;inset:-40%;pointer-events:none;z-index:2;
+      background:linear-gradient(115deg,transparent 42%,rgba(255,255,255,.09) 50%,transparent 58%);
+      transform:translateX(-70%);animation:galGlare 10s ease-in-out infinite}
+    @keyframes galGlare{0%,55%{transform:translateX(-70%)}80%,100%{transform:translateX(70%)}}
+    .gal-tag{position:absolute;top:-1.3rem;left:2px;font:600 .58rem/1 var(--font-display);
+      letter-spacing:.15em;text-transform:uppercase;color:rgba(147,164,199,.75);white-space:nowrap}
+
+    /* ---------- HUD caption ---------- */
+    .gal-cap{max-width:64ch;margin:1.05rem auto 0;text-align:center}
+    .gal-chip{display:inline-flex;align-items:center;font:600 .6rem/1 var(--font-display);
+      letter-spacing:.14em;text-transform:uppercase;color:var(--cyan);padding:.45em .9em;
+      border-radius:999px;background:rgba(0,240,255,.06);border:1px solid rgba(0,240,255,.3)}
+    .gal-cap p{color:var(--muted);font-size:.95rem;margin:.55rem auto 0}
+    .gal-cap p strong{color:var(--text);font-weight:600}
+    .gal-ticks{list-style:none;padding:0;margin:.8rem auto 0;display:flex;flex-wrap:wrap;gap:.5rem 1.3rem;justify-content:center}
+    .gal-ticks li{display:inline-flex;align-items:center;gap:.4rem;
+      font:600 .66rem/1.4 var(--font-display);letter-spacing:.1em;text-transform:uppercase;color:var(--accent-hi)}
+    .gal-ticks li svg{width:12px;height:12px;flex:none;fill:none;stroke:var(--success);stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+
+    /* ---------- "power on" entrance (rides the shared .reveal observer) ---------- */
+    .js .gal.reveal.in .gal-panel.is-active .gal-shot-clip img{animation:galBoot .8s steps(6,end) .25s both}
+    @keyframes galBoot{from{clip-path:inset(0 0 100% 0)}to{clip-path:inset(0 0 0 0)}}
+    .gal-scan{position:absolute;left:0;right:0;top:0;height:3px;z-index:3;opacity:0;pointer-events:none;
+      background:linear-gradient(90deg,transparent,var(--accent-hi),transparent);
+      box-shadow:0 0 14px rgba(74,156,255,.8)}
+    .js .gal.reveal.in .gal-panel.is-active .gal-scan{animation:galScan .8s linear .25s forwards}
+    @keyframes galScan{0%{opacity:1;top:0}88%{opacity:1}100%{top:calc(100% - 3px);opacity:0}}
+
+    /* ---------- closing CTA band ---------- */
+    .screens-cta{text-align:center;margin-top:3.2rem}
+    .screens-cta-line{color:var(--muted);margin:0 0 1.1rem}
+
+    /* ---------- lightbox: the 1120px masters, finally 1:1 ----------
+       position/z-index !important: the stacking-trap hammer; z-90 sits
+       above the nav (50) and the scroll-progress bar (60).
+       Solid tint background — no backdrop-filter over the grain. */
+    #lightbox{position:fixed !important;inset:0;z-index:90 !important;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      background:rgba(4,8,22,.92);padding:2.5rem 1rem}
+    #lightbox[hidden]{display:none}
+    .lb-fig{margin:0;opacity:0;transform:scale(.985);transition:opacity .18s ease,transform .18s ease}
+    #lightbox.on .lb-fig{opacity:1;transform:none}
+    .lb-img{display:block;max-width:min(1120px,94vw);max-height:82vh;width:auto;height:auto;
+      border-radius:10px;border:1px solid var(--border-hi);box-shadow:0 40px 120px -30px rgba(0,0,0,.95)}
+    .lb-cap{margin-top:.85rem;display:flex;gap:.9rem;align-items:baseline;justify-content:center;flex-wrap:wrap;
+      text-align:center;color:var(--muted);font-size:.9rem;max-width:72ch}
+    .lb-count{font:600 .68rem/1 var(--font-display);letter-spacing:.2em;color:var(--cyan);flex:none}
+    #lightbox button{position:absolute;display:grid;place-items:center;width:46px;height:46px;padding:0;
+      border-radius:50%;border:1px solid rgba(130,198,255,.35);background:rgba(10,16,40,.85);
+      color:var(--text);cursor:pointer;transition:border-color .2s,box-shadow .2s}
+    #lightbox button:hover{border-color:var(--cyan);box-shadow:0 0 14px rgba(0,240,255,.35)}
+    #lightbox button:focus-visible{outline:2px solid var(--accent-hi);outline-offset:3px}
+    #lightbox button svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    .lb-close{top:1rem;right:1rem}
+    .lb-prev{left:1rem;top:50%;margin-top:-23px}
+    .lb-next{right:1rem;top:50%;margin-top:-23px}
+
+    /* ---------- reduced motion: fully static, fully functional ---------- */
+    @media (prefers-reduced-motion:reduce){
+      .grain{animation:none}
+      .gal-glare,.gal-scan{display:none}
+      .gal-stage{animation:none}
+      .js .gal.reveal.in .gal-panel.is-active .gal-shot-clip img{clip-path:none!important;animation:none!important}
+    }
+
+    /* ---------- responsive ---------- */
+    @media (max-width:760px){
+      .gal-strip{flex-wrap:nowrap;overflow-x:auto;scroll-snap-type:x proximity;justify-content:flex-start;
+        -webkit-overflow-scrolling:touch;padding-bottom:.35rem}
+      .gal-thumb{flex:0 0 76px;scroll-snap-align:center}
+      .gal-stage{animation:none}   /* the tilt reads poorly at small sizes */
+      body.screens-cosmic .nav-links{backdrop-filter:none;-webkit-backdrop-filter:none}
+    }
+    @media (max-width:560px){
+      #lightbox{padding:1.2rem .6rem}
+      .lb-close{top:.6rem;right:.6rem}
+      .lb-prev{left:.4rem}
+      .lb-next{right:.4rem}
+    }
+  </style>
+
+  <!-- three.js via import map — same pinned build as the flagship splash.
+       cosmic-sky.js paints the living backdrop; the CSS sky above is the
+       no-WebGL / reduced-motion floor. -->
+  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.module.js" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.166.1/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body class="screens-cosmic">
+
+  <!-- shared cosmic sky (WebGL) — layered behind everything. Inline
+       !important: style.css's body>* stacking trap would otherwise turn
+       this fixed layer into a flow block. -->
+  <canvas id="sky" aria-hidden="true" style="position:fixed !important;inset:0 !important;z-index:0 !important;display:block"></canvas>
+
+  <div class="grain" aria-hidden="true"></div>
 
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
     <defs>
@@ -61,6 +292,7 @@
       <nav class="nav-links" id="navlinks">
         <a href="features.html">Features</a>
         <a href="screenshots.html" aria-current="page">Screenshots</a>
+        <a href="quickstart.html">Quick Start</a>
         <a href="changelog.html">Changelog</a>
         <a href="faq.html">FAQ</a>
         <a href="contact.html">Contact</a>
@@ -71,70 +303,284 @@
 
   <!-- ================= SCREENSHOTS ================= -->
   <section class="section" id="screens">
-    <div class="section-head reveal">
-      <h1>Take a look</h1>
+    <div class="section-head screens-hero reveal">
+      <span class="screens-kicker">Real pixels · Nothing staged</span>
+      <h1>Real AeroVRC <span class="grad">screenshots</span></h1>
       <p>Real screens from the app — one hand-built dark theme across every page, tuned to sit right next to VRChat.</p>
+      <p class="screens-tele" aria-hidden="true">08 SCREENS&nbsp;·&nbsp;1120PX CAPTURES&nbsp;·&nbsp;ZERO RETOUCH</p>
     </div>
 
-    <div class="tabs reveal" data-tabs>
-      <div class="tab-btns" role="tablist" aria-label="AeroVRC screens">
-        <button class="tab-btn is-active" id="tabbtn-dashboard" role="tab" aria-selected="true" aria-controls="tab-dashboard" data-tab-btn data-tab="dashboard">Dashboard</button>
-        <button class="tab-btn" id="tabbtn-apps" role="tab" aria-selected="false" tabindex="-1" aria-controls="tab-apps" data-tab-btn data-tab="apps">Apps</button>
-        <button class="tab-btn" id="tabbtn-presets" role="tab" aria-selected="false" tabindex="-1" aria-controls="tab-presets" data-tab-btn data-tab="presets">Presets</button>
-        <button class="tab-btn" id="tabbtn-stats" role="tab" aria-selected="false" tabindex="-1" aria-controls="tab-stats" data-tab-btn data-tab="stats">Statistics</button>
-        <button class="tab-btn" id="tabbtn-settings" role="tab" aria-selected="false" tabindex="-1" aria-controls="tab-settings" data-tab-btn data-tab="settings">Settings</button>
-        <button class="tab-btn" id="tabbtn-perf" role="tab" aria-selected="false" tabindex="-1" aria-controls="tab-perf" data-tab-btn data-tab="perf">Performance</button>
+    <!-- The Observation Deck gallery. Image pool is EXACTLY the eight audited
+         captures below — nothing else may ever be added to this page. -->
+    <div class="gal reveal" id="gallery">
+      <div class="gal-strip" role="tablist" aria-label="AeroVRC screens">
+        <button class="gal-thumb is-active" id="tabbtn-dashboard" role="tab" aria-selected="true" aria-controls="tab-dashboard">
+          <img src="img/cs_dashboard_full.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="1120" height="832" />
+          <span>Dashboard</span>
+        </button>
+        <button class="gal-thumb" id="tabbtn-players" role="tab" aria-selected="false" tabindex="-1" aria-controls="tab-players">
+          <img src="img/cs_players.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="1120" height="680" />
+          <span>Players</span>
+        </button>
+        <button class="gal-thumb" id="tabbtn-hardware" role="tab" aria-selected="false" tabindex="-1" aria-controls="tab-hardware">
+          <img src="img/cs_hardware.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="1120" height="680" />
+          <span>Hardware</span>
+        </button>
+        <button class="gal-thumb" id="tabbtn-apps" role="tab" aria-selected="false" tabindex="-1" aria-controls="tab-apps">
+          <img src="img/cs_apps.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="1120" height="680" />
+          <span>Apps</span>
+        </button>
+        <button class="gal-thumb" id="tabbtn-presets" role="tab" aria-selected="false" tabindex="-1" aria-controls="tab-presets">
+          <img src="img/cs_presets.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="1120" height="680" />
+          <span>Presets</span>
+        </button>
+        <button class="gal-thumb" id="tabbtn-stats" role="tab" aria-selected="false" tabindex="-1" aria-controls="tab-stats">
+          <img src="img/cs_statistics.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="1120" height="680" />
+          <span>Statistics</span>
+        </button>
+        <button class="gal-thumb" id="tabbtn-settings" role="tab" aria-selected="false" tabindex="-1" aria-controls="tab-settings">
+          <img src="img/cs_settings.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="1120" height="680" />
+          <span>Settings</span>
+        </button>
+        <button class="gal-thumb" id="tabbtn-perf" role="tab" aria-selected="false" tabindex="-1" aria-controls="tab-perf">
+          <img src="img/cs_settings_perf.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="1120" height="680" />
+          <span>Performance</span>
+        </button>
       </div>
-      <div class="tab-panels">
-        <div class="tab-panel is-active" id="tab-dashboard" role="tabpanel" aria-labelledby="tabbtn-dashboard" data-tab-panel="dashboard">
-          <figure class="shot-frame">
-            <img src="img/cs_dashboard_full.png" width="1120" height="1460" loading="lazy" decoding="async"
-                 alt="The full AeroVRC dashboard: session and performance stat cards with sparklines, a real frame-time graph with 60 and 90 FPS reference lines, system info, and the who's-here roster." />
-          </figure>
-          <p class="tab-cap"><strong>The dashboard.</strong> Current world and instance, live session stats, a rolling frame-time graph, hardware readouts and a live who&rsquo;s-here roster — one screen, always up to date.</p>
-        </div>
-        <div class="tab-panel" id="tab-apps" role="tabpanel" aria-labelledby="tabbtn-apps" data-tab-panel="apps">
-          <figure class="shot-frame">
-            <img src="img/cs_apps.png" width="1120" height="680" loading="lazy" decoding="async"
-                 alt="The Apps page listing companion apps — SlimeVR (auto-launch on) and Virtual Desktop — each with Launch, Auto-launch, Edit and Remove controls." />
-          </figure>
-          <p class="tab-cap"><strong>Apps.</strong> Add your OSC tools, trackers and utilities by <code>.exe</code> path or Steam App ID, then let AeroVRC open them the moment monitoring starts.</p>
-        </div>
-        <div class="tab-panel" id="tab-presets" role="tabpanel" aria-labelledby="tabbtn-presets" data-tab-panel="presets">
-          <figure class="shot-frame">
-            <img src="img/cs_presets.png" width="1120" height="680" loading="lazy" decoding="async"
-                 alt="The Presets page showing a 'Full Body VR' preset with Auto-launch enabled and Launch, Edit and Delete controls." />
-          </figure>
-          <p class="tab-cap"><strong>Presets.</strong> Group your apps into one-click sets — tick Auto-launch to open a whole preset the moment monitoring begins.</p>
-        </div>
-        <div class="tab-panel" id="tab-stats" role="tabpanel" aria-labelledby="tabbtn-stats" data-tab-panel="stats">
-          <figure class="shot-frame">
-            <img src="img/cs_statistics.png" width="1120" height="680" loading="lazy" decoding="async"
-                 alt="The Statistics page with a 7-day playtime bar chart, a 17-week activity heatmap, and cards for total playtime, longest session, sessions recorded and restarts." />
-          </figure>
-          <p class="tab-cap"><strong>Statistics.</strong> Playtime charts, an activity heatmap, session lengths and restart counts — with daily and weekly goals, so you can watch the watchdog earn its keep.</p>
-        </div>
-        <div class="tab-panel" id="tab-settings" role="tabpanel" aria-labelledby="tabbtn-settings" data-tab-panel="settings">
-          <figure class="shot-frame">
-            <img src="img/cs_settings.png" width="1120" height="680" loading="lazy" decoding="async"
-                 alt="The Settings page on the Alerts tab, with tabs for Appearance, Automation, Bedtime/Sleep, Hardware Monitoring, Integrations, Performance, Player Watchlist, Scheduled Launch, World Block List and Worlds." />
-          </figure>
-          <p class="tab-cap"><strong>Settings.</strong> Deep, friendly controls — crash and break alerts, automation, hardware monitoring, integrations, bedtime/sleep, watchlists and more.</p>
-        </div>
-        <div class="tab-panel" id="tab-perf" role="tabpanel" aria-labelledby="tabbtn-perf" data-tab-panel="perf">
-          <figure class="shot-frame">
-            <img src="img/cs_settings_perf.png" width="1120" height="680" loading="lazy" decoding="async"
-                 alt="The Settings Performance tab showing Performance Mode (apps to close on toggle) and VRChat Cache controls for max size, expiry and cache folder." />
-          </figure>
-          <p class="tab-cap"><strong>Performance.</strong> One toggle frees up resources for VRChat by closing the apps you list — then reopens them afterwards — plus VRChat cache management.</p>
+      <p class="gal-counter" aria-hidden="true"><b data-gal-n>01</b> / 08</p>
+
+      <div class="gal-stagewrap">
+        <div class="gal-stage">
+          <section class="gal-panel is-active" id="tab-dashboard" role="tabpanel" aria-labelledby="tabbtn-dashboard">
+            <div class="gal-shotzone">
+              <figure class="gal-shot">
+                <span class="gal-tag" aria-hidden="true">Dashboard · Live telemetry</span>
+                <div class="gal-shot-clip">
+                  <a class="gal-zoom" href="img/cs_dashboard_full.png">
+                    <img src="img/cs_dashboard_full.png" width="1120" height="832" loading="eager" fetchpriority="high" decoding="async"
+                         aria-describedby="cap-dashboard"
+                         alt="The AeroVRC dashboard: monitoring status and quick toggles, the current world card (The Great Pug), a telemetry grid with uptime, in-world time, players nearby and a played-today goal ring, plus hardware and tracking status cells." />
+                  </a>
+                  <span class="gal-scan" aria-hidden="true"></span>
+                  <span class="gal-glare" aria-hidden="true"></span>
+                </div>
+              </figure>
+            </div>
+            <div class="gal-cap" id="cap-dashboard">
+              <span class="gal-chip" aria-hidden="true">01 · Dashboard</span>
+              <p><strong>The dashboard.</strong> Monitoring status, your current world, and the live telemetry grid — uptime, in-world time, players nearby, the played-today goal ring — with hardware &amp; tracking status underneath, always up to date.</p>
+              <ul class="gal-ticks">
+                <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-4-4"/></svg>Uptime &amp; in-world time</li>
+                <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-4-4"/></svg>Players nearby</li>
+                <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-4-4"/></svg>Played-today goal ring</li>
+              </ul>
+            </div>
+          </section>
+          <section class="gal-panel" id="tab-players" role="tabpanel" aria-labelledby="tabbtn-players">
+            <div class="gal-shotzone">
+              <figure class="gal-shot">
+                <span class="gal-tag" aria-hidden="true">Players · Instance roster</span>
+                <div class="gal-shot-clip">
+                  <a class="gal-zoom" href="img/cs_players.png">
+                    <img src="img/cs_players.png" width="1120" height="680" loading="lazy" decoding="async"
+                         aria-describedby="cap-players"
+                         alt="The Players page: a live who's-here roster with join times, watchlist stars and per-player notes, plus Export roster and Look up player actions." />
+                  </a>
+                  <span class="gal-scan" aria-hidden="true"></span>
+                  <span class="gal-glare" aria-hidden="true"></span>
+                </div>
+              </figure>
+            </div>
+            <div class="gal-cap" id="cap-players">
+              <span class="gal-chip" aria-hidden="true">02 · Players</span>
+              <p><strong>Players.</strong> A live who&rsquo;s-here roster with join times, watchlist stars and per-player notes — export the roster or look anyone up.</p>
+              <ul class="gal-ticks">
+                <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-4-4"/></svg>Join times</li>
+                <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-4-4"/></svg>Watchlist stars</li>
+                <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-4-4"/></svg>Per-player notes</li>
+              </ul>
+            </div>
+          </section>
+          <section class="gal-panel" id="tab-hardware" role="tabpanel" aria-labelledby="tabbtn-hardware">
+            <div class="gal-shotzone">
+              <figure class="gal-shot">
+                <span class="gal-tag" aria-hidden="true">Hardware · Live sensors</span>
+                <div class="gal-shot-clip">
+                  <a class="gal-zoom" href="img/cs_hardware.png">
+                    <img src="img/cs_hardware.png" width="1120" height="680" loading="lazy" decoding="async"
+                         aria-describedby="cap-hardware"
+                         alt="The Hardware page: live sensor gauges for GPU load, VRAM and temperatures, big frame-rate, ping, CPU and disk readouts, and rolling 10-minute graphs for frame rate, ping, memory and CPU." />
+                  </a>
+                  <span class="gal-scan" aria-hidden="true"></span>
+                  <span class="gal-glare" aria-hidden="true"></span>
+                </div>
+              </figure>
+            </div>
+            <div class="gal-cap" id="cap-hardware">
+              <span class="gal-chip" aria-hidden="true">03 · Hardware</span>
+              <p><strong>Hardware.</strong> Live sensors while VRChat runs — GPU, VRAM, temps, frame rate, ping and memory, each with a rolling 10-minute graph.</p>
+              <ul class="gal-ticks">
+                <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-4-4"/></svg>GPU · VRAM · temps</li>
+                <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-4-4"/></svg>Frame rate &amp; ping</li>
+                <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-4-4"/></svg>10-min rolling graphs</li>
+              </ul>
+            </div>
+          </section>
+          <section class="gal-panel" id="tab-apps" role="tabpanel" aria-labelledby="tabbtn-apps">
+            <div class="gal-shotzone">
+              <figure class="gal-shot">
+                <span class="gal-tag" aria-hidden="true">Apps · Companion launcher</span>
+                <div class="gal-shot-clip">
+                  <a class="gal-zoom" href="img/cs_apps.png">
+                    <img src="img/cs_apps.png" width="1120" height="680" loading="lazy" decoding="async"
+                         aria-describedby="cap-apps"
+                         alt="The Apps page listing companion apps — SlimeVR (auto-launch on) and Virtual Desktop — each with Launch, Auto-launch, Edit and Remove controls." />
+                  </a>
+                  <span class="gal-scan" aria-hidden="true"></span>
+                  <span class="gal-glare" aria-hidden="true"></span>
+                </div>
+              </figure>
+            </div>
+            <div class="gal-cap" id="cap-apps">
+              <span class="gal-chip" aria-hidden="true">04 · Apps</span>
+              <p><strong>Apps.</strong> Add your OSC tools, trackers and utilities by <code>.exe</code> path or Steam App ID, then let AeroVRC open them the moment monitoring starts.</p>
+              <ul class="gal-ticks">
+                <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-4-4"/></svg>.exe or Steam App ID</li>
+                <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-4-4"/></svg>Auto-launch</li>
+                <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-4-4"/></svg>SlimeVR · Virtual Desktop</li>
+              </ul>
+            </div>
+          </section>
+          <section class="gal-panel" id="tab-presets" role="tabpanel" aria-labelledby="tabbtn-presets">
+            <div class="gal-shotzone">
+              <figure class="gal-shot">
+                <span class="gal-tag" aria-hidden="true">Presets · One-click sets</span>
+                <div class="gal-shot-clip">
+                  <a class="gal-zoom" href="img/cs_presets.png">
+                    <img src="img/cs_presets.png" width="1120" height="680" loading="lazy" decoding="async"
+                         aria-describedby="cap-presets"
+                         alt="The Presets page showing a 'Full Body VR' preset with Auto-launch enabled and Launch, Edit and Delete controls." />
+                  </a>
+                  <span class="gal-scan" aria-hidden="true"></span>
+                  <span class="gal-glare" aria-hidden="true"></span>
+                </div>
+              </figure>
+            </div>
+            <div class="gal-cap" id="cap-presets">
+              <span class="gal-chip" aria-hidden="true">05 · Presets</span>
+              <p><strong>Presets.</strong> Group your apps into one-click sets — tick Auto-launch to open a whole preset the moment monitoring begins.</p>
+              <ul class="gal-ticks">
+                <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-4-4"/></svg>Group your apps</li>
+                <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-4-4"/></svg>Auto-launch a set</li>
+                <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-4-4"/></svg>Launch · Edit · Delete</li>
+              </ul>
+            </div>
+          </section>
+          <section class="gal-panel" id="tab-stats" role="tabpanel" aria-labelledby="tabbtn-stats">
+            <div class="gal-shotzone">
+              <figure class="gal-shot">
+                <span class="gal-tag" aria-hidden="true">Statistics · Playtime &amp; goals</span>
+                <div class="gal-shot-clip">
+                  <a class="gal-zoom" href="img/cs_statistics.png">
+                    <img src="img/cs_statistics.png" width="1120" height="680" loading="lazy" decoding="async"
+                         aria-describedby="cap-stats"
+                         alt="The Statistics page with a 7-day playtime bar chart, a 17-week activity heatmap, and cards for total playtime, longest session, sessions recorded and restarts." />
+                  </a>
+                  <span class="gal-scan" aria-hidden="true"></span>
+                  <span class="gal-glare" aria-hidden="true"></span>
+                </div>
+              </figure>
+            </div>
+            <div class="gal-cap" id="cap-stats">
+              <span class="gal-chip" aria-hidden="true">06 · Statistics</span>
+              <p><strong>Statistics.</strong> Playtime charts, an activity heatmap, session lengths and restart counts — with daily and weekly goals, so you can watch the watchdog earn its keep.</p>
+              <ul class="gal-ticks">
+                <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-4-4"/></svg>7-day playtime chart</li>
+                <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-4-4"/></svg>Activity heatmap</li>
+                <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-4-4"/></svg>Sessions &amp; restarts</li>
+              </ul>
+            </div>
+          </section>
+          <section class="gal-panel" id="tab-settings" role="tabpanel" aria-labelledby="tabbtn-settings">
+            <div class="gal-shotzone">
+              <figure class="gal-shot">
+                <span class="gal-tag" aria-hidden="true">Settings · Alerts tab</span>
+                <div class="gal-shot-clip">
+                  <a class="gal-zoom" href="img/cs_settings.png">
+                    <img src="img/cs_settings.png" width="1120" height="680" loading="lazy" decoding="async"
+                         aria-describedby="cap-settings"
+                         alt="The Settings page on the Alerts tab, with tabs for Appearance, Automation, Bedtime/Sleep, Hardware Monitoring, Integrations, Performance, Player Watchlist, Scheduled Launch, World Block List and Worlds." />
+                  </a>
+                  <span class="gal-scan" aria-hidden="true"></span>
+                  <span class="gal-glare" aria-hidden="true"></span>
+                </div>
+              </figure>
+            </div>
+            <div class="gal-cap" id="cap-settings">
+              <span class="gal-chip" aria-hidden="true">07 · Settings</span>
+              <p><strong>Settings.</strong> Deep, friendly controls — crash and break alerts, automation, hardware monitoring, integrations, bedtime/sleep, watchlists and more.</p>
+              <ul class="gal-ticks">
+                <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-4-4"/></svg>Crash &amp; break alerts</li>
+                <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-4-4"/></svg>Automation &amp; integrations</li>
+                <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-4-4"/></svg>Bedtime · watchlists</li>
+              </ul>
+            </div>
+          </section>
+          <section class="gal-panel" id="tab-perf" role="tabpanel" aria-labelledby="tabbtn-perf">
+            <div class="gal-shotzone">
+              <figure class="gal-shot">
+                <span class="gal-tag" aria-hidden="true">Settings · Performance mode</span>
+                <div class="gal-shot-clip">
+                  <a class="gal-zoom" href="img/cs_settings_perf.png">
+                    <img src="img/cs_settings_perf.png" width="1120" height="680" loading="lazy" decoding="async"
+                         aria-describedby="cap-perf"
+                         alt="The Settings Performance tab showing Performance Mode (apps to close on toggle) and VRChat Cache controls for max size, expiry and cache folder." />
+                  </a>
+                  <span class="gal-scan" aria-hidden="true"></span>
+                  <span class="gal-glare" aria-hidden="true"></span>
+                </div>
+              </figure>
+            </div>
+            <div class="gal-cap" id="cap-perf">
+              <span class="gal-chip" aria-hidden="true">08 · Performance</span>
+              <p><strong>Performance.</strong> One toggle frees up resources for VRChat by closing the apps you list — then reopens them afterwards — plus VRChat cache management.</p>
+              <ul class="gal-ticks">
+                <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-4-4"/></svg>Frees resources on toggle</li>
+                <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-4-4"/></svg>Reopens apps after</li>
+                <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-4-4"/></svg>VRChat cache controls</li>
+              </ul>
+            </div>
+          </section>
         </div>
       </div>
     </div>
 
-    <p style="text-align:center;margin-top:2.6rem">
-      <a class="btn btn-primary btn-lg" href="download.html">Download AeroVRC</a>
-    </p>
+    <div class="screens-cta reveal">
+      <p class="screens-cta-line">Liked what you saw? It looks exactly like this on your desktop.</p>
+      <div class="hero-cta">
+        <a class="btn btn-primary btn-lg" href="download.html">Download AeroVRC</a>
+        <a class="btn btn-secondary btn-lg" href="quickstart.html">Quick Start →</a>
+      </div>
+    </div>
   </section>
+
+  <!-- full-resolution screenshot viewer (JS-driven; stays hidden without JS —
+       the zoom anchors then open the raw PNG directly) -->
+  <div id="lightbox" role="dialog" aria-modal="true" aria-label="Screenshot viewer" hidden>
+    <button class="lb-close" type="button" aria-label="Close viewer">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <button class="lb-prev" type="button" aria-label="Previous screenshot">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 6l-6 6 6 6"/></svg>
+    </button>
+    <button class="lb-next" type="button" aria-label="Next screenshot">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 6l6 6-6 6"/></svg>
+    </button>
+    <figure class="lb-fig">
+      <img class="lb-img" alt="" />
+      <figcaption class="lb-cap"><span class="lb-count"></span><span class="lb-text"></span></figcaption>
+    </figure>
+  </div>
 
   <!-- ================= FOOTER ================= -->
   <footer class="footer">
@@ -144,10 +590,189 @@
         <span class="brand-name">AeroVRC</span>
       </div>
       <p class="foot-note">An independent companion for VRChat · Not affiliated with VRChat Inc.</p>
-      <p class="foot-copy">© <span data-year>2026</span> AeroVRC · <a href="index.html">Welcome</a> · <a href="changelog.html">Changelog</a> · <a href="https://github.com/CalamityTheWatcher/AeroVRC" target="_blank" rel="noopener">GitHub</a></p>
+      <p class="foot-copy">© <span data-year>2026</span> AeroVRC · <a href="index.html">Welcome</a> · <a href="quickstart.html">Quick Start</a> · <a href="privacy.html">Privacy</a> · <a href="changelog.html">Changelog</a> · <a href="https://github.com/CalamityTheWatcher/AeroVRC" target="_blank" rel="noopener">GitHub</a></p>
     </div>
   </footer>
 
   <script src="app.js"></script>
+  <script>
+    // Observation Deck gallery — page-scoped controller. Reproduces the shared
+    // tab contract (click + ArrowLeft/Right wrap, ARIA, roving tabindex) and
+    // extends it: Home/End, hash deep-links via replaceState, swipe, counter,
+    // neighbor decode, and the full-resolution lightbox.
+    (function gallery() {
+      var root = document.getElementById('gallery');
+      var lb = document.getElementById('lightbox');
+      if (!root) return;
+      var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var strip = root.querySelector('.gal-strip');
+      var tabs = Array.prototype.slice.call(strip.querySelectorAll('[role=tab]'));
+      var panels = Array.prototype.slice.call(root.querySelectorAll('[role=tabpanel]'));
+      var nEl = root.querySelector('[data-gal-n]');
+      var ids = panels.map(function (p) { return p.id; });
+      var imgs = panels.map(function (p) { return p.querySelector('.gal-zoom img'); });
+      var caps = panels.map(function (p) {
+        var c = p.querySelector('.gal-cap p');
+        return c ? c.textContent.replace(/\s+/g, ' ').trim() : '';
+      });
+      var cur = 0;
+
+      function pad(n) { return String(n + 1).padStart(2, '0'); }
+
+      // warm the neighbours' full-size rasters so cross-fades never decode late
+      function prefetchNeighbors(i) {
+        [i - 1, i + 1].forEach(function (j) {
+          var k = (j + ids.length) % ids.length;
+          var im = new Image();
+          im.src = imgs[k].getAttribute('src');
+          if (im.decode) im.decode().catch(function () {});
+        });
+      }
+
+      function activate(id, opts) {
+        opts = opts || {};
+        var i = ids.indexOf(id);
+        if (i < 0) return;
+        cur = i;
+        tabs.forEach(function (b) {
+          var on = b.getAttribute('aria-controls') === id;
+          b.classList.toggle('is-active', on);
+          b.setAttribute('aria-selected', on ? 'true' : 'false');
+          b.tabIndex = on ? 0 : -1;
+          if (on && opts.focus) b.focus();
+          if (on && strip.scrollWidth > strip.clientWidth && b.scrollIntoView) {
+            b.scrollIntoView({ block: 'nearest', inline: 'center', behavior: reduce ? 'auto' : 'smooth' });
+          }
+        });
+        panels.forEach(function (p) { p.classList.toggle('is-active', p.id === id); });
+        if (nEl) nEl.textContent = pad(i);
+        if (!opts.silentHash && history.replaceState) history.replaceState(null, '', '#' + id);
+        prefetchNeighbors(i);
+      }
+
+      tabs.forEach(function (b, i) {
+        b.addEventListener('click', function () { activate(b.getAttribute('aria-controls')); });
+        b.addEventListener('keydown', function (e) {
+          var j = e.key === 'ArrowRight' ? i + 1 : e.key === 'ArrowLeft' ? i - 1 :
+                  e.key === 'Home' ? 0 : e.key === 'End' ? tabs.length - 1 : null;
+          if (j === null) return;
+          e.preventDefault();
+          activate(tabs[(j + tabs.length) % tabs.length].getAttribute('aria-controls'), { focus: true });
+        });
+      });
+
+      // swipe on the stage: a horizontal drag past 44px changes screen (no
+      // wrap — physical metaphor); a swipe never opens the zoom.
+      var stage = root.querySelector('.gal-stagewrap');
+      var sx = 0, sy = 0, swiped = false;
+      stage.addEventListener('pointerdown', function (e) { sx = e.clientX; sy = e.clientY; swiped = false; });
+      stage.addEventListener('pointerup', function (e) {
+        var dx = e.clientX - sx, dy = e.clientY - sy;
+        if (Math.abs(dx) > 44 && Math.abs(dx) > Math.abs(dy)) {
+          swiped = true;
+          var j = dx < 0 ? cur + 1 : cur - 1;
+          if (j >= 0 && j < ids.length) activate(ids[j]);
+        }
+      });
+
+      /* ---- lightbox: the 1120px masters at 1:1 ---- */
+      var lbImg = lb ? lb.querySelector('.lb-img') : null;
+      var lbText = lb ? lb.querySelector('.lb-text') : null;
+      var lbCount = lb ? lb.querySelector('.lb-count') : null;
+      var lbClose = lb ? lb.querySelector('.lb-close') : null;
+      var lbPrev = lb ? lb.querySelector('.lb-prev') : null;
+      var lbNext = lb ? lb.querySelector('.lb-next') : null;
+      var lastFocus = null;
+
+      function fillLb(i) {
+        lbImg.src = imgs[i].getAttribute('src');
+        lbImg.alt = imgs[i].getAttribute('alt') || '';
+        lbText.textContent = caps[i];
+        lbCount.textContent = pad(i) + ' / ' + String(ids.length).padStart(2, '0');
+      }
+      function openLb(i) {
+        if (!lb) return;
+        lastFocus = document.activeElement;
+        activate(ids[i]);
+        fillLb(i);
+        lb.hidden = false;
+        requestAnimationFrame(function () { lb.classList.add('on'); });
+        document.body.style.overflow = 'hidden';
+        if (lbClose) lbClose.focus();
+      }
+      function closeLb() {
+        if (!lb || lb.hidden) return;
+        lb.classList.remove('on');
+        lb.hidden = true;
+        document.body.style.overflow = '';
+        // if the viewer stepped to another screen, the original trigger now
+        // sits in a hidden panel — hand focus to the active thumb instead
+        var panel = lastFocus && lastFocus.closest ? lastFocus.closest('.gal-panel') : null;
+        if (panel && !panel.classList.contains('is-active')) tabs[cur].focus();
+        else if (lastFocus && lastFocus.focus) lastFocus.focus();
+      }
+      function stepLb(d) {
+        var k = (cur + d + ids.length) % ids.length;
+        activate(ids[k]);
+        fillLb(k);
+      }
+
+      panels.forEach(function (p, i) {
+        var a = p.querySelector('.gal-zoom');
+        if (!a) return;
+        a.addEventListener('click', function (e) {
+          if (swiped) { swiped = false; e.preventDefault(); return; }
+          if (!lb) return;               // no dialog — the anchor opens the raw PNG
+          e.preventDefault();
+          openLb(i);
+        });
+      });
+
+      if (lb) {
+        lbClose.addEventListener('click', closeLb);
+        lbPrev.addEventListener('click', function () { stepLb(-1); });
+        lbNext.addEventListener('click', function () { stepLb(1); });
+        lb.addEventListener('click', function (e) { if (e.target === lb) closeLb(); });
+        lb.addEventListener('keydown', function (e) { // trap: Tab cycles the 3 controls
+          if (e.key !== 'Tab') return;
+          var f = [lbClose, lbPrev, lbNext];
+          var i = f.indexOf(document.activeElement);
+          e.preventDefault();
+          var j = e.shiftKey ? (i <= 0 ? f.length - 1 : i - 1)
+                             : (i < 0 || i === f.length - 1 ? 0 : i + 1);
+          f[j].focus();
+        });
+        var lx = 0, ly = 0; // swipe inside the viewer
+        lb.addEventListener('pointerdown', function (e) { lx = e.clientX; ly = e.clientY; });
+        lb.addEventListener('pointerup', function (e) {
+          var dx = e.clientX - lx, dy = e.clientY - ly;
+          if (Math.abs(dx) > 44 && Math.abs(dx) > Math.abs(dy)) stepLb(dx < 0 ? 1 : -1);
+        });
+        document.addEventListener('keydown', function (e) {
+          if (lb.hidden) return;
+          if (e.key === 'Escape') closeLb();
+          else if (e.key === 'ArrowRight') { e.preventDefault(); stepLb(1); }
+          else if (e.key === 'ArrowLeft') { e.preventDefault(); stepLb(-1); }
+        });
+      }
+
+      // hash deep-link: #tab-<name> selects that screen without polluting history
+      var h = location.hash.slice(1);
+      if (ids.indexOf(h) > -1 && h !== ids[0]) activate(h, { silentHash: true });
+    })();
+  </script>
+  <script>
+    // freeze: an unfocused/hidden tab pauses every CSS animation (~0 GPU)
+    (function () {
+      function set(on) { document.body.classList.toggle('frozen', !on); }
+      set(!document.hidden && document.hasFocus());
+      window.addEventListener('blur', function () { set(false); });
+      window.addEventListener('focus', function () { set(true); });
+      document.addEventListener('visibilitychange', function () { set(!document.hidden && document.hasFocus()); });
+    })();
+  </script>
+  <!-- shared cosmic sky + input polish (GSAP pinned, classic, before the module) -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script type="module" src="cosmic-sky.js"></script>
 </body>
 </html>

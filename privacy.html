@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Privacy — AeroVRC</title>
+  <meta name="description" content="What AeroVRC does with your data: everything stays on your PC, read-only, no telemetry and no account required. The only network calls are GitHub updates and (opt-in) VRChat's own API." />
+
+  <meta property="og:title" content="AeroVRC — Privacy" />
+  <meta property="og:description" content="Local, read-only, no telemetry, no account. Your data stays on your PC." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://aerovrc.com/privacy.html" />
+  <meta property="og:image" content="https://aerovrc.com/img/cs_dashboard.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://aerovrc.com/img/cs_dashboard.png" />
+
+  <link rel="canonical" href="https://aerovrc.com/privacy.html" />
+  <link rel="icon" href="favicon.ico" />
+  <link rel="stylesheet" href="style.css" />
+  <meta name="theme-color" content="#040816" />
+
+  <script>window.AEROVRC_REPO = "CalamityTheWatcher/AeroVRC";</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ============================================================
+       Privacy overhaul — the family's quiet room. Static cosmic
+       skin, ZERO page-owned animation (no keyframes anywhere in
+       this block). All new rules scoped under body.privacy-cosmic;
+       shared style.css / app.js stay frozen.
+       ============================================================ */
+    body.privacy-cosmic{
+      --bg-deep:#040816;
+      --font-display:"Chakra Petch","Segoe UI",system-ui,sans-serif;
+      --ink:#c8d4ee;                    /* reading tone — body copy sits above --muted */
+      --surface:rgba(10,16,40,.72);     /* family solid tint */
+      --surface-border:rgba(130,198,255,.16);
+      background:
+        radial-gradient(1100px 700px at 18% 12%, rgba(74,156,255,.10), transparent 60%),
+        radial-gradient(900px 640px at 84% 78%, rgba(0,240,255,.05), transparent 60%),
+        radial-gradient(760px 560px at 70% 8%,  rgba(88,101,242,.07), transparent 62%),
+        linear-gradient(180deg,#0a1230 0%, var(--bg-deep) 68%);
+      background-attachment:fixed;
+    }
+    /* vignette — pseudo-element dodges the style.css body>* stacking trap, no !important needed */
+    body.privacy-cosmic::after{
+      content:"";position:fixed;inset:0;z-index:1;pointer-events:none;
+      background:radial-gradient(120% 100% at 50% 45%, transparent 55%, rgba(2,5,14,.55) 100%);
+    }
+    /* STATIC film grain — the family recipe minus the animation. A still noise
+       texture kills gradient banding at zero compositor cost. .grain IS a
+       body>* child → the stacking trap applies → !important on BOTH
+       position and z-index (the trap sets position:relative AND z-index:1). */
+    .grain{
+      position:fixed !important;inset:-8%;z-index:3 !important;pointer-events:none;
+      opacity:.028;mix-blend-mode:overlay;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      /* NO animation, NO keyframes — intentionally static */
+    }
+
+    /* ---------- document header ---------- */
+    body.privacy-cosmic .section-head h1{font-family:var(--font-display);letter-spacing:-.01em}
+    .doc-kicker{font:600 .72rem/1 var(--font-display);letter-spacing:.18em;text-transform:uppercase;
+      color:var(--accent-hi);margin:0 0 .9rem}
+
+    /* real-claims chip row — statements, not buttons: no hover, no pointer */
+    .claim-row{list-style:none;display:flex;flex-wrap:wrap;justify-content:center;gap:.5rem;
+      margin:1.2rem 0 0;padding:0}
+    .claim-row li{font:600 .68rem/1 var(--font-display);letter-spacing:.14em;text-transform:uppercase;
+      color:var(--accent-hi);padding:.55em 1em;border-radius:999px;
+      background:var(--surface);border:1px solid var(--surface-border)}
+
+    /* ---------- reading measure & tone ---------- */
+    body.privacy-cosmic .priv{max-width:calc(70ch + 2.7rem);margin:0 auto;display:flex;
+      flex-direction:column;gap:1rem;font-size:1.02rem}
+    /* card padding is 1.35rem per side → interior text measure lands at ≤70ch */
+    body.privacy-cosmic .priv-card p,
+    body.privacy-cosmic .priv-card ul{color:var(--ink);line-height:1.7}
+    body.privacy-cosmic .priv-card strong{color:var(--text)}   /* emphasis above body tone */
+    body.privacy-cosmic .tldr{color:var(--ink)}
+    /* family list styling */
+    body.privacy-cosmic .priv-card ul{list-style:none;padding:0;margin:.55rem 0 0;
+      display:flex;flex-direction:column;gap:.5rem}
+    body.privacy-cosmic .priv-card li{position:relative;margin:0;padding-left:1.15rem}
+    body.privacy-cosmic .priv-card li::before{content:"";position:absolute;left:.15rem;top:.68em;
+      width:5px;height:5px;border-radius:50%;background:var(--accent);opacity:.9}
+    /* prose links (the closer's pill-link keeps its own affordance) */
+    .priv-close{text-align:center;margin-top:2.2rem;color:var(--muted)}
+    body.privacy-cosmic #privacy a:not(.btn):not(.pill-link){color:var(--accent-hi);
+      text-decoration:underline;text-underline-offset:2px}
+    body.privacy-cosmic #privacy a:not(.btn):not(.pill-link):hover{color:var(--text)}
+
+    /* ---------- policy cards: solid quiet surfaces (not links — no hover theatrics) ---------- */
+    .priv-card{padding:1.2rem 1.35rem;border-radius:14px;}
+    body.privacy-cosmic .priv-card{background:var(--surface);border:1px solid var(--surface-border);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.05);scroll-margin-top:6rem}
+    body.privacy-cosmic .priv-card.good{border-color:rgba(67,199,138,.35)}  /* keeps the green identity */
+    .priv-card h2{margin:0 0 .5rem;font-size:1.1rem;display:flex;align-items:center;gap:.55rem;}
+    .priv-card h2 svg{width:20px;height:20px;flex:none;}
+    .priv-card code{font-family:Consolas,monospace;font-size:.9em;background:rgba(255,255,255,.06);border:1px solid rgba(130,180,255,.16);border-radius:5px;padding:0 5px;}
+    /* card index numbers — CSS counters: pure chrome, never in the DOM text;
+       the / "" alt text keeps them silent to screen readers */
+    body.privacy-cosmic .priv{counter-reset:sec}
+    body.privacy-cosmic .priv-card::before{counter-increment:sec;
+      content:counter(sec,decimal-leading-zero) / "";
+      display:block;font:600 .62rem/1 var(--font-display);letter-spacing:.2em;
+      color:var(--accent-hi);opacity:.7;margin-bottom:.5rem}
+
+    /* TL;DR promoted to a quiet verdict panel (same words, stronger frame) */
+    .tldr{font-size:1.05rem;text-align:center;max-width:70ch;margin:0 auto 2rem;}
+    .tldr strong{color:#e7eaf4;}
+    body.privacy-cosmic .tldr{background:var(--surface);border:1px solid var(--surface-border);
+      border-radius:14px;padding:1.1rem 1.4rem}
+
+    /* ---------- desktop-only fixed section rail ----------
+       body>* child → stacking trap → !important on position AND z-index */
+    .doc-rail{display:none}
+    @media (min-width:1100px){
+      .doc-rail{position:fixed !important;right:1.4rem;top:50%;transform:translateY(-50%);
+        z-index:6 !important;display:flex;flex-direction:column;gap:.85rem}
+      .doc-rail a{font:600 .68rem/1 var(--font-display);letter-spacing:.12em;text-transform:uppercase;
+        color:var(--muted);text-decoration:none;text-align:right;padding:.15rem 0;
+        border-right:2px solid rgba(130,198,255,.18);padding-right:.8rem;
+        transition:color .25s ease,border-color .25s ease}
+      .doc-rail a b{color:rgba(130,198,255,.45);font-weight:600;margin-right:.5em}
+      .doc-rail a:hover{color:var(--accent-hi)}
+      .doc-rail a.on{color:var(--accent-hi);border-right-color:var(--cyan,#00f0ff)}
+    }
+    .doc-rail a:focus-visible{outline:2px solid var(--accent-hi);outline-offset:3px;border-radius:4px}
+
+    /* entrance restraint: legal text does not travel — pure opacity fade */
+    .js body.privacy-cosmic .reveal{transform:none}
+
+    /* ---------- print: a privacy policy is the page people print ---------- */
+    @media print{
+      body.privacy-cosmic{background:#fff;color:#000}
+      .nav,.doc-rail,.grain,.footer,.claim-row,.scroll-progress{display:none !important}
+      body.privacy-cosmic::after{content:none}
+      body.privacy-cosmic .priv-card{background:none;border:1px solid #999;box-shadow:none;break-inside:avoid}
+      body.privacy-cosmic .priv-card p,body.privacy-cosmic .priv-card ul,
+      body.privacy-cosmic .tldr{color:#000}
+      body.privacy-cosmic .priv-card strong,body.privacy-cosmic .tldr strong{color:#000}
+      body.privacy-cosmic .tldr{background:none;border:1px solid #999}
+      body.privacy-cosmic .section-head h1,.doc-kicker{color:#000}
+      body.privacy-cosmic .section-head p{color:#000}
+      body.privacy-cosmic .priv-card::before{color:#000;opacity:.6}
+      .priv-close{color:#000}
+      /* keep the contact sentence printable — strip only the pill decoration */
+      body.privacy-cosmic .priv-close .pill-link{background:none;border:0;padding:0;color:#000;
+        font-size:inherit;font-weight:600}
+      body.privacy-cosmic #privacy a:not(.btn){color:#000}
+      body.privacy-cosmic #privacy a[href]::after{content:" (" attr(href) ")";font-size:.85em}
+    }
+
+    /* JS (cosmic-sky.js) adds .frozen when the tab loses focus / is hidden —
+       halt every CSS animation so an unwatched page costs ~0 GPU. This page
+       owns no animations; the rule covers the sky's companions all the same. */
+    body.frozen *,body.frozen *::before,body.frozen *::after{animation-play-state:paused !important}
+    /* the WebGL sky must never print */
+    @media print{ #sky{display:none !important} }
+  </style>
+
+  <!-- three.js via import map — same pinned build as the flagship splash.
+       cosmic-sky.js paints the living backdrop; the CSS sky above is the
+       no-WebGL / reduced-motion floor. -->
+  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.module.js" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.166.1/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body class="privacy-cosmic">
+
+  <!-- shared cosmic sky (WebGL) — layered behind everything. Inline
+       !important: style.css's body>* stacking trap would otherwise turn
+       this fixed layer into a flow block. -->
+  <canvas id="sky" aria-hidden="true" style="position:fixed !important;inset:0 !important;z-index:0 !important;display:block"></canvas>
+
+  <div class="grain" aria-hidden="true"></div>
+
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <radialGradient id="orbGlow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#4a9cff" stop-opacity=".55" />
+        <stop offset="70%" stop-color="#4a9cff" stop-opacity="0" />
+      </radialGradient>
+      <radialGradient id="orbBody" cx="37%" cy="33%" r="75%">
+        <stop offset="0%" stop-color="#a8d0ff" />
+        <stop offset="52%" stop-color="#4a9cff" />
+        <stop offset="100%" stop-color="#1c5cc8" />
+      </radialGradient>
+      <symbol id="orb" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="49" fill="url(#orbGlow)" />
+        <circle cx="50" cy="50" r="30" fill="url(#orbBody)" stroke="#82c6ff" stroke-opacity=".65" stroke-width="1.3" />
+        <ellipse cx="41" cy="39" rx="7.5" ry="5" fill="#fff" opacity=".55" />
+        <text x="50" y="51" text-anchor="middle" dominant-baseline="central"
+              font-family="'Segoe UI Semibold','Segoe UI',sans-serif" font-weight="700" font-size="30" fill="#fff">A</text>
+      </symbol>
+    </defs>
+  </svg>
+
+  <!-- ================= NAV ================= -->
+  <header class="nav" id="top">
+    <div class="nav-inner">
+      <a class="brand" href="home.html">
+        <svg class="orb orb-sm"><use href="#orb" /></svg>
+        <span class="brand-name">AeroVRC</span>
+      </a>
+      <button class="nav-toggle" data-nav-toggle aria-label="Toggle menu" aria-expanded="false" aria-controls="navlinks">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="nav-links" id="navlinks">
+        <a href="features.html">Features</a>
+        <a href="screenshots.html">Screenshots</a>
+        <a href="quickstart.html">Quick Start</a>
+        <a href="changelog.html">Changelog</a>
+        <a href="faq.html">FAQ</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+      <a class="btn btn-primary btn-sm nav-cta" href="download.html">Download</a>
+    </div>
+  </header>
+
+  <!-- desktop-only document rail (body child: outside .reveal/.priv on purpose) -->
+  <nav class="doc-rail" aria-label="On this page">
+    <a href="#no-telemetry"><b>01</b>No telemetry</a>
+    <a href="#what-it-reads"><b>02</b>What it reads</a>
+    <a href="#storage"><b>03</b>Storage</a>
+    <a href="#network"><b>04</b>Network</a>
+    <a href="#affiliation"><b>05</b>Affiliation</a>
+  </nav>
+
+  <!-- ================= PRIVACY ================= -->
+  <section class="section" id="privacy">
+    <div class="section-head reveal">
+      <p class="doc-kicker">AeroVRC · Data practices</p>
+      <h1>Your data stays on your PC</h1>
+      <p>AeroVRC is a local desktop app, not a service. Here&rsquo;s exactly what it reads, stores and sends.</p>
+      <ul class="claim-row" aria-label="Policy at a glance">
+        <li>Local-only</li><li>Read-only</li><li>No telemetry</li><li>No account</li>
+      </ul>
+    </div>
+
+    <p class="tldr reveal">
+      <strong>The short version:</strong> everything stays on your machine. No account is required, there&rsquo;s
+      no telemetry or tracking, and AeroVRC never uploads your data anywhere.
+    </p>
+
+    <div class="priv" data-stagger>
+      <div class="priv-card good" id="no-telemetry">
+        <h2><svg viewBox="0 0 24 24" fill="none" stroke="#43c78a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.4-2.9 7.9-7 9-4.1-1.1-7-4.6-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg> No account, no telemetry</h2>
+        <p>The watchdog, dashboard, launcher, stats, performance tweaks and cache tools all work with no sign-in.
+        AeroVRC doesn&rsquo;t phone home, doesn&rsquo;t include analytics, and doesn&rsquo;t track you.</p>
+      </div>
+
+      <div class="priv-card" id="what-it-reads">
+        <h2>What it reads (all local, read-only)</h2>
+        <ul>
+          <li><strong>VRChat&rsquo;s own log files</strong> — to show your current world, instance and the &ldquo;Who&rsquo;s here&rdquo; roster. This is information VRChat already writes to your disk.</li>
+          <li><strong>Your VRCX database</strong> — opened <strong>read-only</strong> from a private snapshot copy so your friends and history can appear inside AeroVRC. Nothing is ever written back to VRCX.</li>
+          <li><strong>Your VRChat photos folder</strong> — only to display thumbnails in the built-in gallery.</li>
+          <li><strong>Basic system metrics</strong> — CPU, RAM, GPU and disk readings shown on the dashboard, read from your PC locally.</li>
+        </ul>
+      </div>
+
+      <div class="priv-card" id="storage">
+        <h2>Where it stores things</h2>
+        <p>Settings, logs, crash-log archives and photo thumbnails live in your Windows
+        <code>%APPDATA%</code> folder. It&rsquo;s a portable app — to remove it completely, delete
+        <code>AeroVRC.exe</code> and (optionally) that folder.</p>
+      </div>
+
+      <div class="priv-card" id="network">
+        <h2>The only times it touches the internet</h2>
+        <ul>
+          <li><strong>GitHub</strong> — to check for and download updates and show the changelog. That&rsquo;s a normal release check; no personal data is sent.</li>
+          <li><strong>VRChat&rsquo;s official API — only if you choose to log in</strong> on the optional Account page. Your credentials go directly to VRChat (<code>api.vrchat.cloud</code>) and nowhere else; 2FA is supported. The resulting session is stored on your PC <strong>encrypted with Windows DPAPI</strong> and is never sent to any third party. If you never log in, AeroVRC makes no VRChat API calls at all.</li>
+        </ul>
+      </div>
+
+      <div class="priv-card" id="affiliation">
+        <h2>Not affiliated with VRChat</h2>
+        <p>AeroVRC is an independent, unofficial companion tool. It does not modify or inject into the VRChat
+        client. VRChat is a trademark of VRChat Inc.; AeroVRC is not endorsed by or associated with them.</p>
+      </div>
+    </div>
+
+    <p class="priv-close">
+      Questions about any of this? <a class="pill-link" href="contact.html">Get in touch</a>.
+    </p>
+  </section>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="foot-brand">
+        <svg class="orb orb-sm"><use href="#orb" /></svg>
+        <span class="brand-name">AeroVRC</span>
+      </div>
+      <p class="foot-note">An independent companion for VRChat · Not affiliated with VRChat Inc.</p>
+      <p class="foot-copy">© <span data-year>2026</span> AeroVRC · <a href="index.html">Welcome</a> · <a href="quickstart.html">Quick Start</a> · <a href="privacy.html" aria-current="page">Privacy</a> · <a href="changelog.html">Changelog</a> · <a href="https://github.com/CalamityTheWatcher/AeroVRC" target="_blank" rel="noopener">GitHub</a></p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+  <script>
+  /* section-rail scrollspy — IntersectionObserver only: no rAF, no scroll
+     listener, nothing to freeze. Plain-anchor navigation works with JS off. */
+  (function () {
+    "use strict";
+    var rail = document.querySelector(".doc-rail");
+    if (!rail || !("IntersectionObserver" in window)) return;
+    var map = {}, current = null;
+    rail.querySelectorAll("a[href^='#']").forEach(function (a) {
+      map[a.getAttribute("href").slice(1)] = a;
+      a.addEventListener("click", function () { set(a.getAttribute("href").slice(1)); });
+    });
+    function set(id) {
+      if (current === map[id]) return;
+      if (current) current.classList.remove("on");
+      current = map[id] || null;
+      if (current) current.classList.add("on");
+    }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { if (e.isIntersecting) set(e.target.id); });
+    }, { rootMargin: "-30% 0px -55% 0px" });
+    Object.keys(map).forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) io.observe(el);
+    });
+  })();
+  </script>
+  <!-- shared cosmic sky + input polish (GSAP pinned, classic, before the module).
+       Restraint-first page: the sky runs at half intensity. -->
+  <script>window.COSMIC_SKY = { dim: 0.5 };</script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script type="module" src="cosmic-sky.js"></script>
+</body>
+</html>
